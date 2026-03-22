@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import type { CheckPermissionResult } from "@/app/api/check-permission/route";
+import { AppShell } from "@/app/components/AppShell";
 
 const COUNTIES = [
   "Carlow", "Cavan", "Clare", "Cork", "Donegal", "Dublin",
@@ -117,34 +117,15 @@ export default function CheckPage() {
   const config = result ? OUTCOME_CONFIG[result.outcome] : null;
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-
-      {/* Nav */}
-      <nav className="border-b border-gray-200 px-6 py-4 bg-white">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
-            PlanAssist
-          </Link>
-          <div className="flex items-center gap-5 text-sm">
-            <span className="text-gray-900 font-medium">Permission Checker</span>
-            <Link href="/status" className="text-gray-500 hover:text-gray-900 transition-colors">
-              Application Status
-            </Link>
-            <Link href="/interpreter" className="text-gray-500 hover:text-gray-900 transition-colors">
-              Document Interpreter
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      <div className="max-w-3xl mx-auto px-4 py-12">
+    <AppShell>
+      <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 max-w-3xl mx-auto">
 
         {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">
+        <div className="mb-7 sm:mb-10">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 tracking-tight">
             Permission Checker
           </h1>
-          <p className="text-gray-500 leading-relaxed">
+          <p className="text-gray-500 leading-relaxed text-sm sm:text-base">
             Describe your project and we&apos;ll assess whether planning permission is required under
             current Irish planning law, including the March 2026 exemption changes.
           </p>
@@ -153,9 +134,9 @@ export default function CheckPage() {
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="bg-gray-50 border border-gray-200 rounded-2xl p-8 space-y-6"
+          className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 shadow-sm"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
             {/* County */}
             <div>
               <label className={labelClass} htmlFor="county">
@@ -237,7 +218,7 @@ export default function CheckPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3.5 px-6 rounded-xl transition-colors text-sm"
+            className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 sm:py-3.5 px-6 rounded-xl transition-colors text-sm"
           >
             {loading ? (
               <>
@@ -252,7 +233,7 @@ export default function CheckPage() {
 
         {/* Error state */}
         {error && (
-          <div className="mt-6 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+          <div className="mt-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
             {error}
           </div>
         )}
@@ -261,10 +242,10 @@ export default function CheckPage() {
         {result && config && (
           <div
             id="result"
-            className={`mt-8 rounded-2xl border ${config.card} p-8`}
+            className={`mt-6 sm:mt-8 rounded-2xl border ${config.card} p-5 sm:p-6 lg:p-8`}
           >
             {/* Badge */}
-            <div className="mb-5">
+            <div className="mb-4 sm:mb-5">
               <span className={`inline-flex items-center gap-2 text-sm font-semibold px-3 py-1.5 rounded-full ${config.badge}`}>
                 <span className={`w-2 h-2 rounded-full flex-shrink-0 ${config.dot}`} />
                 {config.label}
@@ -272,12 +253,12 @@ export default function CheckPage() {
             </div>
 
             {/* Headline */}
-            <h2 className={`text-xl font-bold mb-5 ${config.heading}`}>
+            <h2 className={`text-lg sm:text-xl font-bold mb-4 sm:mb-5 ${config.heading}`}>
               {result.headline}
             </h2>
 
             {/* Explanation */}
-            <div className={`text-sm leading-relaxed space-y-3 mb-7 ${config.bodyText}`}>
+            <div className={`text-sm leading-relaxed space-y-3 mb-6 sm:mb-7 ${config.bodyText}`}>
               {result.explanation.split("\n\n").map((para, i) => (
                 <p key={i}>{para}</p>
               ))}
@@ -285,7 +266,7 @@ export default function CheckPage() {
 
             {/* Key points */}
             {result.keyPoints?.length > 0 && (
-              <div className="mb-7">
+              <div className="mb-6 sm:mb-7">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
                   Key factors
                 </h3>
@@ -315,7 +296,7 @@ export default function CheckPage() {
                 setError(null);
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className="mt-6 text-sm text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+              className="mt-5 sm:mt-6 text-sm text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
             >
               Check another project
             </button>
@@ -323,7 +304,7 @@ export default function CheckPage() {
         )}
 
         {/* Disclaimer */}
-        <div className="mt-8 flex gap-3 bg-gray-50 border border-gray-200 rounded-xl p-4">
+        <div className="mt-6 sm:mt-8 flex gap-3 bg-gray-50 border border-gray-200 rounded-xl p-4">
           <svg
             className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400"
             fill="none"
@@ -346,7 +327,8 @@ export default function CheckPage() {
             site-specific conditions.
           </p>
         </div>
+
       </div>
-    </div>
+    </AppShell>
   );
 }

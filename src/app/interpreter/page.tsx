@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import Link from "next/link";
 import type { InterpretDocumentResult } from "@/app/api/interpret-document/route";
+import { AppShell } from "@/app/components/AppShell";
 
 const DOCUMENT_TYPES = [
   "RFI (Request for Further Information)",
@@ -218,34 +218,15 @@ export default function InterpreterPage() {
   const hasText = documentText.trim().length >= 50;
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-
-      {/* Nav */}
-      <nav className="border-b border-gray-200 px-6 py-4 bg-white">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
-            PlanAssist
-          </Link>
-          <div className="flex items-center gap-5 text-sm">
-            <Link href="/check" className="text-gray-500 hover:text-gray-900 transition-colors">
-              Permission Checker
-            </Link>
-            <Link href="/status" className="text-gray-500 hover:text-gray-900 transition-colors">
-              Application Status
-            </Link>
-            <span className="text-gray-900 font-medium">Document Interpreter</span>
-          </div>
-        </div>
-      </nav>
-
-      <div className="max-w-3xl mx-auto px-4 py-12">
+    <AppShell>
+      <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 max-w-3xl mx-auto">
 
         {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">
+        <div className="mb-7 sm:mb-10">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 tracking-tight">
             Document Interpreter
           </h1>
-          <p className="text-gray-500 leading-relaxed">
+          <p className="text-gray-500 leading-relaxed text-sm sm:text-base">
             Upload or paste any Irish planning document — an RFI, planning conditions, third party
             observation, or appeal decision — and get a plain English breakdown with prioritised
             actions and deadlines.
@@ -255,7 +236,7 @@ export default function InterpreterPage() {
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="bg-gray-50 border border-gray-200 rounded-2xl p-8 space-y-6"
+          className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 shadow-sm"
         >
           {/* Document type */}
           <div>
@@ -276,13 +257,13 @@ export default function InterpreterPage() {
             </select>
           </div>
 
-          {/* Document input — mode switcher + content */}
+          {/* Document input */}
           <div>
-            <div className="flex items-center justify-between mb-3">
+            {/* Label + mode toggle */}
+            <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
               <label className="block text-sm font-medium text-gray-700">
                 Document <span className="text-red-500">*</span>
               </label>
-              {/* Mode toggle */}
               <div className="flex items-center bg-gray-100 border border-gray-200 rounded-lg p-0.5 text-xs font-medium">
                 <button
                   type="button"
@@ -327,7 +308,7 @@ export default function InterpreterPage() {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-12 cursor-pointer transition-colors select-none ${
+                    className={`relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 sm:py-12 cursor-pointer transition-colors select-none ${
                       isDragOver
                         ? "border-green-500 bg-green-50"
                         : "border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50"
@@ -409,7 +390,7 @@ export default function InterpreterPage() {
                   id="documentText"
                   value={documentText}
                   onChange={(e) => setDocumentText(e.target.value)}
-                  rows={14}
+                  rows={12}
                   placeholder="Paste the full text of the planning document here…"
                   className={inputClass + " resize-y leading-relaxed"}
                 />
@@ -423,7 +404,7 @@ export default function InterpreterPage() {
           <button
             type="submit"
             disabled={loading || !hasText}
-            className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3.5 px-6 rounded-xl transition-colors text-sm"
+            className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-4 sm:py-3.5 px-6 rounded-xl transition-colors text-sm"
           >
             {loading ? (
               <>
@@ -438,17 +419,17 @@ export default function InterpreterPage() {
 
         {/* Submission error */}
         {error && (
-          <div className="mt-6 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+          <div className="mt-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
             {error}
           </div>
         )}
 
         {/* Result */}
         {result && verdictConfig && (
-          <div id="result" className="mt-8 space-y-5">
+          <div id="result" className="mt-6 sm:mt-8 space-y-4 sm:space-y-5">
 
             {/* Verdict */}
-            <div className={`rounded-2xl border ${verdictConfig.card} p-6`}>
+            <div className={`rounded-2xl border ${verdictConfig.card} p-5 sm:p-6`}>
               <div className="mb-3">
                 <span className={`inline-flex items-center gap-2 text-sm font-semibold px-3 py-1.5 rounded-full ${verdictConfig.badge}`}>
                   <span className={`w-2 h-2 rounded-full flex-shrink-0 ${verdictConfig.dot}`} />
@@ -461,7 +442,7 @@ export default function InterpreterPage() {
             </div>
 
             {/* Summary */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
                 Summary
               </h2>
@@ -474,7 +455,7 @@ export default function InterpreterPage() {
 
             {/* Actions */}
             {result.actions?.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
                   Actions required
                 </h2>
@@ -497,7 +478,7 @@ export default function InterpreterPage() {
 
             {/* Deadlines */}
             {result.deadlines?.length > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 sm:p-6">
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-amber-600 mb-4">
                   Deadlines
                 </h2>
@@ -529,7 +510,7 @@ export default function InterpreterPage() {
         )}
 
         {/* Disclaimer */}
-        <div className="mt-8 flex gap-3 bg-gray-50 border border-gray-200 rounded-xl p-4">
+        <div className="mt-6 sm:mt-8 flex gap-3 bg-gray-50 border border-gray-200 rounded-xl p-4">
           <svg
             className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400"
             fill="none"
@@ -552,6 +533,6 @@ export default function InterpreterPage() {
         </div>
 
       </div>
-    </div>
+    </AppShell>
   );
 }

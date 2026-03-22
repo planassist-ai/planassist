@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import type { CheckStatusResult } from "@/app/api/check-status/route";
+import { AppShell } from "@/app/components/AppShell";
 
 const COUNTIES = [
   "Carlow", "Cavan", "Clare", "Cork City", "Cork County", "Donegal",
@@ -155,34 +155,15 @@ export default function StatusPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-
-      {/* Nav */}
-      <nav className="border-b border-gray-200 px-6 py-4 bg-white">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
-            PlanAssist
-          </Link>
-          <div className="flex items-center gap-5 text-sm">
-            <Link href="/check" className="text-gray-500 hover:text-gray-900 transition-colors">
-              Permission Checker
-            </Link>
-            <span className="text-gray-900 font-medium">Application Status</span>
-            <Link href="/interpreter" className="text-gray-500 hover:text-gray-900 transition-colors">
-              Document Interpreter
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      <div className="max-w-3xl mx-auto px-4 py-12">
+    <AppShell>
+      <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 max-w-3xl mx-auto">
 
         {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">
+        <div className="mb-7 sm:mb-10">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 tracking-tight">
             Application Status
           </h1>
-          <p className="text-gray-500 leading-relaxed">
+          <p className="text-gray-500 leading-relaxed text-sm sm:text-base">
             Enter your planning reference number, council, and the status shown on your council&apos;s
             portal. We&apos;ll translate it into plain English and show you exactly where you are in
             the process.
@@ -192,9 +173,9 @@ export default function StatusPage() {
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="bg-gray-50 border border-gray-200 rounded-2xl p-8 space-y-6"
+          className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 shadow-sm"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
             {/* Reference number */}
             <div>
               <label className={labelClass} htmlFor="referenceNumber">
@@ -253,7 +234,7 @@ export default function StatusPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3.5 px-6 rounded-xl transition-colors text-sm"
+            className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 sm:py-3.5 px-6 rounded-xl transition-colors text-sm"
           >
             {loading ? (
               <>
@@ -268,14 +249,14 @@ export default function StatusPage() {
 
         {/* Error */}
         {error && (
-          <div className="mt-6 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+          <div className="mt-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
             {error}
           </div>
         )}
 
         {/* Results */}
         {result && (
-          <div id="result" className="mt-8 space-y-6">
+          <div id="result" className="mt-6 sm:mt-8 space-y-5 sm:space-y-6">
 
             {/* Reference pill */}
             <div className="flex items-center gap-2 flex-wrap">
@@ -288,8 +269,8 @@ export default function StatusPage() {
             </div>
 
             {/* Timeline */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-6">
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-5 sm:mb-6">
                 Planning Process — Stage {result.currentStage} of 8
               </h2>
               <ol className="space-y-0">
@@ -299,12 +280,11 @@ export default function StatusPage() {
                   const isLast = idx === PLANNING_STAGES.length - 1;
 
                   return (
-                    <li key={stage.id} className="flex gap-4">
+                    <li key={stage.id} className="flex gap-3 sm:gap-4">
                       {/* Left column: circle + connector */}
                       <div className="flex flex-col items-center flex-shrink-0">
-                        {/* Circle */}
                         <div
-                          className={`relative flex items-center justify-center w-8 h-8 rounded-full border-2 flex-shrink-0 transition-all ${
+                          className={`relative flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 flex-shrink-0 transition-all ${
                             isCompleted
                               ? "bg-green-600 border-green-600"
                               : isCurrent
@@ -313,17 +293,16 @@ export default function StatusPage() {
                           }`}
                         >
                           {isCompleted ? (
-                            <IconCheck className="w-4 h-4 text-white" />
+                            <IconCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                           ) : isCurrent ? (
                             <span className="text-white text-xs font-bold">{stage.id}</span>
                           ) : (
                             <span className="text-gray-400 text-xs font-medium">{stage.id}</span>
                           )}
                         </div>
-                        {/* Connector line */}
                         {!isLast && (
                           <div
-                            className={`w-0.5 flex-1 min-h-[2rem] my-1 ${
+                            className={`w-0.5 flex-1 min-h-[1.75rem] sm:min-h-[2rem] my-1 ${
                               isCompleted ? "bg-green-300" : "bg-gray-200"
                             }`}
                           />
@@ -331,10 +310,10 @@ export default function StatusPage() {
                       </div>
 
                       {/* Right column: content */}
-                      <div className={`pb-6 flex-1 min-w-0 ${isLast ? "pb-0" : ""}`}>
+                      <div className={`pb-5 sm:pb-6 flex-1 min-w-0 ${isLast ? "pb-0" : ""}`}>
                         {isCurrent ? (
-                          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 -mt-1">
-                            <div className="flex items-center gap-2 mb-0.5">
+                          <div className="bg-green-50 border border-green-200 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 -mt-1">
+                            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                               <p className="text-sm font-semibold text-green-800">{stage.name}</p>
                               <span className="text-xs font-medium text-green-700 bg-green-100 border border-green-200 px-2 py-0.5 rounded-full">
                                 Current
@@ -360,7 +339,7 @@ export default function StatusPage() {
             </div>
 
             {/* What this means */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-5">
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 space-y-5 shadow-sm">
               <div>
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
                   What this means
@@ -385,7 +364,7 @@ export default function StatusPage() {
 
             {/* Action required */}
             {result.actionRequired && result.actionDetails && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex gap-3">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex gap-3">
                 <IconAlert className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-amber-800 mb-1">Action required</p>
@@ -395,7 +374,7 @@ export default function StatusPage() {
             )}
 
             {/* Monitor this application */}
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
               {monitorSuccess ? (
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
@@ -420,19 +399,20 @@ export default function StatusPage() {
                     </div>
                   </div>
 
-                  <div className="flex gap-3">
+                  {/* Email + button — stacks on mobile, side by side on sm+ */}
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <input
                       type="email"
                       value={monitorEmail}
                       onChange={(e) => setMonitorEmail(e.target.value)}
                       required
                       placeholder="your@email.com"
-                      className="flex-1 bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                      className="flex-1 bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
                     />
                     <button
                       type="submit"
                       disabled={monitorLoading}
-                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-medium text-sm px-5 py-2.5 rounded-xl transition-colors whitespace-nowrap"
+                      className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-medium text-sm px-5 py-3 sm:py-2.5 rounded-xl transition-colors whitespace-nowrap"
                     >
                       {monitorLoading ? <Spinner /> : null}
                       {monitorLoading ? "Saving…" : "Set up alert"}
@@ -467,7 +447,7 @@ export default function StatusPage() {
                   <button
                     type="button"
                     onClick={() => setShowMonitor(true)}
-                    className="flex-shrink-0 bg-green-600 hover:bg-green-700 text-white font-medium text-sm px-5 py-2.5 rounded-xl transition-colors"
+                    className="flex-shrink-0 bg-green-600 hover:bg-green-700 text-white font-medium text-sm px-4 sm:px-5 py-2.5 rounded-xl transition-colors"
                   >
                     Set up alert
                   </button>
@@ -493,7 +473,7 @@ export default function StatusPage() {
         )}
 
         {/* Disclaimer */}
-        <div className="mt-8 flex gap-3 bg-gray-50 border border-gray-200 rounded-xl p-4">
+        <div className="mt-6 sm:mt-8 flex gap-3 bg-gray-50 border border-gray-200 rounded-xl p-4">
           <svg
             className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400"
             fill="none"
@@ -516,6 +496,6 @@ export default function StatusPage() {
         </div>
 
       </div>
-    </div>
+    </AppShell>
   );
 }
