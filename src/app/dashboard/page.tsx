@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -182,6 +182,14 @@ function IconAlert({ className }: { className?: string }) {
   );
 }
 
+function IconPencil({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+    </svg>
+  );
+}
+
 // ─── Shared form styles ────────────────────────────────────────────────────────
 
 const inputCls =
@@ -195,6 +203,11 @@ export default function DashboardPage() {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+
+  // Notes state — keyed by referenceNumber
+  const [notesOpen,   setNotesOpen]   = useState<Record<string, boolean>>({});
+  const [notesText,   setNotesText]   = useState<Record<string, string>>({});
+  const [notesStatus, setNotesStatus] = useState<Record<string, "idle" | "saving" | "saved" | "error">>({});
 
   // Add-application form state
   const [newRef,     setNewRef]     = useState("");
@@ -255,6 +268,47 @@ export default function DashboardPage() {
     setShowModal(false);
     setNewRef(""); setNewClient(""); setNewAddress(""); setNewDesc("");
     setNewSub(""); setNewDead(""); setNewStatus("received");
+  }
+
+  // ── Load all saved notes on mount ──
+  useEffect(() => {
+    fetch("/api/application-notes")
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data.notes)) {
+          setNotesText(
+            Object.fromEntries(
+              data.notes.map((n: { reference_number: string; notes: string }) => [
+                n.reference_number,
+                n.notes,
+              ])
+            )
+          );
+        }
+      })
+      .catch(() => {}); // notes are non-critical — fail silently
+  }, []);
+
+  // ── Toggle notes panel open/closed ──
+  function toggleNotes(ref: string) {
+    setNotesOpen(prev => ({ ...prev, [ref]: !prev[ref] }));
+  }
+
+  // ── Save notes to Supabase ──
+  async function saveNotes(ref: string) {
+    setNotesStatus(prev => ({ ...prev, [ref]: "saving" }));
+    try {
+      const res = await fetch("/api/application-notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ referenceNumber: ref, notes: notesText[ref] ?? "" }),
+      });
+      if (!res.ok) throw new Error("save failed");
+      setNotesStatus(prev => ({ ...prev, [ref]: "saved" }));
+      setTimeout(() => setNotesStatus(prev => ({ ...prev, [ref]: "idle" })), 2000);
+    } catch {
+      setNotesStatus(prev => ({ ...prev, [ref]: "error" }));
+    }
   }
 
   const FILTERS: { key: FilterKey; label: string; count: number }[] = [
@@ -467,29 +521,86 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* ── Card footer: portal link ── */}
+                  {/* ── Notes panel (expands above footer) ── */}
+                  {notesOpen[app.referenceNumber] && (
+                    <div className="px-5 pb-4">
+                      <div className="h-px bg-gray-100 mb-3" />
+                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                        Internal notes
+                      </label>
+                      <textarea
+                        value={notesText[app.referenceNumber] ?? ""}
+                        onChange={e =>
+                          setNotesText(prev => ({ ...prev, [app.referenceNumber]: e.target.value }))
+                        }
+                        placeholder="Add notes visible only to you — call-backs, site visit dates, client queries…"
+                        rows={3}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors leading-relaxed"
+                      />
+                      <div className="flex items-center justify-between mt-2">
+                        <span className={`text-xs min-w-[4rem] transition-colors ${
+                          notesStatus[app.referenceNumber] === "saved"  ? "text-green-600" :
+                          notesStatus[app.referenceNumber] === "error"  ? "text-red-500"   :
+                          notesStatus[app.referenceNumber] === "saving" ? "text-gray-400"  : "text-transparent"
+                        }`}>
+                          {notesStatus[app.referenceNumber] === "saving" ? "Saving…"       :
+                           notesStatus[app.referenceNumber] === "saved"  ? "✓ Saved"       :
+                           notesStatus[app.referenceNumber] === "error"  ? "Failed to save" : "·"}
+                        </span>
+                        <button
+                          onClick={() => saveNotes(app.referenceNumber)}
+                          disabled={notesStatus[app.referenceNumber] === "saving"}
+                          className="text-xs font-semibold bg-gray-900 hover:bg-gray-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                          Save notes
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── Card footer: notes toggle + portal link ── */}
                   <div className="px-5 pb-5 pt-1">
                     <div className="h-px bg-gray-100 mb-4" />
-                    <button
-                      onClick={() => copyPortalLink(app)}
-                      className={`w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-medium transition-all ${
-                        copied
-                          ? "bg-green-50 border-green-200 text-green-700"
-                          : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 active:bg-gray-100"
-                      }`}
-                    >
-                      {copied ? (
-                        <>
-                          <IconCheck className="w-4 h-4" />
-                          Client portal link copied
-                        </>
-                      ) : (
-                        <>
-                          <IconLink className="w-4 h-4" />
-                          Generate client portal link
-                        </>
-                      )}
-                    </button>
+                    <div className="flex gap-2">
+                      {/* Notes toggle button */}
+                      <button
+                        onClick={() => toggleNotes(app.referenceNumber)}
+                        title={notesText[app.referenceNumber]?.trim() ? "Edit notes" : "Add notes"}
+                        aria-label="Notes"
+                        className={`relative flex items-center justify-center w-10 h-10 rounded-xl border transition-all shrink-0 ${
+                          notesOpen[app.referenceNumber]
+                            ? "bg-gray-900 border-gray-900 text-white"
+                            : "bg-white border-gray-200 text-gray-400 hover:text-gray-700 hover:border-gray-300"
+                        }`}
+                      >
+                        <IconPencil className="w-4 h-4" />
+                        {/* Green dot when notes exist and panel is closed */}
+                        {notesText[app.referenceNumber]?.trim() && !notesOpen[app.referenceNumber] && (
+                          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-green-500" />
+                        )}
+                      </button>
+                      {/* Portal link button */}
+                      <button
+                        onClick={() => copyPortalLink(app)}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-medium transition-all ${
+                          copied
+                            ? "bg-green-50 border-green-200 text-green-700"
+                            : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 active:bg-gray-100"
+                        }`}
+                      >
+                        {copied ? (
+                          <>
+                            <IconCheck className="w-4 h-4" />
+                            Client portal link copied
+                          </>
+                        ) : (
+                          <>
+                            <IconLink className="w-4 h-4" />
+                            Generate client portal link
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
