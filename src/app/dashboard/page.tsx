@@ -442,35 +442,66 @@ export default function DashboardPage() {
 
   // ── Load profile and applications on mount ──
   useEffect(() => {
-    Promise.all([
-      fetch("/api/architect-profile").then(r => r.json()),
-      fetch("/api/planning-applications").then(r => r.json()),
-    ])
-      .then(([profileData, appsData]) => {
-        // Profile — API now returns { id, practiceName, architectEmail }
-        if (profileData.profile) {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const [profileRes, appsRes] = await Promise.all([
+          fetch("/api/architect-profile"),
+          fetch("/api/planning-applications"),
+        ]);
+        const [profileData, appsData] = await Promise.all([
+          profileRes.json(),
+          appsRes.json(),
+        ]);
+        if (cancelled) return;
+
+        const profile = profileData.profile;
+
+        // Profile — API returns { id, practiceName, architectEmail }
+        if (profile) {
           setHasProfile(true);
-          setPracticeName(profileData.profile.practiceName ?? "");
-          setPracticeId(profileData.profile.id ?? null);
+          setPracticeName(profile.practiceName ?? "");
+          setPracticeId(profile.id ?? null);
         }
-        // Applications
-        if (Array.isArray(appsData.applications) && appsData.applications.length > 0) {
-          setApplications(appsData.applications);
-          // Seed notes state from the notes column on each application
+
+        const applyApps = (apps: { referenceNumber: string; notes?: string }[]) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setApplications(apps as any);
           const notesMap: Record<string, string> = {};
-          appsData.applications.forEach((app: { referenceNumber: string; notes?: string }) => {
-            if (app.notes) notesMap[app.referenceNumber] = app.notes;
-          });
+          apps.forEach(app => { if (app.notes) notesMap[app.referenceNumber] = app.notes; });
           setNotesText(notesMap);
+        };
+
+        const apps = Array.isArray(appsData.applications) ? appsData.applications : [];
+
+        if (apps.length > 0) {
+          applyApps(apps);
+        } else if (profile) {
+          // Profile exists but no applications yet — seed 4 demo applications into Supabase
+          const seedRes = await fetch("/api/seed-applications", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ practiceId: profile.id }),
+          });
+          if (cancelled) return;
+          const seedData = await seedRes.json();
+          const seededApps = Array.isArray(seedData.applications) ? seedData.applications : [];
+          applyApps(seededApps);
         }
-        // No applications + no profile → onboarding will show (hasProfile remains false)
-      })
-      .catch(() => {
-        // Supabase not configured — fall back to demo seed data
+        // No profile → onboarding will show (hasProfile stays false)
+      } catch {
+        if (cancelled) return;
+        // Supabase not configured — fall back to in-memory demo data
         setHasProfile(true);
         setApplications(SEED_APPLICATIONS);
-      })
-      .finally(() => setIsLoading(false));
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    load();
+    return () => { cancelled = true; };
   }, []);
 
   // ── Toggle notes panel open/closed ──
