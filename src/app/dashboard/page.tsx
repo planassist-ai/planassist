@@ -22,6 +22,7 @@ interface PlanningApplication {
   id: string;
   referenceNumber: string;
   clientName: string;
+  clientEmail?: string;
   propertyAddress: string;
   projectDescription: string;
   status: ApplicationStatus;
@@ -58,6 +59,7 @@ const SEED_APPLICATIONS: PlanningApplication[] = [
     id: "1",
     referenceNumber: "DCC/2026/000421",
     clientName: "Sarah & James O'Brien",
+    clientEmail: "sarah.obrien@gmail.com",
     propertyAddress: "23 Maple Drive, Ranelagh, Dublin 6",
     projectDescription: "Rear extension and attic conversion to existing dwelling",
     status: "under_assessment",
@@ -70,6 +72,7 @@ const SEED_APPLICATIONS: PlanningApplication[] = [
     id: "2",
     referenceNumber: "DLRCC/2026/000276",
     clientName: "Patrick Connolly",
+    clientEmail: "pconnolly@icloud.com",
     propertyAddress: "7 The Oaks, Stillorgan, Co. Dublin",
     projectDescription: "New two-storey detached dwelling with detached garage",
     status: "further_info",
@@ -83,6 +86,7 @@ const SEED_APPLICATIONS: PlanningApplication[] = [
     id: "3",
     referenceNumber: "SDCC/2026/000134",
     clientName: "Murphy Family Trust",
+    clientEmail: "dermot.murphy@murphyfamilytrust.ie",
     propertyAddress: "14 Ashfield Park, Templeogue, Dublin 12",
     projectDescription: "Single storey side extension to existing semi-detached dwelling",
     status: "decision_pending",
@@ -95,6 +99,7 @@ const SEED_APPLICATIONS: PlanningApplication[] = [
     id: "4",
     referenceNumber: "DCC/2025/002891",
     clientName: "Aoife Brennan",
+    clientEmail: "aoife.brennan@hotmail.com",
     propertyAddress: "Apt 4B Kilmainham Court, South Circular Road, Dublin 8",
     projectDescription: "Change of use from retail unit to café/restaurant at ground floor level",
     status: "granted",
@@ -190,6 +195,23 @@ function IconPencil({ className }: { className?: string }) {
   );
 }
 
+function IconEmail({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+    </svg>
+  );
+}
+
+function Spinner({ className }: { className?: string }) {
+  return (
+    <svg className={`animate-spin ${className ?? "w-4 h-4"}`} fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  );
+}
+
 // ─── Shared form styles ────────────────────────────────────────────────────────
 
 const inputCls =
@@ -209,9 +231,16 @@ export default function DashboardPage() {
   const [notesText,   setNotesText]   = useState<Record<string, string>>({});
   const [notesStatus, setNotesStatus] = useState<Record<string, "idle" | "saving" | "saved" | "error">>({});
 
+  // Send client update state — keyed by referenceNumber
+  const [sendOpen,   setSendOpen]   = useState<Record<string, boolean>>({});
+  const [sendEmail,  setSendEmail]  = useState<Record<string, string>>({});
+  const [sendStatus, setSendStatus] = useState<Record<string, "idle" | "sending" | "sent" | "error">>({});
+  const [sendSentTo, setSentTo]     = useState<Record<string, string>>({});
+
   // Add-application form state
   const [newRef,     setNewRef]     = useState("");
   const [newClient,  setNewClient]  = useState("");
+  const [newEmail,   setNewEmail]   = useState("");
   const [newAddress, setNewAddress] = useState("");
   const [newDesc,    setNewDesc]    = useState("");
   const [newSub,     setNewSub]     = useState("");
@@ -263,6 +292,7 @@ export default function DashboardPage() {
       id: String(Date.now()),
       referenceNumber: newRef,
       clientName: newClient,
+      clientEmail: newEmail || undefined,
       propertyAddress: newAddress,
       projectDescription: newDesc || "Planning application",
       status: newStatus,
@@ -272,7 +302,7 @@ export default function DashboardPage() {
       portalToken: `pa_live_${Date.now()}`,
     }, ...prev]);
     setShowModal(false);
-    setNewRef(""); setNewClient(""); setNewAddress(""); setNewDesc("");
+    setNewRef(""); setNewClient(""); setNewEmail(""); setNewAddress(""); setNewDesc("");
     setNewSub(""); setNewDead(""); setNewStatus("received");
   }
 
@@ -314,6 +344,52 @@ export default function DashboardPage() {
       setTimeout(() => setNotesStatus(prev => ({ ...prev, [ref]: "idle" })), 2000);
     } catch {
       setNotesStatus(prev => ({ ...prev, [ref]: "error" }));
+    }
+  }
+
+  // ── Toggle send panel open/closed ──
+  function toggleSend(ref: string, defaultEmail?: string) {
+    const opening = !sendOpen[ref];
+    setSendOpen(prev => ({ ...prev, [ref]: opening }));
+    if (opening && defaultEmail && !sendEmail[ref]) {
+      setSendEmail(prev => ({ ...prev, [ref]: defaultEmail }));
+    }
+  }
+
+  // ── Send client update via API ──
+  async function sendClientUpdate(app: PlanningApplication) {
+    const ref = app.referenceNumber;
+    const email = sendEmail[ref]?.trim();
+    if (!email) return;
+    setSendStatus(prev => ({ ...prev, [ref]: "sending" }));
+    try {
+      const res = await fetch("/api/send-client-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          referenceNumber:  app.referenceNumber,
+          clientName:       app.clientName,
+          clientEmail:      email,
+          propertyAddress:  app.propertyAddress,
+          projectDescription: app.projectDescription,
+          status:           app.status,
+          submissionDate:   app.submissionDate,
+          statutoryDeadline: app.statutoryDeadline,
+          hasRFI:           app.hasRFI,
+          rfiIssuedDate:    app.rfiIssuedDate,
+          decisionDate:     app.decisionDate,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "send failed");
+      setSendStatus(prev => ({ ...prev, [ref]: "sent" }));
+      setSentTo(prev => ({ ...prev, [ref]: email }));
+      setTimeout(() => {
+        setSendStatus(prev => ({ ...prev, [ref]: "idle" }));
+        setSendOpen(prev => ({ ...prev, [ref]: false }));
+      }, 3000);
+    } catch {
+      setSendStatus(prev => ({ ...prev, [ref]: "error" }));
     }
   }
 
@@ -615,7 +691,62 @@ export default function DashboardPage() {
                     </div>
                   )}
 
-                  {/* ── Card footer: notes toggle + portal link ── */}
+                  {/* ── Send client update panel (expands above footer) ── */}
+                  {sendOpen[app.referenceNumber] && (
+                    <div className="px-5 pb-4">
+                      <div className="h-px bg-gray-100 mb-3" />
+                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                        Send client update
+                      </label>
+                      {sendStatus[app.referenceNumber] === "sent" ? (
+                        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-3">
+                          <IconCheck className="w-4 h-4 text-green-600 shrink-0" />
+                          <p className="text-sm font-medium text-green-700">
+                            Email sent to {sendSentTo[app.referenceNumber]}
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <input
+                            type="email"
+                            value={sendEmail[app.referenceNumber] ?? ""}
+                            onChange={e =>
+                              setSendEmail(prev => ({ ...prev, [app.referenceNumber]: e.target.value }))
+                            }
+                            placeholder="client@example.com"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                          />
+                          {sendStatus[app.referenceNumber] === "error" && (
+                            <p className="mt-1.5 text-xs text-red-600">Failed to send — check your API keys and try again.</p>
+                          )}
+                          <div className="flex items-center justify-end mt-2">
+                            <button
+                              onClick={() => sendClientUpdate(app)}
+                              disabled={
+                                !sendEmail[app.referenceNumber]?.trim() ||
+                                sendStatus[app.referenceNumber] === "sending"
+                              }
+                              className="flex items-center gap-2 text-xs font-semibold bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3.5 py-1.5 rounded-lg transition-colors"
+                            >
+                              {sendStatus[app.referenceNumber] === "sending" ? (
+                                <>
+                                  <Spinner className="w-3.5 h-3.5" />
+                                  Generating &amp; sending…
+                                </>
+                              ) : (
+                                <>
+                                  <IconEmail className="w-3.5 h-3.5" />
+                                  Send update
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ── Card footer: notes toggle + portal link + send update ── */}
                   <div className="px-5 pb-5 pt-1">
                     <div className="h-px bg-gray-100 mb-4" />
                     <div className="flex gap-2">
@@ -635,6 +766,19 @@ export default function DashboardPage() {
                         {notesText[app.referenceNumber]?.trim() && !notesOpen[app.referenceNumber] && (
                           <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-green-500" />
                         )}
+                      </button>
+                      {/* Send client update button */}
+                      <button
+                        onClick={() => toggleSend(app.referenceNumber, app.clientEmail)}
+                        aria-label="Send client update"
+                        className={`relative flex items-center justify-center w-10 h-10 rounded-xl border transition-all shrink-0 ${
+                          sendOpen[app.referenceNumber]
+                            ? "bg-green-600 border-green-600 text-white"
+                            : "bg-white border-gray-200 text-gray-400 hover:text-gray-700 hover:border-gray-300"
+                        }`}
+                        title="Send client update email"
+                      >
+                        <IconEmail className="w-4 h-4" />
                       </button>
                       {/* Portal link button */}
                       <button
@@ -736,6 +880,20 @@ export default function DashboardPage() {
                   onChange={e => setNewClient(e.target.value)}
                   required
                   placeholder="e.g. John & Mary Smith"
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label className={labelCls} htmlFor="m-email">
+                  Client email <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  id="m-email"
+                  type="email"
+                  value={newEmail}
+                  onChange={e => setNewEmail(e.target.value)}
+                  placeholder="e.g. client@example.com"
                   className={inputCls}
                 />
               </div>
