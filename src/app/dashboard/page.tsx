@@ -7,14 +7,18 @@ import Link from "next/link";
 
 type ApplicationStatus =
   | "received"
-  | "validation"
-  | "on_display"
+  | "validated"
   | "under_assessment"
   | "further_info"
+  | "fi_response"
+  | "decision_made"
+  | "appeal"
+  // Legacy values kept for backward-compat with existing DB rows
+  | "validation"
+  | "on_display"
   | "decision_pending"
   | "granted"
-  | "refused"
-  | "appeal";
+  | "refused";
 
 type FilterKey = "all" | "on_track" | "needs_attention" | "decisions";
 
@@ -33,6 +37,7 @@ interface PlanningApplication {
   decisionDate?: string;
   portalToken: string;
   council?: string;
+  updatedAt?: string;
 }
 
 // ─── Status config ─────────────────────────────────────────────────────────────
@@ -41,16 +46,32 @@ const STATUS_CONFIG: Record<
   ApplicationStatus,
   { label: string; badge: string; group: "on_track" | "needs_attention" | "decision" }
 > = {
-  received:         { label: "Received",               badge: "bg-gray-100 text-gray-600 border-gray-200",    group: "on_track" },
-  validation:       { label: "In Validation",           badge: "bg-gray-100 text-gray-600 border-gray-200",    group: "on_track" },
-  on_display:       { label: "On Public Display",       badge: "bg-blue-100 text-blue-700 border-blue-200",    group: "on_track" },
-  under_assessment: { label: "Under Assessment",        badge: "bg-indigo-100 text-indigo-700 border-indigo-200", group: "on_track" },
-  further_info:     { label: "Further Info Required",   badge: "bg-red-100 text-red-700 border-red-200",       group: "needs_attention" },
-  decision_pending: { label: "Decision Pending",        badge: "bg-amber-100 text-amber-700 border-amber-200", group: "on_track" },
-  granted:          { label: "Granted",                 badge: "bg-green-100 text-green-700 border-green-200", group: "decision" },
-  refused:          { label: "Refused",                 badge: "bg-red-100 text-red-700 border-red-200",       group: "decision" },
-  appeal:           { label: "Under Appeal",            badge: "bg-orange-100 text-orange-700 border-orange-200", group: "needs_attention" },
+  // Current canonical stages
+  received:         { label: "Received",                  badge: "bg-gray-100 text-gray-600 border-gray-200",       group: "on_track" },
+  validated:        { label: "Validated",                  badge: "bg-gray-100 text-gray-600 border-gray-200",       group: "on_track" },
+  under_assessment: { label: "Under Assessment",           badge: "bg-indigo-100 text-indigo-700 border-indigo-200", group: "on_track" },
+  further_info:     { label: "Further Info Requested",     badge: "bg-red-100 text-red-700 border-red-200",          group: "needs_attention" },
+  fi_response:      { label: "FI Response Submitted",      badge: "bg-blue-100 text-blue-700 border-blue-200",       group: "on_track" },
+  decision_made:    { label: "Decision Made",              badge: "bg-green-100 text-green-700 border-green-200",    group: "decision" },
+  appeal:           { label: "Appealed",                   badge: "bg-orange-100 text-orange-700 border-orange-200", group: "needs_attention" },
+  // Legacy — kept for backward-compat with existing DB rows
+  validation:       { label: "In Validation",              badge: "bg-gray-100 text-gray-600 border-gray-200",       group: "on_track" },
+  on_display:       { label: "On Public Display",          badge: "bg-blue-100 text-blue-700 border-blue-200",       group: "on_track" },
+  decision_pending: { label: "Decision Pending",           badge: "bg-amber-100 text-amber-700 border-amber-200",    group: "on_track" },
+  granted:          { label: "Granted",                    badge: "bg-green-100 text-green-700 border-green-200",    group: "decision" },
+  refused:          { label: "Refused",                    badge: "bg-red-100 text-red-700 border-red-200",          group: "decision" },
 };
+
+// Dropdown options shown to the architect (canonical 7-stage flow)
+const STATUS_OPTIONS: { value: ApplicationStatus; label: string }[] = [
+  { value: "received",         label: "Received" },
+  { value: "validated",        label: "Validated" },
+  { value: "under_assessment", label: "Under Assessment" },
+  { value: "further_info",     label: "Further Information Requested" },
+  { value: "fi_response",      label: "FI Response Submitted" },
+  { value: "decision_made",    label: "Decision Made" },
+  { value: "appeal",           label: "Appealed" },
+];
 
 // ─── Planning authorities ─────────────────────────────────────────────────────
 
@@ -126,7 +147,7 @@ const SEED_APPLICATIONS: PlanningApplication[] = [
     clientEmail: "dermot.murphy@murphyfamilytrust.ie",
     propertyAddress: "14 Ashfield Park, Templeogue, Dublin 12",
     projectDescription: "Single storey side extension to existing semi-detached dwelling",
-    status: "decision_pending",
+    status: "under_assessment",
     submissionDate: "2026-01-09",
     statutoryDeadline: "2026-03-24",
     hasRFI: false,
@@ -139,7 +160,7 @@ const SEED_APPLICATIONS: PlanningApplication[] = [
     clientEmail: "aoife.brennan@hotmail.com",
     propertyAddress: "Apt 4B Kilmainham Court, South Circular Road, Dublin 8",
     projectDescription: "Change of use from retail unit to café/restaurant at ground floor level",
-    status: "granted",
+    status: "decision_made",
     submissionDate: "2025-12-22",
     statutoryDeadline: "2026-02-16",
     hasRFI: false,
@@ -160,6 +181,17 @@ function daysSince(dateStr: string) {
 
 function daysUntil(dateStr: string) {
   return daysBetween(new Date(), new Date(dateStr));
+}
+
+function timeAgo(isoStr: string): string {
+  const diff = Date.now() - new Date(isoStr).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1)  return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)  return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
 }
 
 function deadlinePill(app: PlanningApplication): { text: string; cls: string } {
@@ -232,6 +264,22 @@ function IconPencil({ className }: { className?: string }) {
   );
 }
 
+function IconChevronDown({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+}
+
+function IconClock({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
 function IconEmail({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
@@ -284,6 +332,9 @@ export default function DashboardPage() {
   const [notesOpen,   setNotesOpen]   = useState<Record<string, boolean>>({});
   const [notesText,   setNotesText]   = useState<Record<string, string>>({});
   const [notesStatus, setNotesStatus] = useState<Record<string, "idle" | "saving" | "saved" | "error">>({});
+
+  // ── Status update saving state — keyed by application id ──
+  const [statusSaving, setStatusSaving] = useState<Record<string, "idle" | "saving" | "saved" | "error">>({});
 
   // ── Send client update state — keyed by referenceNumber ──
   const [sendOpen,   setSendOpen]   = useState<Record<string, boolean>>({});
@@ -438,6 +489,38 @@ export default function DashboardPage() {
       setTimeout(() => setNotesStatus(prev => ({ ...prev, [ref]: "idle" })), 2000);
     } catch {
       setNotesStatus(prev => ({ ...prev, [ref]: "error" }));
+    }
+  }
+
+  // ── Update application status ──
+  async function updateStatus(app: PlanningApplication, newStatus: ApplicationStatus) {
+    const now = new Date().toISOString();
+    // Optimistic update
+    setApplications(prev =>
+      prev.map(a => a.id === app.id ? { ...a, status: newStatus, updatedAt: now } : a)
+    );
+    setStatusSaving(prev => ({ ...prev, [app.id]: "saving" }));
+    try {
+      const res = await fetch(`/api/planning-applications/${app.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) throw new Error("update failed");
+      const data = await res.json();
+      // Sync with server response (authoritative updatedAt)
+      setApplications(prev =>
+        prev.map(a => a.id === app.id ? { ...a, ...data.application } : a)
+      );
+      setStatusSaving(prev => ({ ...prev, [app.id]: "saved" }));
+      setTimeout(() => setStatusSaving(prev => ({ ...prev, [app.id]: "idle" })), 2000);
+    } catch {
+      // Revert
+      setApplications(prev =>
+        prev.map(a => a.id === app.id ? { ...a, status: app.status, updatedAt: app.updatedAt } : a)
+      );
+      setStatusSaving(prev => ({ ...prev, [app.id]: "error" }));
+      setTimeout(() => setStatusSaving(prev => ({ ...prev, [app.id]: "idle" })), 3000);
     }
   }
 
@@ -986,6 +1069,35 @@ export default function DashboardPage() {
                         <p className={`text-sm font-semibold`}>{pill.text}</p>
                       </div>
                     </div>
+
+                    {/* ── Status update ── */}
+                    <div className="mt-3 flex items-center gap-2.5">
+                      <div className="relative flex-1">
+                        <select
+                          value={app.status}
+                          onChange={e => updateStatus(app, e.target.value as ApplicationStatus)}
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 pr-8 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none cursor-pointer transition-colors"
+                        >
+                          {STATUS_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                          {/* Render current value as an option if it's a legacy status not in the canonical list */}
+                          {!STATUS_OPTIONS.find(o => o.value === app.status) && (
+                            <option value={app.status}>{STATUS_CONFIG[app.status]?.label ?? app.status}</option>
+                          )}
+                        </select>
+                        <IconChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                      </div>
+                      <span className={`text-xs whitespace-nowrap min-w-[3.5rem] text-right transition-colors ${
+                        statusSaving[app.id] === "saving" ? "text-gray-400"  :
+                        statusSaving[app.id] === "saved"  ? "text-green-600" :
+                        statusSaving[app.id] === "error"  ? "text-red-500"   : "text-transparent"
+                      }`}>
+                        {statusSaving[app.id] === "saving" ? "Saving…"  :
+                         statusSaving[app.id] === "saved"  ? "✓ Saved"  :
+                         statusSaving[app.id] === "error"  ? "Failed"   : "·"}
+                      </span>
+                    </div>
                   </div>
 
                   {/* ── Notes panel (expands above footer) ── */}
@@ -1082,7 +1194,13 @@ export default function DashboardPage() {
 
                   {/* ── Card footer: notes toggle + portal link + send update ── */}
                   <div className="px-5 pb-5 pt-1">
-                    <div className="h-px bg-gray-100 mb-4" />
+                    <div className="h-px bg-gray-100 mb-3" />
+                    {app.updatedAt && (
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <IconClock className="w-3 h-3 text-gray-300 shrink-0" />
+                        <span className="text-[11px] text-gray-400">Updated {timeAgo(app.updatedAt)}</span>
+                      </div>
+                    )}
                     <div className="flex gap-2">
                       {/* Notes toggle button */}
                       <button

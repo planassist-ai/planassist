@@ -18,6 +18,7 @@ import { NextRequest, NextResponse } from "next/server";
 //   decision_date       date,
 //   portal_token        text        NOT NULL,
 //   council             text,
+//   updated_at          timestamptz DEFAULT now(),
 //   created_at          timestamptz DEFAULT now()
 // );
 // CREATE INDEX ON planning_applications (reference_number);
@@ -46,6 +47,7 @@ function mapRow(row: Record<string, any>) {
     decisionDate:       row.decision_date    as string | undefined,
     portalToken:        row.portal_token     as string,
     council:            row.council          as string | undefined,
+    updatedAt:          row.updated_at       as string | undefined,
   };
 }
 
