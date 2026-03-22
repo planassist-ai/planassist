@@ -314,7 +314,6 @@ export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
 
   // ── Profile state ──
-  const [hasProfile,   setHasProfile]   = useState(false);
   const [practiceName, setPracticeName] = useState("");
   const [practiceId,   setPracticeId]   = useState<string | null>(null);
 
@@ -446,7 +445,6 @@ export default function DashboardPage() {
         const profile = profileData.profile;
 
         if (profile) {
-          setHasProfile(true);
           setPracticeName(profile.practiceName ?? "");
           setPracticeId(profile.id ?? null);
         }
@@ -657,22 +655,6 @@ export default function DashboardPage() {
                 </ul>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* ── Add Your Practice banner (shown when no practice set up) ── */}
-        {!hasProfile && (
-          <div className="mb-7 sm:mb-8 bg-white border border-green-200 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 shadow-sm">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-gray-900">You&apos;re viewing sample data</p>
-              <p className="text-xs text-gray-500 mt-0.5">Add your practice to track your real applications.</p>
-            </div>
-            <Link
-              href="/onboarding"
-              className="shrink-0 inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors"
-            >
-              Add Your Practice
-            </Link>
           </div>
         )}
 
