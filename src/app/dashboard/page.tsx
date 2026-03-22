@@ -219,10 +219,16 @@ export default function DashboardPage() {
   const [newStatus,  setNewStatus]  = useState<ApplicationStatus>("received");
 
   // ── Derived stats ──
-  const total         = applications.length;
-  const onTrackCount  = applications.filter(a => STATUS_CONFIG[a.status].group === "on_track" && !isNeedsAttention(a)).length;
+  const total          = applications.length;
+  const onTrackCount   = applications.filter(a => STATUS_CONFIG[a.status].group === "on_track" && !isNeedsAttention(a)).length;
   const attentionCount = applications.filter(isNeedsAttention).length;
-  const decisionCount = applications.filter(a => STATUS_CONFIG[a.status].group === "decision").length;
+  const decisionCount  = applications.filter(a => STATUS_CONFIG[a.status].group === "decision").length;
+
+  // Applications with statutory deadline within 7 days (excludes decided applications)
+  const urgentApps = applications
+    .filter(a => STATUS_CONFIG[a.status].group !== "decision")
+    .filter(a => daysUntil(a.statutoryDeadline) <= 7)
+    .sort((a, b) => daysUntil(a.statutoryDeadline) - daysUntil(b.statutoryDeadline));
 
   // ── Filtered list ──
   const filtered = applications.filter(a => {
@@ -343,6 +349,57 @@ export default function DashboardPage() {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:py-10">
+
+        {/* ── Deadline alert banner ──────────────────────────────────── */}
+        {urgentApps.length > 0 && (
+          <div className="mb-7 sm:mb-8 bg-red-600 rounded-2xl overflow-hidden">
+            <div className="px-4 sm:px-5 py-4 flex items-start gap-3">
+              {/* Icon */}
+              <div className="shrink-0 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mt-0.5">
+                <IconAlert className="w-4 h-4 text-white" />
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-white mb-3">
+                  {urgentApps.length === 1
+                    ? "1 application has a statutory deadline within 7 days"
+                    : `${urgentApps.length} applications have statutory deadlines within 7 days`}
+                </p>
+                <ul className="space-y-2">
+                  {urgentApps.map(app => {
+                    const days = daysUntil(app.statutoryDeadline);
+                    return (
+                      <li
+                        key={app.id}
+                        className="flex items-center justify-between gap-3 flex-wrap bg-white/10 rounded-xl px-3 py-2"
+                      >
+                        <div className="min-w-0">
+                          <span className="text-sm font-semibold text-white">{app.clientName}</span>
+                          <span className="text-red-200 mx-1.5">·</span>
+                          <span className="text-xs font-mono text-red-200">{app.referenceNumber}</span>
+                        </div>
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ${
+                          days <= 0
+                            ? "bg-white text-red-700"
+                            : days <= 2
+                            ? "bg-red-900 text-red-100"
+                            : "bg-red-700 text-white"
+                        }`}>
+                          {days < 0
+                            ? `${Math.abs(days)}d overdue`
+                            : days === 0
+                            ? "Due today"
+                            : `${days}d left`}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── Title + Add button ─────────────────────────────────────── */}
         <div className="flex items-start justify-between gap-4 mb-7 sm:mb-8">
