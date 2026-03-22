@@ -296,7 +296,6 @@ export default function StatusPage() {
                 {PLANNING_STAGES.map((stage, idx) => {
                   const isCompleted = stage.id < result.currentStage;
                   const isCurrent = stage.id === result.currentStage;
-                  const isFuture = stage.id > result.currentStage;
                   const isLast = idx === PLANNING_STAGES.length - 1;
 
                   return (
