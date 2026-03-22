@@ -28,15 +28,16 @@ interface PlanningApplication {
   clientName: string;
   clientEmail?: string;
   propertyAddress: string;
-  projectDescription: string;
+  projectDescription?: string; // not stored in DB
   status: ApplicationStatus;
-  submissionDate: string;   // YYYY-MM-DD
-  statutoryDeadline: string; // YYYY-MM-DD
-  hasRFI: boolean;
+  submissionDate: string;       // YYYY-MM-DD
+  statutoryDeadline: string;    // YYYY-MM-DD
+  hasRFI?: boolean;             // not stored in DB
   rfiIssuedDate?: string;
   decisionDate?: string;
-  portalToken: string;
+  portalToken?: string;         // generated from reference when not in DB
   council?: string;
+  notes?: string;               // loaded from applications.notes
   updatedAt?: string;
 }
 
@@ -313,20 +314,22 @@ export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
 
   // ── Profile / onboarding state ──
-  const [isLoading,    setIsLoading]    = useState(true);
-  const [hasProfile,   setHasProfile]   = useState(false);
-  const [practiceName, setPracticeName] = useState("");
+  const [isLoading,       setIsLoading]       = useState(true);
+  const [hasProfile,      setHasProfile]      = useState(false);
+  const [practiceName,    setPracticeName]    = useState("");
+  const [practiceId,      setPracticeId]      = useState<string | null>(null);
 
   // Onboarding form
-  const [obPractice, setObPractice] = useState("");
-  const [obRef,      setObRef]      = useState("");
-  const [obClient,   setObClient]   = useState("");
-  const [obEmail,    setObEmail]    = useState("");
-  const [obAddress,  setObAddress]  = useState("");
-  const [obCouncil,  setObCouncil]  = useState("");
-  const [obSubDate,  setObSubDate]  = useState("");
-  const [obLoading,  setObLoading]  = useState(false);
-  const [obError,    setObError]    = useState<string | null>(null);
+  const [obPractice,      setObPractice]      = useState("");
+  const [obArchitectEmail, setObArchitectEmail] = useState("");
+  const [obRef,           setObRef]           = useState("");
+  const [obClient,        setObClient]        = useState("");
+  const [obEmail,         setObEmail]         = useState("");
+  const [obAddress,       setObAddress]       = useState("");
+  const [obCouncil,       setObCouncil]       = useState("");
+  const [obSubDate,       setObSubDate]       = useState("");
+  const [obLoading,       setObLoading]       = useState(false);
+  const [obError,         setObError]         = useState<string | null>(null);
 
   // ── Notes state — keyed by referenceNumber ──
   const [notesOpen,   setNotesOpen]   = useState<Record<string, boolean>>({});
@@ -376,7 +379,8 @@ export default function DashboardPage() {
 
   // ── Copy portal link ──
   const copyPortalLink = useCallback(async (app: PlanningApplication) => {
-    const url = `https://planassist.ie/portal/${app.portalToken}`;
+    const token = app.portalToken ?? app.referenceNumber.toLowerCase().replace(/\//g, "-");
+    const url = `https://planassist.ie/portal/${token}`;
     try {
       await navigator.clipboard.writeText(url);
     } catch {
@@ -423,44 +427,43 @@ export default function DashboardPage() {
     fetch("/api/planning-applications", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ referenceNumber: ref, clientName: client, clientEmail: email || undefined, propertyAddress: address, projectDescription: desc, status, submissionDate: sub, statutoryDeadline: dead, council: council || undefined }),
+      body: JSON.stringify({
+        referenceNumber: ref,
+        clientName:      client,
+        address:         address,
+        status,
+        submissionDate:  sub,
+        statutoryDeadline: dead,
+        council:         council || undefined,
+        practiceId:      practiceId,
+      }),
     }).catch(() => {});
   }
 
-  // ── Load profile, applications, and notes on mount ──
+  // ── Load profile and applications on mount ──
   useEffect(() => {
     Promise.all([
       fetch("/api/architect-profile").then(r => r.json()),
       fetch("/api/planning-applications").then(r => r.json()),
-      fetch("/api/application-notes").then(r => r.json()),
     ])
-      .then(([profileData, appsData, notesData]) => {
-        // Profile
+      .then(([profileData, appsData]) => {
+        // Profile — API now returns { id, practiceName, architectEmail }
         if (profileData.profile) {
           setHasProfile(true);
-          setPracticeName(profileData.profile.practice_name ?? "");
+          setPracticeName(profileData.profile.practiceName ?? "");
+          setPracticeId(profileData.profile.id ?? null);
         }
-        // Applications — fall back to seed data if none in DB yet
+        // Applications
         if (Array.isArray(appsData.applications) && appsData.applications.length > 0) {
           setApplications(appsData.applications);
-        } else if (!profileData.profile) {
-          // No profile at all — show onboarding (empty state is intentional)
-          setApplications([]);
-        } else {
-          // Has profile but no apps — show empty dashboard
-          setApplications([]);
+          // Seed notes state from the notes column on each application
+          const notesMap: Record<string, string> = {};
+          appsData.applications.forEach((app: { referenceNumber: string; notes?: string }) => {
+            if (app.notes) notesMap[app.referenceNumber] = app.notes;
+          });
+          setNotesText(notesMap);
         }
-        // Notes
-        if (Array.isArray(notesData.notes)) {
-          setNotesText(
-            Object.fromEntries(
-              notesData.notes.map((n: { reference_number: string; notes: string }) => [
-                n.reference_number,
-                n.notes,
-              ])
-            )
-          );
-        }
+        // No applications + no profile → onboarding will show (hasProfile remains false)
       })
       .catch(() => {
         // Supabase not configured — fall back to demo seed data
@@ -477,12 +480,14 @@ export default function DashboardPage() {
 
   // ── Save notes to Supabase ──
   async function saveNotes(ref: string) {
+    const app = applications.find(a => a.referenceNumber === ref);
+    if (!app) return;
     setNotesStatus(prev => ({ ...prev, [ref]: "saving" }));
     try {
-      const res = await fetch("/api/application-notes", {
-        method: "POST",
+      const res = await fetch(`/api/planning-applications/${app.id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ referenceNumber: ref, notes: notesText[ref] ?? "" }),
+        body: JSON.stringify({ notes: notesText[ref] ?? "" }),
       });
       if (!res.ok) throw new Error("save failed");
       setNotesStatus(prev => ({ ...prev, [ref]: "saved" }));
@@ -531,30 +536,34 @@ export default function DashboardPage() {
     setObError(null);
 
     try {
-      // 1. Save practice profile
+      // 1. Create practice in practices table (name + architect_email)
       const profileRes = await fetch("/api/architect-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ practiceName: obPractice }),
+        body: JSON.stringify({
+          practiceName:    obPractice,
+          architectEmail:  obArchitectEmail || undefined,
+        }),
       });
       if (!profileRes.ok) {
         const d = await profileRes.json();
         throw new Error(d.error ?? "Failed to save practice details.");
       }
+      const profileData = await profileRes.json();
+      const newPracticeId = profileData.profile?.id ?? null;
 
-      // 2. Save first application (deadline defaults to submission + 8 weeks)
+      // 2. Create first application in applications table (passing practice_id)
       const appRes = await fetch("/api/planning-applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          referenceNumber:  obRef,
-          clientName:       obClient,
-          clientEmail:      obEmail || undefined,
-          propertyAddress:  obAddress,
-          projectDescription: "",
-          status:           "received",
-          submissionDate:   obSubDate,
-          council:          obCouncil,
+          referenceNumber: obRef,
+          clientName:      obClient,
+          address:         obAddress,
+          status:          "received",
+          submissionDate:  obSubDate,
+          council:         obCouncil,
+          practiceId:      newPracticeId,
         }),
       });
       if (!appRes.ok) {
@@ -565,6 +574,7 @@ export default function DashboardPage() {
 
       // 3. Transition to dashboard
       setPracticeName(obPractice);
+      setPracticeId(newPracticeId);
       setApplications([appData.application]);
       setHasProfile(true);
     } catch (err) {
@@ -687,6 +697,19 @@ export default function DashboardPage() {
                     onChange={e => setObPractice(e.target.value)}
                     required
                     placeholder="e.g. Murphy Architecture Ltd"
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls} htmlFor="ob-arch-email">
+                    Your email <span className="text-gray-400 font-normal">(for FI alerts)</span>
+                  </label>
+                  <input
+                    id="ob-arch-email"
+                    type="email"
+                    value={obArchitectEmail}
+                    onChange={e => setObArchitectEmail(e.target.value)}
+                    placeholder="you@yourpractice.ie"
                     className={inputCls}
                   />
                 </div>
@@ -1017,7 +1040,7 @@ export default function DashboardPage() {
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                       {/* Left: RFI flag + ref */}
                       <div className="flex items-center gap-2 flex-wrap min-w-0">
-                        {app.hasRFI && (
+                        {app.hasRFI === true && (
                           <span className="inline-flex items-center gap-1 text-xs font-bold bg-red-600 text-white px-2 py-0.5 rounded-full shrink-0">
                             <IconAlert className="w-3 h-3" />
                             RFI
@@ -1045,7 +1068,7 @@ export default function DashboardPage() {
                     </p>
 
                     {/* RFI alert */}
-                    {app.hasRFI && app.rfiIssuedDate && (
+                    {app.hasRFI === true && app.rfiIssuedDate && (
                       <div className="mt-3 flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
                         <IconAlert className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                         <p className="text-xs font-medium text-red-700 leading-relaxed">

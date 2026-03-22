@@ -1,27 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
-// Run once in your Supabase SQL editor:
-//
-// CREATE TABLE planning_applications (
-//   id                  uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
-//   reference_number    text        NOT NULL UNIQUE,
-//   client_name         text        NOT NULL,
-//   client_email        text,
-//   property_address    text        NOT NULL,
-//   project_description text        NOT NULL DEFAULT '',
-//   status              text        NOT NULL DEFAULT 'received',
-//   submission_date     date        NOT NULL,
-//   statutory_deadline  date        NOT NULL,
-//   has_rfi             boolean     NOT NULL DEFAULT false,
-//   rfi_issued_date     date,
-//   decision_date       date,
-//   portal_token        text        NOT NULL,
-//   council             text,
-//   updated_at          timestamptz DEFAULT now(),
-//   created_at          timestamptz DEFAULT now()
-// );
-// CREATE INDEX ON planning_applications (reference_number);
+// Supabase table: applications
+// Columns: id (uuid), reference (text), client_name (text), address (text),
+//          council (text), status (text), submission_date (date), deadline_date (date),
+//          notes (text), last_updated (timestamptz), practice_id (uuid)
 
 function supabase() {
   return createClient(
@@ -32,22 +15,26 @@ function supabase() {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapRow(row: Record<string, any>) {
+  // Generate a stable portal token from the reference since there is no portal_token column
+  const portalToken = row.reference
+    ? (row.reference as string).toLowerCase().replace(/\//g, "-")
+    : row.id;
+
   return {
-    id:                 row.id              as string,
-    referenceNumber:    row.reference_number as string,
-    clientName:         row.client_name      as string,
-    clientEmail:        row.client_email     as string | undefined,
-    propertyAddress:    row.property_address as string,
-    projectDescription: row.project_description as string,
-    status:             row.status           as string,
-    submissionDate:     row.submission_date  as string,
-    statutoryDeadline:  row.statutory_deadline as string,
-    hasRFI:             row.has_rfi          as boolean,
-    rfiIssuedDate:      row.rfi_issued_date  as string | undefined,
-    decisionDate:       row.decision_date    as string | undefined,
-    portalToken:        row.portal_token     as string,
-    council:            row.council          as string | undefined,
-    updatedAt:          row.updated_at       as string | undefined,
+    id:               row.id            as string,
+    referenceNumber:  row.reference     as string,
+    clientName:       row.client_name   as string,
+    propertyAddress:  row.address       as string,
+    council:          row.council       as string | undefined,
+    status:           row.status        as string,
+    submissionDate:   row.submission_date as string,
+    statutoryDeadline: row.deadline_date as string,
+    notes:            row.notes         as string | undefined,
+    updatedAt:        row.last_updated  as string | undefined,
+    portalToken,
+    // Fields not stored in DB — set safe defaults
+    hasRFI:           false,
+    projectDescription: "",
   };
 }
 
@@ -57,13 +44,13 @@ function addDays(dateStr: string, days: number): string {
   return d.toISOString().split("T")[0];
 }
 
-// GET /api/planning-applications — return all applications
+// GET /api/planning-applications — return all applications ordered by last updated
 export async function GET() {
   try {
     const { data, error } = await supabase()
-      .from("planning_applications")
+      .from("applications")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("last_updated", { ascending: false });
 
     if (error) {
       console.error("planning-applications GET error:", error);
@@ -84,41 +71,43 @@ export async function POST(request: NextRequest) {
     const {
       referenceNumber,
       clientName,
-      clientEmail,
-      propertyAddress,
-      projectDescription,
+      address,
+      propertyAddress, // accept either key
+      council,
       status,
       submissionDate,
       statutoryDeadline,
-      council,
+      deadlineDate,     // accept either key
+      practiceId,
     } = body;
 
-    if (!referenceNumber?.trim() || !clientName?.trim() || !propertyAddress?.trim() || !submissionDate) {
+    const ref     = referenceNumber?.trim();
+    const client  = clientName?.trim();
+    const addr    = (address ?? propertyAddress)?.trim();
+    const subDate = submissionDate;
+
+    if (!ref || !client || !addr || !subDate) {
       return NextResponse.json(
-        { error: "referenceNumber, clientName, propertyAddress and submissionDate are required." },
+        { error: "referenceNumber, clientName, address and submissionDate are required." },
         { status: 400 }
       );
     }
 
-    const deadline =
-      statutoryDeadline?.trim() || addDays(submissionDate, 56); // default: 8 weeks
-
-    const token = `pa_live_${Math.random().toString(36).slice(2, 10)}`;
+    const deadline = (deadlineDate ?? statutoryDeadline)?.trim() || addDays(subDate, 56);
 
     const { data, error } = await supabase()
-      .from("planning_applications")
+      .from("applications")
       .insert({
-        reference_number:    referenceNumber.trim(),
-        client_name:         clientName.trim(),
-        client_email:        clientEmail?.trim() || null,
-        property_address:    propertyAddress.trim(),
-        project_description: (projectDescription ?? "").trim(),
-        status:              status ?? "received",
-        submission_date:     submissionDate,
-        statutory_deadline:  deadline,
-        has_rfi:             false,
-        portal_token:        token,
-        council:             council?.trim() || null,
+        reference:       ref,
+        client_name:     client,
+        address:         addr,
+        council:         council?.trim() || null,
+        status:          status ?? "received",
+        submission_date: subDate,
+        deadline_date:   deadline,
+        notes:           "",
+        last_updated:    new Date().toISOString(),
+        practice_id:     practiceId ?? null,
       })
       .select("*")
       .single();

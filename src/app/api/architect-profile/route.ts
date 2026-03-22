@@ -1,13 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
-// Run once in your Supabase SQL editor:
-//
-// CREATE TABLE architect_profiles (
-//   id            uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
-//   practice_name text        NOT NULL,
-//   created_at    timestamptz DEFAULT now()
-// );
+// Supabase table: practices
+// Columns: id (uuid), name (text), architect_email (text), created_at (timestamptz)
 
 function supabase() {
   return createClient(
@@ -16,12 +11,22 @@ function supabase() {
   );
 }
 
-// GET /api/architect-profile — return the first profile (single-tenant)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapRow(row: Record<string, any>) {
+  return {
+    id:             row.id             as string,
+    practiceName:   row.name           as string,
+    architectEmail: row.architect_email as string | undefined,
+    createdAt:      row.created_at     as string,
+  };
+}
+
+// GET /api/architect-profile — return the first practice (single-tenant)
 export async function GET() {
   try {
     const { data, error } = await supabase()
-      .from("architect_profiles")
-      .select("id, practice_name, created_at")
+      .from("practices")
+      .select("id, name, architect_email, created_at")
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
@@ -31,26 +36,29 @@ export async function GET() {
       return NextResponse.json({ error: "Failed to load profile." }, { status: 500 });
     }
 
-    return NextResponse.json({ profile: data ?? null });
+    return NextResponse.json({ profile: data ? mapRow(data) : null });
   } catch (err) {
     console.error("architect-profile GET unexpected error:", err);
     return NextResponse.json({ error: "Unexpected error." }, { status: 500 });
   }
 }
 
-// POST /api/architect-profile — create a profile
+// POST /api/architect-profile — create a practice
 export async function POST(request: NextRequest) {
   try {
-    const { practiceName } = await request.json();
+    const { practiceName, architectEmail } = await request.json();
 
     if (!practiceName?.trim()) {
       return NextResponse.json({ error: "practiceName is required." }, { status: 400 });
     }
 
     const { data, error } = await supabase()
-      .from("architect_profiles")
-      .insert({ practice_name: practiceName.trim() })
-      .select("id, practice_name, created_at")
+      .from("practices")
+      .insert({
+        name:            practiceName.trim(),
+        architect_email: architectEmail?.trim() || null,
+      })
+      .select("id, name, architect_email, created_at")
       .single();
 
     if (error) {
@@ -58,7 +66,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to save profile." }, { status: 500 });
     }
 
-    return NextResponse.json({ profile: data });
+    return NextResponse.json({ profile: mapRow(data) });
   } catch (err) {
     console.error("architect-profile POST unexpected error:", err);
     return NextResponse.json({ error: "Unexpected error." }, { status: 500 });

@@ -2,8 +2,10 @@ import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 
-// Ensure your planning_applications table has this column (run once):
-// ALTER TABLE planning_applications ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
+// Supabase table: applications
+// Columns: id (uuid), reference (text), client_name (text), address (text),
+//          council (text), status (text), submission_date (date), deadline_date (date),
+//          notes (text), last_updated (timestamptz), practice_id (uuid)
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -16,41 +18,47 @@ function supabase() {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapRow(row: Record<string, any>) {
+  const portalToken = row.reference
+    ? (row.reference as string).toLowerCase().replace(/\//g, "-")
+    : row.id;
+
   return {
-    id:                 row.id,
-    referenceNumber:    row.reference_number,
-    clientName:         row.client_name,
-    clientEmail:        row.client_email ?? undefined,
-    propertyAddress:    row.property_address,
-    projectDescription: row.project_description,
-    status:             row.status,
-    submissionDate:     row.submission_date,
-    statutoryDeadline:  row.statutory_deadline,
-    hasRFI:             row.has_rfi,
-    rfiIssuedDate:      row.rfi_issued_date ?? undefined,
-    decisionDate:       row.decision_date ?? undefined,
-    portalToken:        row.portal_token,
-    council:            row.council ?? undefined,
-    updatedAt:          row.updated_at ?? undefined,
+    id:               row.id             as string,
+    referenceNumber:  row.reference      as string,
+    clientName:       row.client_name    as string,
+    propertyAddress:  row.address        as string,
+    council:          row.council        as string | undefined,
+    status:           row.status         as string,
+    submissionDate:   row.submission_date as string,
+    statutoryDeadline: row.deadline_date as string,
+    notes:            row.notes          as string | undefined,
+    updatedAt:        row.last_updated   as string | undefined,
+    portalToken,
+    hasRFI:           false,
+    projectDescription: "",
   };
 }
 
-// PATCH /api/planning-applications/[id] — update status (and send FI alert if needed)
+// PATCH /api/planning-applications/[id] — update status and/or notes
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const { id } = params;
-    const { status } = await request.json();
+    const body = await request.json();
+    const { status, notes } = body;
 
-    if (!status?.trim()) {
-      return NextResponse.json({ error: "status is required." }, { status: 400 });
+    if (status === undefined && notes === undefined) {
+      return NextResponse.json(
+        { error: "Provide at least one of: status, notes." },
+        { status: 400 }
+      );
     }
 
-    // Fetch existing record to detect status transition
+    // Fetch existing record to detect status transition and get practice_id
     const { data: existing, error: fetchError } = await supabase()
-      .from("planning_applications")
+      .from("applications")
       .select("*")
       .eq("id", id)
       .single();
@@ -61,10 +69,17 @@ export async function PATCH(
 
     const previousStatus = existing.status;
 
-    // Update status and updated_at
+    // Build update payload — only include provided fields
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updatePayload: Record<string, any> = {
+      last_updated: new Date().toISOString(),
+    };
+    if (status !== undefined) updatePayload.status = status.trim();
+    if (notes !== undefined) updatePayload.notes  = notes;
+
     const { data, error } = await supabase()
-      .from("planning_applications")
-      .update({ status: status.trim(), updated_at: new Date().toISOString() })
+      .from("applications")
+      .update(updatePayload)
       .eq("id", id)
       .select("*")
       .single();
@@ -76,9 +91,19 @@ export async function PATCH(
 
     // Send architect alert when status first moves to Further Information Requested
     if (status === "further_info" && previousStatus !== "further_info") {
-      const alertEmail = process.env.ARCHITECT_ALERT_EMAIL;
+      // Prefer architect_email from practices table; fall back to env var
+      let alertEmail: string | undefined = process.env.ARCHITECT_ALERT_EMAIL;
+      if (existing.practice_id) {
+        const { data: practice } = await supabase()
+          .from("practices")
+          .select("architect_email")
+          .eq("id", existing.practice_id)
+          .single();
+        if (practice?.architect_email) alertEmail = practice.architect_email;
+      }
+
       if (alertEmail) {
-        const deadlineFormatted = new Date(existing.statutory_deadline).toLocaleDateString(
+        const deadlineFormatted = new Date(existing.deadline_date).toLocaleDateString(
           "en-IE",
           { day: "numeric", month: "long", year: "numeric" }
         );
@@ -86,13 +111,13 @@ export async function PATCH(
           await resend.emails.send({
             from:    process.env.RESEND_FROM_EMAIL ?? "PlanAssist <onboarding@resend.dev>",
             to:      alertEmail,
-            subject: `⚠️ Further Information Requested — ${existing.reference_number}`,
+            subject: `⚠️ Further Information Requested — ${existing.reference}`,
             text: [
               "A Further Information request has been issued on the following application.",
               "",
-              `Reference: ${existing.reference_number}`,
+              `Reference: ${existing.reference}`,
               `Client:    ${existing.client_name}`,
-              `Address:   ${existing.property_address}`,
+              `Address:   ${existing.address}`,
               `Authority: ${existing.council ?? "N/A"}`,
               `Deadline:  ${deadlineFormatted}`,
               "",
@@ -107,8 +132,7 @@ export async function PATCH(
         }
       } else {
         console.warn(
-          "ARCHITECT_ALERT_EMAIL is not set — FI alert email was not sent. " +
-          "Add it to .env.local to enable alerts."
+          "No architect email found (set ARCHITECT_ALERT_EMAIL in .env.local or add architect_email to the practices table)."
         );
       }
     }
