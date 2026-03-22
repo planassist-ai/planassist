@@ -591,7 +591,7 @@ export default function DashboardPage() {
             </Link>
             <span className="hidden sm:block w-px h-5 bg-gray-200" />
             <span className="hidden sm:block text-sm text-gray-400">
-              {practiceName || "Architect Dashboard"}
+              {practiceName || "Welcome to PlanAssist"}
             </span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
