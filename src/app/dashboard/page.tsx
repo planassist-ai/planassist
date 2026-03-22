@@ -308,28 +308,15 @@ const labelCls = "block text-sm font-medium text-gray-700 mb-1.5";
 
 export default function DashboardPage() {
   // ── Core state ──
-  const [applications, setApplications] = useState<PlanningApplication[]>([]);
+  const [applications, setApplications] = useState<PlanningApplication[]>(SEED_APPLICATIONS);
   const [filter, setFilter] = useState<FilterKey>("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  // ── Profile / onboarding state ──
-  const [isLoading,       setIsLoading]       = useState(true);
-  const [hasProfile,      setHasProfile]      = useState(false);
-  const [practiceName,    setPracticeName]    = useState("");
-  const [practiceId,      setPracticeId]      = useState<string | null>(null);
-
-  // Onboarding form
-  const [obPractice,      setObPractice]      = useState("");
-  const [obArchitectEmail, setObArchitectEmail] = useState("");
-  const [obRef,           setObRef]           = useState("");
-  const [obClient,        setObClient]        = useState("");
-  const [obEmail,         setObEmail]         = useState("");
-  const [obAddress,       setObAddress]       = useState("");
-  const [obCouncil,       setObCouncil]       = useState("");
-  const [obSubDate,       setObSubDate]       = useState("");
-  const [obLoading,       setObLoading]       = useState(false);
-  const [obError,         setObError]         = useState<string | null>(null);
+  // ── Profile state ──
+  const [hasProfile,   setHasProfile]   = useState(false);
+  const [practiceName, setPracticeName] = useState("");
+  const [practiceId,   setPracticeId]   = useState<string | null>(null);
 
   // ── Notes state — keyed by referenceNumber ──
   const [notesOpen,   setNotesOpen]   = useState<Record<string, boolean>>({});
@@ -458,45 +445,26 @@ export default function DashboardPage() {
 
         const profile = profileData.profile;
 
-        // Profile — API returns { id, practiceName, architectEmail }
         if (profile) {
           setHasProfile(true);
           setPracticeName(profile.practiceName ?? "");
           setPracticeId(profile.id ?? null);
         }
 
-        const applyApps = (apps: { referenceNumber: string; notes?: string }[]) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          setApplications(apps as any);
-          const notesMap: Record<string, string> = {};
-          apps.forEach(app => { if (app.notes) notesMap[app.referenceNumber] = app.notes; });
-          setNotesText(notesMap);
-        };
-
         const apps = Array.isArray(appsData.applications) ? appsData.applications : [];
 
         if (apps.length > 0) {
-          applyApps(apps);
-        } else if (profile) {
-          // Profile exists but no applications yet — seed 4 demo applications into Supabase
-          const seedRes = await fetch("/api/seed-applications", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ practiceId: profile.id }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setApplications(apps as any);
+          const notesMap: Record<string, string> = {};
+          apps.forEach((app: { referenceNumber: string; notes?: string }) => {
+            if (app.notes) notesMap[app.referenceNumber] = app.notes;
           });
-          if (cancelled) return;
-          const seedData = await seedRes.json();
-          const seededApps = Array.isArray(seedData.applications) ? seedData.applications : [];
-          applyApps(seededApps);
+          setNotesText(notesMap);
         }
-        // No profile → onboarding will show (hasProfile stays false)
+        // If no real apps, SEED_APPLICATIONS stays in state as demo data
       } catch {
-        if (cancelled) return;
-        // Supabase not configured — fall back to in-memory demo data
-        setHasProfile(true);
-        setApplications(SEED_APPLICATIONS);
-      } finally {
-        if (!cancelled) setIsLoading(false);
+        // Supabase not configured — keep in-memory demo data already in state
       }
     }
 
@@ -560,60 +528,6 @@ export default function DashboardPage() {
     }
   }
 
-  // ── Onboarding submit ──
-  async function handleOnboardingSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setObLoading(true);
-    setObError(null);
-
-    try {
-      // 1. Create practice in practices table (name + architect_email)
-      const profileRes = await fetch("/api/architect-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          practiceName:    obPractice,
-          architectEmail:  obArchitectEmail || undefined,
-        }),
-      });
-      if (!profileRes.ok) {
-        const d = await profileRes.json();
-        throw new Error(d.error ?? "Failed to save practice details.");
-      }
-      const profileData = await profileRes.json();
-      const newPracticeId = profileData.profile?.id ?? null;
-
-      // 2. Create first application in applications table (passing practice_id)
-      const appRes = await fetch("/api/planning-applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          referenceNumber: obRef,
-          clientName:      obClient,
-          address:         obAddress,
-          status:          "received",
-          submissionDate:  obSubDate,
-          council:         obCouncil,
-          practiceId:      newPracticeId,
-        }),
-      });
-      if (!appRes.ok) {
-        const d = await appRes.json();
-        throw new Error(d.error ?? "Failed to save application.");
-      }
-      const appData = await appRes.json();
-
-      // 3. Transition to dashboard
-      setPracticeName(obPractice);
-      setPracticeId(newPracticeId);
-      setApplications([appData.application]);
-      setHasProfile(true);
-    } catch (err) {
-      setObError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
-      setObLoading(false);
-    }
-  }
-
   // ── Toggle send panel open/closed ──
   function toggleSend(ref: string, defaultEmail?: string) {
     const opening = !sendOpen[ref];
@@ -666,208 +580,6 @@ export default function DashboardPage() {
     { key: "needs_attention",  label: "Needs Attention",  count: attentionCount },
     { key: "decisions",        label: "Decisions",        count: decisionCount },
   ];
-
-  // ── Loading state ──
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Spinner className="w-8 h-8 text-green-600 mx-auto mb-3" />
-          <p className="text-sm text-gray-400">Loading your dashboard…</p>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Onboarding ──
-  if (!hasProfile) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center">
-            <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
-              PlanAssist
-            </Link>
-          </div>
-        </header>
-
-        {/* Content */}
-        <main className="flex-1 flex items-start sm:items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
-          <div className="w-full max-w-lg">
-
-            {/* Welcome header */}
-            <div className="mb-7 sm:mb-8">
-              <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mb-5">
-                <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 tracking-tight">
-                Welcome to PlanAssist
-              </h1>
-              <p className="text-gray-500 text-sm sm:text-base leading-relaxed">
-                Set up your architect dashboard in under a minute. We just need your practice name and first application.
-              </p>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleOnboardingSubmit} className="space-y-5">
-
-              {/* Practice section */}
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-6 space-y-4">
-                <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Your Practice
-                </h2>
-                <div>
-                  <label className={labelCls} htmlFor="ob-practice">Practice name <span className="text-red-500">*</span></label>
-                  <input
-                    id="ob-practice"
-                    type="text"
-                    value={obPractice}
-                    onChange={e => setObPractice(e.target.value)}
-                    required
-                    placeholder="e.g. Murphy Architecture Ltd"
-                    className={inputCls}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls} htmlFor="ob-arch-email">
-                    Your email <span className="text-gray-400 font-normal">(for FI alerts)</span>
-                  </label>
-                  <input
-                    id="ob-arch-email"
-                    type="email"
-                    value={obArchitectEmail}
-                    onChange={e => setObArchitectEmail(e.target.value)}
-                    placeholder="you@yourpractice.ie"
-                    className={inputCls}
-                  />
-                </div>
-              </div>
-
-              {/* First application section */}
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-6 space-y-4">
-                <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  First Application
-                </h2>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelCls} htmlFor="ob-ref">Reference number <span className="text-red-500">*</span></label>
-                    <input
-                      id="ob-ref"
-                      type="text"
-                      value={obRef}
-                      onChange={e => setObRef(e.target.value)}
-                      required
-                      placeholder="e.g. DCC/2026/001234"
-                      className={inputCls}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelCls} htmlFor="ob-council">Planning authority <span className="text-red-500">*</span></label>
-                    <select
-                      id="ob-council"
-                      value={obCouncil}
-                      onChange={e => setObCouncil(e.target.value)}
-                      required
-                      className={inputCls + " appearance-none cursor-pointer"}
-                    >
-                      <option value="" disabled>Select authority…</option>
-                      {COUNCILS.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className={labelCls} htmlFor="ob-client">Client name <span className="text-red-500">*</span></label>
-                  <input
-                    id="ob-client"
-                    type="text"
-                    value={obClient}
-                    onChange={e => setObClient(e.target.value)}
-                    required
-                    placeholder="e.g. John & Mary Smith"
-                    className={inputCls}
-                  />
-                </div>
-
-                <div>
-                  <label className={labelCls} htmlFor="ob-email">
-                    Client email <span className="text-gray-400 font-normal">(optional)</span>
-                  </label>
-                  <input
-                    id="ob-email"
-                    type="email"
-                    value={obEmail}
-                    onChange={e => setObEmail(e.target.value)}
-                    placeholder="client@example.com"
-                    className={inputCls}
-                  />
-                </div>
-
-                <div>
-                  <label className={labelCls} htmlFor="ob-address">Property address <span className="text-red-500">*</span></label>
-                  <input
-                    id="ob-address"
-                    type="text"
-                    value={obAddress}
-                    onChange={e => setObAddress(e.target.value)}
-                    required
-                    placeholder="e.g. 12 Oak Avenue, Blackrock, Co. Dublin"
-                    className={inputCls}
-                  />
-                </div>
-
-                <div>
-                  <label className={labelCls} htmlFor="ob-sub">Submission date <span className="text-red-500">*</span></label>
-                  <input
-                    id="ob-sub"
-                    type="date"
-                    value={obSubDate}
-                    onChange={e => setObSubDate(e.target.value)}
-                    required
-                    className={inputCls}
-                  />
-                  <p className="mt-1.5 text-xs text-gray-400">
-                    The statutory decision deadline will be calculated automatically as 8 weeks from this date.
-                  </p>
-                </div>
-              </div>
-
-              {/* Error */}
-              {obError && (
-                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-                  {obError}
-                </div>
-              )}
-
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={obLoading}
-                className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition-colors text-sm"
-              >
-                {obLoading ? (
-                  <>
-                    <Spinner className="w-4 h-4" />
-                    Setting up your dashboard…
-                  </>
-                ) : (
-                  "Create my dashboard →"
-                )}
-              </button>
-
-              <p className="text-center text-xs text-gray-400 pb-4">
-                You can add more applications and edit details from the dashboard at any time.
-              </p>
-            </form>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -945,6 +657,22 @@ export default function DashboardPage() {
                 </ul>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ── Add Your Practice banner (shown when no practice set up) ── */}
+        {!hasProfile && (
+          <div className="mb-7 sm:mb-8 bg-white border border-green-200 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 shadow-sm">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-gray-900">You&apos;re viewing sample data</p>
+              <p className="text-xs text-gray-500 mt-0.5">Add your practice to track your real applications.</p>
+            </div>
+            <Link
+              href="/onboarding"
+              className="shrink-0 inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors"
+            >
+              Add Your Practice
+            </Link>
           </div>
         )}
 
