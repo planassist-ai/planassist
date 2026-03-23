@@ -72,11 +72,11 @@ export default function Home() {
                 href: "/interpreter",
               },
               {
-                icon: "?",
-                title: "AI Q&A",
+                icon: "☑",
+                title: "Document Checklist",
                 description:
-                  "Ask any planning question in plain English and get an accurate, Ireland-specific answer powered by our AI.",
-                href: "/check",
+                  "Generate a complete submission checklist for your application type and county — never miss a required document.",
+                href: "/checklist",
               },
             ].map((f) => (
               <Link

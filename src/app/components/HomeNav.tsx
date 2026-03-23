@@ -3,6 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 
+const NAV_ITEMS = [
+  { label: "Features", href: "#features", isAnchor: true },
+  { label: "How It Works", href: "#how-it-works", isAnchor: true },
+  { label: "Application Status", href: "/status", isAnchor: false },
+  { label: "Document Interpreter", href: "/interpreter", isAnchor: false },
+  { label: "Document Checklist", href: "/checklist", isAnchor: false },
+];
+
 export function HomeNav() {
   const [open, setOpen] = useState(false);
 
@@ -14,36 +22,25 @@ export function HomeNav() {
 
           {/* Desktop nav (lg+) */}
           <div className="hidden lg:flex items-center gap-1 text-sm text-gray-500">
-            <a
-              href="#features"
-              className="px-3 py-2 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-colors"
-            >
-              Features
-            </a>
-            <a
-              href="#how-it-works"
-              className="px-3 py-2 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-colors"
-            >
-              How it works
-            </a>
-            <Link
-              href="/status"
-              className="px-3 py-2 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-colors"
-            >
-              Application Status
-            </Link>
-            <Link
-              href="/interpreter"
-              className="px-3 py-2 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-colors"
-            >
-              Document Interpreter
-            </Link>
-            <Link
-              href="/check"
-              className="ml-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              Get started
-            </Link>
+            {NAV_ITEMS.map(({ label, href, isAnchor }) =>
+              isAnchor ? (
+                <a
+                  key={href}
+                  href={href}
+                  className="px-3 py-2 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                >
+                  {label}
+                </a>
+              ) : (
+                <Link
+                  key={href}
+                  href={href}
+                  className="px-3 py-2 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                >
+                  {label}
+                </Link>
+              )
+            )}
           </div>
 
           {/* Hamburger (mobile + tablet) */}
@@ -68,43 +65,27 @@ export function HomeNav() {
         {/* Mobile / tablet dropdown */}
         {open && (
           <div className="lg:hidden border-t border-gray-100 pb-4 pt-2 space-y-0.5">
-            <a
-              href="#features"
-              className="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              Features
-            </a>
-            <a
-              href="#how-it-works"
-              className="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              How it works
-            </a>
-            <Link
-              href="/status"
-              className="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              Application Status
-            </Link>
-            <Link
-              href="/interpreter"
-              className="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              Document Interpreter
-            </Link>
-            <div className="pt-2 px-3">
-              <Link
-                href="/check"
-                className="block text-center bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl font-medium transition-colors text-sm"
-                onClick={() => setOpen(false)}
-              >
-                Get started — it&apos;s free
-              </Link>
-            </div>
+            {NAV_ITEMS.map(({ label, href, isAnchor }) =>
+              isAnchor ? (
+                <a
+                  key={href}
+                  href={href}
+                  className="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  {label}
+                </a>
+              ) : (
+                <Link
+                  key={href}
+                  href={href}
+                  className="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  {label}
+                </Link>
+              )
+            )}
           </div>
         )}
       </div>
