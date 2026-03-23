@@ -75,7 +75,7 @@ export default function Home() {
                 icon: "?",
                 title: "AI Q&A",
                 description:
-                  "Ask any planning question in plain English and get an accurate, Ireland-specific answer powered by Claude AI.",
+                  "Ask any planning question in plain English and get an accurate, Ireland-specific answer powered by our AI.",
                 href: "/check",
               },
             ].map((f) => (
@@ -114,7 +114,7 @@ export default function Home() {
               {
                 step: "02",
                 title: "AI analyses the regulations",
-                body: "Claude checks your project against the Planning & Development Acts and the latest exemption rules.",
+                body: "PlanAssist checks your project against the Planning & Development Acts and the latest exemption rules.",
               },
               {
                 step: "03",
