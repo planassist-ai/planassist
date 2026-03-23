@@ -110,6 +110,205 @@ const COUNCILS = [
   "Wicklow County Council",
 ] as const;
 
+// ─── Activity log ──────────────────────────────────────────────────────────────
+
+interface ActivityLogEntry {
+  id: string;
+  timestamp: string; // ISO 8601
+  type: "status_change" | "note_saved" | "email_sent";
+  description: string;
+}
+
+const SEED_ACTIVITY_LOGS: Record<string, ActivityLogEntry[]> = {
+  "1": [
+    { id: "a3", timestamp: "2026-02-19T10:41:00.000Z", type: "status_change", description: "Status changed to Under Assessment" },
+    { id: "a2", timestamp: "2026-02-12T14:23:00.000Z", type: "status_change", description: "Status changed to Validated" },
+    { id: "a1", timestamp: "2026-02-05T09:00:00.000Z", type: "status_change", description: "Application added — status: Received" },
+  ],
+  "2": [
+    { id: "b4", timestamp: "2026-03-12T09:15:00.000Z", type: "status_change", description: "Status changed to Further Information Requested" },
+    { id: "b3", timestamp: "2026-02-04T16:30:00.000Z", type: "status_change", description: "Status changed to Under Assessment" },
+    { id: "b2", timestamp: "2026-01-21T11:00:00.000Z", type: "status_change", description: "Status changed to Validated" },
+    { id: "b1", timestamp: "2026-01-14T09:00:00.000Z", type: "status_change", description: "Application added — status: Received" },
+  ],
+  "3": [
+    { id: "c3", timestamp: "2026-02-02T11:20:00.000Z", type: "status_change", description: "Status changed to Under Assessment" },
+    { id: "c2", timestamp: "2026-01-16T15:00:00.000Z", type: "status_change", description: "Status changed to Validated" },
+    { id: "c1", timestamp: "2026-01-09T09:00:00.000Z", type: "status_change", description: "Application added — status: Received" },
+  ],
+  "4": [
+    { id: "d4", timestamp: "2026-03-17T14:00:00.000Z", type: "status_change", description: "Status changed to Decision Made" },
+    { id: "d3", timestamp: "2026-01-26T10:00:00.000Z", type: "status_change", description: "Status changed to Under Assessment" },
+    { id: "d2", timestamp: "2026-01-05T13:00:00.000Z", type: "status_change", description: "Status changed to Validated" },
+    { id: "d1", timestamp: "2025-12-22T09:00:00.000Z", type: "status_change", description: "Application added — status: Received" },
+  ],
+};
+
+// ─── Planning tools ────────────────────────────────────────────────────────────
+
+type DevTypeKey =
+  | "house_extension"
+  | "new_dwelling"
+  | "change_of_use"
+  | "retention"
+  | "outline_permission"
+  | "other";
+
+const DEV_TYPES: { value: DevTypeKey; label: string }[] = [
+  { value: "house_extension",    label: "House Extension" },
+  { value: "new_dwelling",       label: "New Dwelling" },
+  { value: "change_of_use",      label: "Change of Use" },
+  { value: "retention",          label: "Retention" },
+  { value: "outline_permission", label: "Outline Permission" },
+  { value: "other",              label: "Other Development" },
+];
+
+interface FeeResult {
+  fee: number;
+  breakdown: string[];
+  note?: string;
+}
+
+function euro(n: number) {
+  return n.toLocaleString("en-IE", { style: "currency", currency: "EUR", minimumFractionDigits: 2 });
+}
+
+function calculatePlanningFee(devType: DevTypeKey, area: number): FeeResult {
+  const min = 34;
+  switch (devType) {
+    case "house_extension": {
+      const raw = Math.round(area * 34);
+      const fee = Math.max(min, Math.min(raw, 1360));
+      return {
+        fee,
+        breakdown: [
+          `Floor area: ${area} sq m`,
+          `Rate: ${euro(34)} per sq m  (Schedule 5, Class 1 — Residential Extension)`,
+          raw > 1360
+            ? `Subtotal ${area} × ${euro(34)} = ${euro(raw)}, capped at maximum ${euro(1360)}`
+            : `${area} × ${euro(34)} = ${euro(fee)}`,
+        ],
+        note: "The maximum fee for a residential extension is €1,360 (equivalent to 40 sq m). Floor area beyond 40 sq m attracts no additional fee.",
+      };
+    }
+    case "new_dwelling": {
+      const fee = Math.max(min, Math.round(area * 65));
+      return {
+        fee,
+        breakdown: [
+          `Floor area: ${area} sq m`,
+          `Rate: ${euro(65)} per sq m  (Schedule 5, Class 1 — New Dwelling)`,
+          `${area} × ${euro(65)} = ${euro(fee)}`,
+        ],
+      };
+    }
+    case "change_of_use": {
+      const fee = Math.max(min, Math.round(area * 80));
+      return {
+        fee,
+        breakdown: [
+          `Floor area: ${area} sq m`,
+          `Rate: ${euro(80)} per sq m  (Schedule 5, Class 3 — Change of Use)`,
+          `${area} × ${euro(80)} = ${euro(fee)}`,
+        ],
+      };
+    }
+    case "retention": {
+      const fee = Math.max(min, Math.round(area * 80));
+      return {
+        fee,
+        breakdown: [
+          `Floor area: ${area} sq m`,
+          `Rate: ${euro(80)} per sq m  (Schedule 5 — Retention Application)`,
+          `${area} × ${euro(80)} = ${euro(fee)}`,
+        ],
+        note: "Retention applications use the standard fee schedule. Fees are not multiplied for retention.",
+      };
+    }
+    case "outline_permission": {
+      const fee = Math.max(min, Math.round(area * 65));
+      return {
+        fee,
+        breakdown: [
+          `Floor area: ${area} sq m`,
+          `Rate: ${euro(65)} per sq m  (Schedule 5 — Outline Permission)`,
+          `${area} × ${euro(65)} = ${euro(fee)}`,
+        ],
+        note: "If outline permission is granted, a separate (top-up) fee is payable when lodging the subsequent full application.",
+      };
+    }
+    default: {
+      const fee = Math.max(min, Math.round(area * 80));
+      return {
+        fee,
+        breakdown: [
+          `Floor area: ${area} sq m`,
+          `Rate: ${euro(80)} per sq m  (Schedule 5)`,
+          `${area} × ${euro(80)} = ${euro(fee)}`,
+        ],
+      };
+    }
+  }
+}
+
+// Approved / commonly accepted newspapers per local authority area
+const NEWSPAPERS: Record<string, string[]> = {
+  "Carlow County Council":                  ["Carlow Nationalist", "Nationalist & Leinster Times", "Irish Times", "Irish Independent"],
+  "Cavan County Council":                   ["Anglo-Celt", "Irish Times", "Irish Independent"],
+  "Clare County Council":                   ["Clare Champion", "Clare People", "Irish Times", "Irish Independent"],
+  "Cork City Council":                      ["Irish Examiner", "Echo", "Irish Times", "Irish Independent"],
+  "Cork County Council":                    ["Irish Examiner", "Corkman", "Echo", "Irish Times", "Irish Independent"],
+  "Donegal County Council":                 ["Donegal Democrat", "Donegal News", "Tirconaill Tribune", "Irish Times", "Irish Independent"],
+  "Dublin City Council":                    ["Irish Times", "Irish Independent", "Dublin Inquirer"],
+  "Dún Laoghaire-Rathdown County Council":  ["Irish Times", "Irish Independent", "Southside People"],
+  "Fingal County Council":                  ["Irish Times", "Irish Independent", "Fingal Independent"],
+  "Galway City Council":                    ["Connacht Tribune", "Galway Advertiser", "Irish Times", "Irish Independent"],
+  "Galway County Council":                  ["Connacht Tribune", "Connacht Sentinel", "Galway Advertiser", "Irish Times", "Irish Independent"],
+  "Kerry County Council":                   ["Kerryman", "Kerry's Eye", "Irish Times", "Irish Independent"],
+  "Kildare County Council":                 ["Leinster Leader", "Kildare Nationalist", "Irish Times", "Irish Independent"],
+  "Kilkenny County Council":                ["Kilkenny People", "Kilkenny Reporter", "Irish Times", "Irish Independent"],
+  "Laois County Council":                   ["Leinster Express", "Laois Nationalist", "Irish Times", "Irish Independent"],
+  "Leitrim County Council":                 ["Leitrim Observer", "Leitrim People", "Irish Times", "Irish Independent"],
+  "Limerick City & County Council":         ["Limerick Leader", "Limerick Post", "Irish Times", "Irish Independent"],
+  "Longford County Council":                ["Longford Leader", "Longford News", "Irish Times", "Irish Independent"],
+  "Louth County Council":                   ["Dundalk Democrat", "Drogheda Independent", "Argus", "Irish Times", "Irish Independent"],
+  "Mayo County Council":                    ["Mayo News", "Western People", "Connaught Telegraph", "Irish Times", "Irish Independent"],
+  "Meath County Council":                   ["Meath Chronicle", "Irish Times", "Irish Independent"],
+  "Monaghan County Council":                ["Northern Standard", "Monaghan Post", "Irish Times", "Irish Independent"],
+  "Offaly County Council":                  ["Offaly Express", "Offaly Independent", "Irish Times", "Irish Independent"],
+  "Roscommon County Council":               ["Roscommon Herald", "Roscommon People", "Irish Times", "Irish Independent"],
+  "Sligo County Council":                   ["Sligo Champion", "Sligo Weekender", "Irish Times", "Irish Independent"],
+  "South Dublin County Council":            ["Irish Times", "Irish Independent", "Echo"],
+  "Tipperary County Council":               ["Nenagh Guardian", "Tipperary Star", "Nationalist and Munster Advertiser", "Irish Times", "Irish Independent"],
+  "Waterford City & County Council":        ["Waterford News & Star", "Munster Express", "Irish Times", "Irish Independent"],
+  "Westmeath County Council":               ["Westmeath Examiner", "Westmeath Independent", "Irish Times", "Irish Independent"],
+  "Wexford County Council":                 ["Wexford People", "New Ross Standard", "Irish Times", "Irish Independent"],
+  "Wicklow County Council":                 ["Wicklow People", "Bray People", "Irish Times", "Irish Independent"],
+};
+
+function generateNotices(
+  applicant: string,
+  council: string,
+  address: string,
+  desc: string,
+): { siteNotice: string; newspaperNotice: string } {
+  const intent = `intends to apply to ${council} for planning permission`;
+  const devText = desc.trim() ? desc.trim() : "the proposed development";
+  const inspection = `The planning application may be inspected or purchased at a fee not exceeding the reasonable cost of making a copy at the offices of ${council} during its public office hours.`;
+  const submission = `A submission or observation in relation to the application may be made in writing to the planning authority on payment of the prescribed fee (€20.00) within the period of 5 weeks beginning on the date of receipt by the planning authority of the application.`;
+
+  const siteNotice =
+    `SITE NOTICE\n\nPLANNING APPLICATION\n\n` +
+    `${applicant} ${intent} for ${devText} at ${address}.\n\n` +
+    `${inspection}\n\n${submission}`;
+
+  const newspaperNotice =
+    `${applicant} ${intent} for ${devText} at ${address}. ` +
+    `${inspection} ${submission}`;
+
+  return { siteNotice, newspaperNotice };
+}
+
 // ─── Seeded demo data ──────────────────────────────────────────────────────────
 // Dates are relative to 2026-03-22 (current demo date) so stats look live.
 
@@ -342,6 +541,26 @@ export default function DashboardPage() {
   const [newStatus,  setNewStatus]  = useState<ApplicationStatus>("received");
   const [newCouncil, setNewCouncil] = useState("");
 
+  // ── Activity log state ──
+  const [activityLogs, setActivityLogs] = useState<Record<string, ActivityLogEntry[]>>(SEED_ACTIVITY_LOGS);
+  const [logOpen, setLogOpen] = useState<Record<string, boolean>>({});
+
+  // ── Planning Fee Calculator state ──
+  const [showFeeModal, setShowFeeModal] = useState(false);
+  const [feeCouncil,   setFeeCouncil]   = useState("");
+  const [feeDevType,   setFeeDevType]   = useState<DevTypeKey | "">("");
+  const [feeArea,      setFeeArea]      = useState("");
+  const [feeResult,    setFeeResult]    = useState<FeeResult | null>(null);
+
+  // ── Newspaper Notice Generator state ──
+  const [showNoticeModal,  setShowNoticeModal]  = useState(false);
+  const [noticeCouncil,    setNoticeCouncil]    = useState("");
+  const [noticeDevType,    setNoticeDevType]    = useState<DevTypeKey | "">("");
+  const [noticeApplicant,  setNoticeApplicant]  = useState("");
+  const [noticeAddress,    setNoticeAddress]    = useState("");
+  const [noticeDesc,       setNoticeDesc]       = useState("");
+  const [noticeCopied,     setNoticeCopied]     = useState<"site" | "newspaper" | null>(null);
+
   // ── Derived stats ──
   const total          = applications.length;
   const onTrackCount   = applications.filter(a => STATUS_CONFIG[a.status].group === "on_track" && !isNeedsAttention(a)).length;
@@ -362,6 +581,30 @@ export default function DashboardPage() {
     if (filter === "decisions")        return STATUS_CONFIG[a.status].group === "decision";
     return true;
   });
+
+  // ── Activity log helpers ──
+  function addLogEntry(appId: string, type: ActivityLogEntry["type"], description: string) {
+    const entry: ActivityLogEntry = {
+      id: `log_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      timestamp: new Date().toISOString(),
+      type,
+      description,
+    };
+    setActivityLogs(prev => ({ ...prev, [appId]: [entry, ...(prev[appId] ?? [])] }));
+  }
+
+  function toggleLog(appId: string) {
+    setLogOpen(prev => ({ ...prev, [appId]: !prev[appId] }));
+  }
+
+  function formatLogTimestamp(iso: string): string {
+    const d = new Date(iso);
+    return (
+      d.toLocaleDateString("en-IE", { day: "2-digit", month: "short", year: "numeric" }) +
+      " · " +
+      d.toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })
+    );
+  }
 
   // ── Copy portal link ──
   const copyPortalLink = useCallback(async (app: PlanningApplication) => {
@@ -487,6 +730,7 @@ export default function DashboardPage() {
         body: JSON.stringify({ notes: notesText[ref] ?? "" }),
       });
       if (!res.ok) throw new Error("save failed");
+      addLogEntry(app.id, "note_saved", "Internal note saved");
       setNotesStatus(prev => ({ ...prev, [ref]: "saved" }));
       setTimeout(() => setNotesStatus(prev => ({ ...prev, [ref]: "idle" })), 2000);
     } catch {
@@ -514,6 +758,7 @@ export default function DashboardPage() {
       setApplications(prev =>
         prev.map(a => a.id === app.id ? { ...a, ...data.application } : a)
       );
+      addLogEntry(app.id, "status_change", `Status changed to ${STATUS_CONFIG[newStatus].label}`);
       setStatusSaving(prev => ({ ...prev, [app.id]: "saved" }));
       setTimeout(() => setStatusSaving(prev => ({ ...prev, [app.id]: "idle" })), 2000);
     } catch {
@@ -561,6 +806,7 @@ export default function DashboardPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "send failed");
+      addLogEntry(app.id, "email_sent", `Client update sent to ${email}`);
       setSendStatus(prev => ({ ...prev, [ref]: "sent" }));
       setSentTo(prev => ({ ...prev, [ref]: email }));
       setTimeout(() => {
@@ -956,6 +1202,40 @@ export default function DashboardPage() {
                     </div>
                   )}
 
+                  {/* ── Activity log panel ── */}
+                  {logOpen[app.id] && (
+                    <div className="px-5 pb-4">
+                      <div className="h-px bg-gray-100 mb-3" />
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2.5">
+                        Activity log
+                      </p>
+                      {(activityLogs[app.id] ?? []).length === 0 ? (
+                        <p className="text-xs text-gray-400 italic">No activity recorded yet.</p>
+                      ) : (
+                        <ol className="space-y-2">
+                          {(activityLogs[app.id] ?? []).map(entry => (
+                            <li key={entry.id} className="flex items-start gap-2.5">
+                              {/* type dot */}
+                              <span className={`mt-[5px] w-1.5 h-1.5 rounded-full shrink-0 ${
+                                entry.type === "status_change" ? "bg-indigo-400" :
+                                entry.type === "email_sent"    ? "bg-green-400" :
+                                                                 "bg-gray-400"
+                              }`} />
+                              <div className="min-w-0">
+                                <p className="text-[11px] text-gray-400 leading-none mb-0.5">
+                                  {formatLogTimestamp(entry.timestamp)}
+                                </p>
+                                <p className="text-xs text-gray-700 leading-snug">
+                                  {entry.description}
+                                </p>
+                              </div>
+                            </li>
+                          ))}
+                        </ol>
+                      )}
+                    </div>
+                  )}
+
                   {/* ── Card footer: notes toggle + portal link + send update ── */}
                   <div className="px-5 pb-5 pt-1">
                     <div className="h-px bg-gray-100 mb-3" />
@@ -978,7 +1258,6 @@ export default function DashboardPage() {
                         }`}
                       >
                         <IconPencil className="w-4 h-4" />
-                        {/* Green dot when notes exist and panel is closed */}
                         {notesText[app.referenceNumber]?.trim() && !notesOpen[app.referenceNumber] && (
                           <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-green-500" />
                         )}
@@ -995,6 +1274,22 @@ export default function DashboardPage() {
                         title="Send client update email"
                       >
                         <IconEmail className="w-4 h-4" />
+                      </button>
+                      {/* Activity log button */}
+                      <button
+                        onClick={() => toggleLog(app.id)}
+                        aria-label="Activity log"
+                        title="View activity log"
+                        className={`relative flex items-center justify-center w-10 h-10 rounded-xl border transition-all shrink-0 ${
+                          logOpen[app.id]
+                            ? "bg-indigo-600 border-indigo-600 text-white"
+                            : "bg-white border-gray-200 text-gray-400 hover:text-gray-700 hover:border-gray-300"
+                        }`}
+                      >
+                        <IconClock className="w-4 h-4" />
+                        {(activityLogs[app.id] ?? []).length > 0 && !logOpen[app.id] && (
+                          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                        )}
                       </button>
                       {/* Portal link button */}
                       <button
@@ -1024,6 +1319,69 @@ export default function DashboardPage() {
             })}
           </div>
         )}
+        {/* ── Tools ──────────────────────────────────────────────────── */}
+        <section className="mt-12 sm:mt-14">
+          <div className="mb-5">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Tools</h2>
+            <p className="text-sm text-gray-500 mt-1">Quick-access calculators and generators for your planning work.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+
+            {/* Planning Fee Calculator card */}
+            <button
+              onClick={() => { setFeeResult(null); setFeeCouncil(""); setFeeDevType(""); setFeeArea(""); setShowFeeModal(true); }}
+              className="text-left bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 hover:border-green-300 hover:shadow-sm transition-all group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-11 h-11 rounded-xl bg-green-50 text-green-600 flex items-center justify-center shrink-0 group-hover:bg-green-100 transition-colors">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008zm0 2.25h.008v.008H8.25V13.5zm0 2.25h.008v.008H8.25v-.008zm0 2.25h.008v.008H8.25V18zm2.498-6.75h.007v.008h-.007v-.008zm0 2.25h.007v.008h-.007V13.5zm0 2.25h.007v.008h-.007v-.008zm0 2.25h.007v.008h-.007V18zm2.504-6.75h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V13.5zm0 2.25h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V18zm2.498-6.75h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V13.5zM8.25 6h7.5v2.25h-7.5V6zM12 2.25c-1.892 0-3.758.11-5.593.322C5.307 2.7 4.5 3.522 4.5 4.5v15a2.25 2.25 0 002.25 2.25h10.5A2.25 2.25 0 0019.5 19.5v-15c0-.978-.807-1.8-1.907-1.928A48.507 48.507 0 0012 2.25z" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-gray-900 text-[15px] mb-1">Planning Fee Calculator</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    Calculate the correct planning fee based on Schedule 5 of the Planning &amp; Development Regulations. Select your local authority, development type, and floor area.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-1.5 text-sm font-medium text-green-600 group-hover:text-green-700">
+                Open calculator
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </div>
+            </button>
+
+            {/* Newspaper Notice Generator card */}
+            <button
+              onClick={() => { setNoticeCouncil(""); setNoticeDevType(""); setNoticeApplicant(""); setNoticeAddress(""); setNoticeDesc(""); setNoticeCopied(null); setShowNoticeModal(true); }}
+              className="text-left bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 hover:border-green-300 hover:shadow-sm transition-all group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-11 h-11 rounded-xl bg-green-50 text-green-600 flex items-center justify-center shrink-0 group-hover:bg-green-100 transition-colors">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-gray-900 text-[15px] mb-1">Newspaper Notice Generator</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    Generate correctly worded site notice and newspaper notice text. Includes the list of approved newspapers for each of the 31 local authority areas.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-1.5 text-sm font-medium text-green-600 group-hover:text-green-700">
+                Generate notices
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </div>
+            </button>
+
+          </div>
+        </section>
+
       </div>
 
       {/* ── Add Application Modal ──────────────────────────────────────── */}
@@ -1196,6 +1554,286 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ── Planning Fee Calculator Modal ─────────────────────────────── */}
+      {showFeeModal && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          onClick={e => { if (e.target === e.currentTarget) setShowFeeModal(false); }}
+        >
+          <div className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
+
+            <div className="flex items-center justify-between px-5 sm:px-6 pt-5 pb-4 border-b border-gray-100">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Planning Fee Calculator</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Schedule 5 — Planning &amp; Development Regulations</p>
+              </div>
+              <button
+                onClick={() => setShowFeeModal(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                <IconX className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="px-5 sm:px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto">
+              <div>
+                <label className={labelCls} htmlFor="fc-council">Planning authority</label>
+                <select
+                  id="fc-council"
+                  value={feeCouncil}
+                  onChange={e => setFeeCouncil(e.target.value)}
+                  className={inputCls + " appearance-none cursor-pointer"}
+                >
+                  <option value="">Select local authority…</option>
+                  {COUNCILS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className={labelCls} htmlFor="fc-devtype">Development type</label>
+                <select
+                  id="fc-devtype"
+                  value={feeDevType}
+                  onChange={e => setFeeDevType(e.target.value as DevTypeKey | "")}
+                  className={inputCls + " appearance-none cursor-pointer"}
+                >
+                  <option value="">Select development type…</option>
+                  {DEV_TYPES.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className={labelCls} htmlFor="fc-area">Floor area (sq m)</label>
+                <input
+                  id="fc-area"
+                  type="number"
+                  min={1}
+                  step={0.5}
+                  value={feeArea}
+                  onChange={e => setFeeArea(e.target.value)}
+                  placeholder="e.g. 45"
+                  className={inputCls}
+                />
+              </div>
+
+              <button
+                onClick={() => {
+                  if (!feeDevType || !feeArea) return;
+                  setFeeResult(calculatePlanningFee(feeDevType, parseFloat(feeArea)));
+                }}
+                disabled={!feeDevType || !feeArea || isNaN(parseFloat(feeArea)) || parseFloat(feeArea) <= 0}
+                className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors"
+              >
+                Calculate fee
+              </button>
+
+              {feeResult && (
+                <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
+                  <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Planning fee payable</p>
+                  <p className="text-4xl font-bold text-green-700 mb-4">
+                    {euro(feeResult.fee)}
+                  </p>
+                  <div className="space-y-1.5 mb-4">
+                    {feeResult.breakdown.map((line, i) => (
+                      <p key={i} className="text-sm text-green-800 leading-snug">{line}</p>
+                    ))}
+                  </div>
+                  {feeResult.note && (
+                    <div className="bg-white/60 rounded-xl px-3.5 py-2.5 mt-3">
+                      <p className="text-xs text-green-700 leading-relaxed">{feeResult.note}</p>
+                    </div>
+                  )}
+                  <p className="mt-3 text-[11px] text-green-600 opacity-70 leading-relaxed">
+                    Fees are set by the Planning &amp; Development Regulations 2001, Schedule 5, as amended. Always verify against the current statutory instrument before submission.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Newspaper Notice Generator Modal ──────────────────────────── */}
+      {showNoticeModal && (() => {
+        const newspapers = noticeCouncil ? (NEWSPAPERS[noticeCouncil] ?? []) : [];
+        const notices = (noticeApplicant.trim() && noticeAddress.trim())
+          ? generateNotices(noticeApplicant.trim(), noticeCouncil || "[Planning Authority]", noticeAddress.trim(), noticeDesc.trim())
+          : null;
+
+        async function copyNotice(text: string, which: "site" | "newspaper") {
+          try { await navigator.clipboard.writeText(text); }
+          catch {
+            const el = document.createElement("textarea");
+            el.value = text; document.body.appendChild(el); el.select();
+            document.execCommand("copy"); document.body.removeChild(el);
+          }
+          setNoticeCopied(which);
+          setTimeout(() => setNoticeCopied(null), 2000);
+        }
+
+        return (
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+            onClick={e => { if (e.target === e.currentTarget) setShowNoticeModal(false); }}
+          >
+            <div className="bg-white w-full sm:max-w-2xl rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
+
+              <div className="flex items-center justify-between px-5 sm:px-6 pt-5 pb-4 border-b border-gray-100">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">Newspaper Notice Generator</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">Planning &amp; Development Regulations — Second Schedule wording</p>
+                </div>
+                <button
+                  onClick={() => setShowNoticeModal(false)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                  <IconX className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="px-5 sm:px-6 py-5 space-y-4 max-h-[82vh] overflow-y-auto">
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls} htmlFor="nn-council">Planning authority</label>
+                    <select
+                      id="nn-council"
+                      value={noticeCouncil}
+                      onChange={e => setNoticeCouncil(e.target.value)}
+                      className={inputCls + " appearance-none cursor-pointer"}
+                    >
+                      <option value="">Select local authority…</option>
+                      {COUNCILS.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls} htmlFor="nn-devtype">Development type</label>
+                    <select
+                      id="nn-devtype"
+                      value={noticeDevType}
+                      onChange={e => setNoticeDevType(e.target.value as DevTypeKey | "")}
+                      className={inputCls + " appearance-none cursor-pointer"}
+                    >
+                      <option value="">Select type…</option>
+                      {DEV_TYPES.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelCls} htmlFor="nn-applicant">Applicant name(s)</label>
+                  <input
+                    id="nn-applicant"
+                    type="text"
+                    value={noticeApplicant}
+                    onChange={e => setNoticeApplicant(e.target.value)}
+                    placeholder="e.g. John and Mary Smith"
+                    className={inputCls}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelCls} htmlFor="nn-address">Site address</label>
+                  <input
+                    id="nn-address"
+                    type="text"
+                    value={noticeAddress}
+                    onChange={e => setNoticeAddress(e.target.value)}
+                    placeholder="e.g. 12 Oak Avenue, Blackrock, Co. Dublin"
+                    className={inputCls}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelCls} htmlFor="nn-desc">
+                    Development description
+                    <span className="text-gray-400 font-normal ml-1">(optional — leave blank for generic wording)</span>
+                  </label>
+                  <input
+                    id="nn-desc"
+                    type="text"
+                    value={noticeDesc}
+                    onChange={e => setNoticeDesc(e.target.value)}
+                    placeholder="e.g. the construction of a single-storey rear extension to the existing dwelling"
+                    className={inputCls}
+                  />
+                </div>
+
+                {/* Approved newspapers */}
+                {newspapers.length > 0 && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Approved newspapers for {noticeCouncil}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {newspapers.map(n => (
+                        <span key={n} className="inline-flex items-center text-xs font-medium bg-white border border-gray-200 text-gray-700 px-2.5 py-1 rounded-full">
+                          {n}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-2 leading-relaxed">
+                      Any newspaper circulating in the area is acceptable. The above are commonly used for this authority.
+                    </p>
+                  </div>
+                )}
+
+                {/* Generated notices */}
+                {notices && (
+                  <div className="space-y-4">
+
+                    {/* Site notice */}
+                    <div className="border border-gray-200 rounded-xl overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200">
+                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Site Notice</p>
+                        <button
+                          onClick={() => copyNotice(notices.siteNotice, "site")}
+                          className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg transition-colors ${
+                            noticeCopied === "site"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-white border border-gray-200 text-gray-600 hover:border-gray-300"
+                          }`}
+                        >
+                          {noticeCopied === "site" ? <><IconCheck className="w-3 h-3" /> Copied</> : "Copy text"}
+                        </button>
+                      </div>
+                      <pre className="px-4 py-3 text-xs text-gray-700 leading-relaxed whitespace-pre-wrap font-sans">
+                        {notices.siteNotice}
+                      </pre>
+                    </div>
+
+                    {/* Newspaper notice */}
+                    <div className="border border-gray-200 rounded-xl overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200">
+                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Newspaper Notice</p>
+                        <button
+                          onClick={() => copyNotice(notices.newspaperNotice, "newspaper")}
+                          className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg transition-colors ${
+                            noticeCopied === "newspaper"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-white border border-gray-200 text-gray-600 hover:border-gray-300"
+                          }`}
+                        >
+                          {noticeCopied === "newspaper" ? <><IconCheck className="w-3 h-3" /> Copied</> : "Copy text"}
+                        </button>
+                      </div>
+                      <p className="px-4 py-3 text-xs text-gray-700 leading-relaxed">
+                        {notices.newspaperNotice}
+                      </p>
+                    </div>
+
+                    <p className="text-[11px] text-gray-400 leading-relaxed">
+                      Wording follows the Planning &amp; Development Regulations 2001 (Second Schedule). Verify against the current statutory instrument and your planning authority&apos;s requirements before publication.
+                    </p>
+                  </div>
+                )}
+
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   );
