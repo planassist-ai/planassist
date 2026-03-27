@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AppShell } from "@/app/components/AppShell";
+import { CountyIntelPanel } from "@/app/components/CountyIntelPanel";
 
 const COUNTIES = [
   "Carlow", "Cavan", "Clare", "Cork", "Donegal", "Dublin",
@@ -513,6 +514,11 @@ export default function ChecklistPage() {
             </div>
           </div>
         </div>
+
+        {/* County intelligence panel */}
+        {county && (
+          <CountyIntelPanel county={county} className="mt-5 print:hidden" />
+        )}
 
         {/* Empty state */}
         {!showChecklist && (

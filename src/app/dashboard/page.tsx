@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
+import { CountyIntelPanel } from "@/app/components/CountyIntelPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1498,6 +1499,10 @@ export default function DashboardPage() {
                 </select>
               </div>
 
+              {newCouncil && (
+                <CountyIntelPanel county={newCouncil} />
+              )}
+
               <div>
                 <label className={labelCls} htmlFor="m-desc">Project description</label>
                 <input
@@ -1589,6 +1594,10 @@ export default function DashboardPage() {
                   {COUNCILS.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
+
+              {feeCouncil && (
+                <CountyIntelPanel county={feeCouncil} />
+              )}
 
               <div>
                 <label className={labelCls} htmlFor="fc-devtype">Development type</label>
@@ -1720,6 +1729,10 @@ export default function DashboardPage() {
                     </select>
                   </div>
                 </div>
+
+                {noticeCouncil && (
+                  <CountyIntelPanel county={noticeCouncil} />
+                )}
 
                 <div>
                   <label className={labelCls} htmlFor="nn-applicant">Applicant name(s)</label>
