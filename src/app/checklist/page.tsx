@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { AppShell } from "@/app/components/AppShell";
 import { CountyIntelPanel } from "@/app/components/CountyIntelPanel";
-import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 
 const COUNTIES = [
   "Carlow", "Cavan", "Clare", "Cork", "Donegal", "Dublin",
