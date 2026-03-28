@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DeletionRequestForm } from "@/app/components/DeletionRequestForm";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — PlanAssist",
@@ -18,6 +19,7 @@ const SECTIONS = [
   { id: "cookies",           label: "Cookies" },
   { id: "your-rights",       label: "Your GDPR rights" },
   { id: "exercise-rights",   label: "Exercising your rights" },
+  { id: "data-deletion",     label: "Request data deletion" },
   { id: "complaints",        label: "Complaints" },
   { id: "changes",           label: "Changes to this policy" },
 ];
@@ -553,10 +555,29 @@ export default function PrivacyPage() {
 
             <Divider />
 
-            {/* 11 — Complaints */}
+            {/* 11 — Data deletion request */}
+            <section>
+              <SectionAnchor id="data-deletion" />
+              <H2>11. Request deletion of your data</H2>
+              <p className="mb-3">
+                Under GDPR Article 17 you have the right to request that we delete all personal
+                data we hold about you. Use the form below to submit a deletion request. We will
+                process it within <strong>30 days</strong> and send you a confirmation email.
+              </p>
+              <p className="mb-5 text-gray-600">
+                Deletion will remove your account, planning queries, monitoring sign-ups, and any
+                other data associated with your email address. Data we are legally required to
+                retain (e.g. for fraud prevention) will be anonymised rather than deleted.
+              </p>
+              <DeletionRequestForm />
+            </section>
+
+            <Divider />
+
+            {/* 12 — Complaints */}
             <section>
               <SectionAnchor id="complaints" />
-              <H2>11. Complaints</H2>
+              <H2>12. Complaints</H2>
               <p className="mb-3">
                 If you are unhappy with how we handle your personal data, please contact us first
                 and we will do our best to resolve the matter.
@@ -586,7 +607,7 @@ export default function PrivacyPage() {
             {/* 12 — Changes */}
             <section>
               <SectionAnchor id="changes" />
-              <H2>12. Changes to this policy</H2>
+              <H2>13. Changes to this policy</H2>
               <p>
                 We may update this policy from time to time. Material changes will be communicated
                 in-app or by email before they take effect. The date at the top of this page shows
