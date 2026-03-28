@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { CheckStatusResult } from "@/app/api/check-status/route";
 import { AppShell } from "@/app/components/AppShell";
+import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
 
 const COUNTIES = [
   "Carlow", "Cavan", "Clare", "Cork City", "Cork County", "Donegal",
@@ -473,27 +474,7 @@ export default function StatusPage() {
         )}
 
         {/* Disclaimer */}
-        <div className="mt-6 sm:mt-8 flex gap-3 bg-gray-50 border border-gray-200 rounded-xl p-4">
-          <svg
-            className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"
-            />
-          </svg>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            <span className="font-semibold text-gray-600">Guidance only.</span>{" "}
-            Status interpretations and timeframes are based on standard Irish planning procedures and
-            may not reflect your specific council&apos;s processes. Always check your council&apos;s
-            planning portal directly for the authoritative status of your application.
-          </p>
-        </div>
+        <LegalDisclaimer className="mt-6 sm:mt-8" />
 
       </div>
     </AppShell>

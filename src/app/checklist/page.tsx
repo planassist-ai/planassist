@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AppShell } from "@/app/components/AppShell";
 import { CountyIntelPanel } from "@/app/components/CountyIntelPanel";
+import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
 
 const COUNTIES = [
   "Carlow", "Cavan", "Clare", "Cork", "Donegal", "Dublin",
@@ -686,24 +687,7 @@ export default function ChecklistPage() {
         )}
 
         {/* Disclaimer */}
-        <div className="mt-8 sm:mt-10 flex gap-3 bg-gray-50 border border-gray-200 rounded-xl p-4 print:mt-6 print:bg-white">
-          <svg
-            className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
-          </svg>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            <span className="font-semibold text-gray-600">Guidance only — not legal advice.</span>{" "}
-            Document requirements vary by local authority and specific site circumstances. Always
-            confirm the exact requirements with your local planning authority or a qualified planning
-            consultant before submitting your application. Some authorities may request additional
-            documents not listed here.
-          </p>
-        </div>
+        <LegalDisclaimer className="mt-8 sm:mt-10 print:mt-6 print:bg-white" />
 
       </div>
     </AppShell>

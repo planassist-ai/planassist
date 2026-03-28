@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import type { InterpretDocumentResult } from "@/app/api/interpret-document/route";
 import { AppShell } from "@/app/components/AppShell";
+import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
 
 const DOCUMENT_TYPES = [
   "RFI (Request for Further Information)",
@@ -510,27 +511,7 @@ export default function InterpreterPage() {
         )}
 
         {/* Disclaimer */}
-        <div className="mt-6 sm:mt-8 flex gap-3 bg-gray-50 border border-gray-200 rounded-xl p-4">
-          <svg
-            className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"
-            />
-          </svg>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            <span className="font-semibold text-gray-600">Guidance only — not legal advice.</span>{" "}
-            This tool provides a general interpretation of planning documents. It is not a substitute
-            for advice from a qualified planning consultant, architect, or solicitor. Always verify
-            deadlines and requirements directly with the issuing authority before taking action.
-          </p>
-        </div>
+        <LegalDisclaimer className="mt-6 sm:mt-8" />
 
       </div>
     </AppShell>

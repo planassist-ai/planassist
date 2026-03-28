@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { LegalDisclaimer } from "./LegalDisclaimer";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1657,6 +1658,7 @@ export function CountyIntelPanel({ county, className = "", isPaid = false }: Cou
               </div>
             </div>
           )}
+          <LegalDisclaimer className="mt-2" />
         </div>
       )}
     </div>

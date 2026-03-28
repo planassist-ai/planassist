@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AppShell } from "@/app/components/AppShell";
 import { CountyIntelPanel } from "@/app/components/CountyIntelPanel";
+import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -572,15 +573,7 @@ export default function CheckPage() {
           <div className="mt-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>
         )}
 
-        <div className="mt-8 sm:mt-10 flex gap-3 bg-gray-50 border border-gray-200 rounded-xl p-4">
-          <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
-          </svg>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            <span className="font-semibold text-gray-600">Guidance only — not legal advice.</span>{" "}
-            This tool provides general guidance based on national planning regulations and typical county development plan policies. It is not a substitute for advice from a qualified planning consultant, architect, or solicitor. Always confirm requirements with your local planning authority before commencing any works.
-          </p>
-        </div>
+        <LegalDisclaimer className="mt-8 sm:mt-10" />
 
       </div>
     </AppShell>

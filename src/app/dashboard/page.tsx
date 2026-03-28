@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { CountyIntelPanel } from "@/app/components/CountyIntelPanel";
+import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1658,6 +1659,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
               )}
+              <LegalDisclaimer className="mt-4" />
             </div>
           </div>
         </div>
