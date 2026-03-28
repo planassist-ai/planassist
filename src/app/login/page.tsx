@@ -56,7 +56,7 @@ function LoginForm() {
         {/* Wordmark */}
         <div className="text-center mb-8">
           <Link href="/" className="text-2xl font-bold text-green-600 tracking-tight">
-            PlanAssist
+            Planr
           </Link>
           <p className="mt-1 text-sm text-gray-500">Irish planning made simple</p>
         </div>
@@ -155,7 +155,7 @@ function LoginForm() {
 
         <p className="mt-3 text-center">
           <Link href="/" className="text-sm text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors">
-            Back to PlanAssist
+            Back to Planr
           </Link>
         </p>
 

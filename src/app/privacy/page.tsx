@@ -4,9 +4,9 @@ import { DeletionRequestForm } from "@/app/components/DeletionRequestForm";
 import { SiteFooter } from "@/app/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — PlanAssist",
+  title: "Privacy Policy — Planr",
   description:
-    "How PlanAssist collects, uses, and protects your personal data in accordance with GDPR.",
+    "How Planr collects, uses, and protects your personal data in accordance with GDPR.",
 };
 
 const SECTIONS = [
@@ -41,7 +41,7 @@ function BackLink() {
       >
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
       </svg>
-      Back to PlanAssist
+      Back to Planr
     </Link>
   );
 }
@@ -123,7 +123,7 @@ export default function PrivacyPage() {
               <SectionAnchor id="who-we-are" />
               <H2>1. Who we are</H2>
               <p>
-                PlanAssist is an AI-powered planning assistance service for Ireland, operated as
+                Planr is an AI-powered planning assistance service for Ireland, operated as
                 the data controller for the purposes of the General Data Protection Regulation
                 (GDPR) and the Irish Data Protection Act 2018.
               </p>
@@ -200,7 +200,7 @@ export default function PrivacyPage() {
               <H2>3. Why we collect it</H2>
               <p className="mb-3">
                 We collect and process your personal data solely to provide and improve the
-                PlanAssist service. Specifically:
+                Planr service. Specifically:
               </p>
               <ul className="list-disc pl-5 space-y-2">
                 <li>
@@ -324,7 +324,7 @@ export default function PrivacyPage() {
               <SectionAnchor id="data-storage" />
               <H2>6. Where your data is stored</H2>
               <p className="mb-3">
-                All personal data processed by PlanAssist is stored exclusively on servers located
+                All personal data processed by Planr is stored exclusively on servers located
                 within the European Union:
               </p>
               <div className="flex items-start gap-3 p-4 rounded-xl bg-green-50 border border-green-100">
@@ -412,7 +412,7 @@ export default function PrivacyPage() {
               <H2>8. Cookies</H2>
               <p className="mb-4">
                 Cookies are small text files placed in your browser. We use them to keep the
-                service working and, with your consent, to understand how PlanAssist is used.
+                service working and, with your consent, to understand how Planr is used.
               </p>
 
               <div className="rounded-xl border border-gray-200 overflow-hidden mb-5">

@@ -18,7 +18,7 @@ export default function Home() {
           <span className="text-green-600">permission?</span>
         </h1>
         <p className="text-base sm:text-lg lg:text-xl text-gray-500 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
-          PlanAssist uses AI to analyse your project against Irish planning regulations —
+          Planr uses AI to analyse your project against Irish planning regulations —
           extensions, conversions, new builds, and more — and gives you a clear answer in minutes.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
@@ -115,7 +115,7 @@ export default function Home() {
               {
                 step: "02",
                 title: "AI analyses the regulations",
-                body: "PlanAssist checks your project against the Planning & Development Acts and the latest exemption rules.",
+                body: "Planr checks your project against the Planning & Development Acts and the latest exemption rules.",
               },
               {
                 step: "03",

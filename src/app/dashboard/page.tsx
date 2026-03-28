@@ -511,7 +511,7 @@ export default function DashboardPage() {
   // ── Copy portal link ──
   const copyPortalLink = useCallback(async (app: PlanningApplication) => {
     const token = app.portalToken ?? app.referenceNumber.toLowerCase().replace(/\//g, "-");
-    const url = `https://planassist.ie/portal/${token}`;
+    const url = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://planassist.ie"}/portal/${token}`;
     try {
       await navigator.clipboard.writeText(url);
     } catch {
@@ -735,11 +735,11 @@ export default function DashboardPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <Link href="/" className="text-xl font-bold text-green-600 tracking-tight shrink-0">
-              PlanAssist
+              Planr
             </Link>
             <span className="hidden sm:block w-px h-5 bg-gray-200" />
             <span className="hidden sm:block text-sm text-gray-400">
-              {practiceName || "Welcome to PlanAssist"}
+              {practiceName || "Welcome to Planr"}
             </span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">

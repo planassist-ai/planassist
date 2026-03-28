@@ -441,14 +441,14 @@ export default function ChecklistPage() {
     <AppShell>
       {/* Print-only header — invisible on screen */}
       <div className="hidden print:block px-8 pt-8 pb-4 border-b border-gray-200 mb-6">
-        <p className="text-2xl font-bold text-gray-900">PlanAssist — Document Checklist</p>
+        <p className="text-2xl font-bold text-gray-900">Planr — Document Checklist</p>
         {showChecklist && (
           <p className="mt-1 text-base text-gray-600">
             {appType} &mdash; Co. {county}
           </p>
         )}
         <p className="mt-1 text-xs text-gray-400">
-          Printed from planassist.ie &middot; Guidance only — not a substitute for professional planning advice.
+          Planr · Guidance only — not a substitute for professional planning advice.
         </p>
       </div>
 

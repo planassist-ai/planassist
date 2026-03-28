@@ -118,7 +118,7 @@ export default function OnboardingPage() {
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center">
           <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
-            PlanAssist
+            Planr
           </Link>
         </div>
       </header>

@@ -126,7 +126,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="hidden lg:block bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
-            PlanAssist
+            Planr
           </Link>
           <div className="flex items-center gap-1">
             <nav className="flex items-center gap-1">
@@ -190,7 +190,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <aside className="hidden md:flex lg:hidden flex-col w-60 shrink-0 min-h-screen bg-white border-r border-gray-200 sticky top-0 h-screen overflow-y-auto">
           <div className="px-5 h-16 flex items-center border-b border-gray-100">
             <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
-              PlanAssist
+              Planr
             </Link>
           </div>
           <nav className="p-3 space-y-1 flex-1">
@@ -256,7 +256,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Mobile top bar */}
           <div className="md:hidden bg-white border-b border-gray-200 px-4 h-14 flex items-center justify-between sticky top-0 z-30">
             <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
-              PlanAssist
+              Planr
             </Link>
             {isLoggedIn ? (
               <button

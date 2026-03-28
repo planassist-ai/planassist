@@ -1436,7 +1436,7 @@ interface CountyIntelPanelProps {
 
 function handleUpgrade() {
   alert(
-    "Payment is coming soon.\n\nTo get early access, email us at hello@planassist.ie and we\u2019ll set you up manually."
+    "Payment is coming soon.\n\nTo get early access, email us at hello@planassist.ie and we\u2019ll set you up manually on Planr."
   );
 }
 

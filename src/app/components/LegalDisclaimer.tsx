@@ -33,7 +33,7 @@ export function LegalDisclaimer({ className = "" }: LegalDisclaimerProps) {
           href="/terms#liability"
           className="underline underline-offset-2 hover:text-gray-600 transition-colors"
         >
-          PlanAssist accepts no liability
+          Planr accepts no liability
         </Link>{" "}
         for decisions made based on this guidance.
       </p>

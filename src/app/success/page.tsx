@@ -89,7 +89,7 @@ async function SuccessContent({ sessionId }: { sessionId: string }) {
       )}
 
       <p className="text-sm text-gray-500 mb-8 max-w-sm mx-auto">
-        Your account has full access to all PlanAssist features. Sign in to get started.
+        Your account has full access to all Planr features. Sign in to get started.
       </p>
 
       {/* Feature highlights */}

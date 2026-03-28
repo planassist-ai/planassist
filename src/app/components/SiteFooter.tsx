@@ -9,7 +9,7 @@ export function SiteFooter() {
         {/* Brand */}
         <div className="shrink-0">
           <p className="text-sm font-bold text-green-600 tracking-tight leading-none mb-1">
-            PlanAssist
+            Planr
           </p>
           <p className="text-xs text-gray-500">Your local planning assistant</p>
         </div>
@@ -46,7 +46,7 @@ export function SiteFooter() {
           Planning guidance only — not legal advice.
         </p>
         <p className="text-xs text-gray-400">
-          &copy; {new Date().getFullYear()} PlanAssist
+          &copy; {new Date().getFullYear()} Planr
         </p>
       </div>
     </footer>
