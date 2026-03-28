@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SiteFooter } from "./SiteFooter";
 
 const NAV_ITEMS = [
   {
@@ -182,6 +183,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Content — bottom padding clears the mobile tab bar */}
           <div className="pb-24 md:pb-0">
             {children}
+            <SiteFooter />
           </div>
         </main>
       </div>

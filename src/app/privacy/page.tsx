@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DeletionRequestForm } from "@/app/components/DeletionRequestForm";
+import { SiteFooter } from "@/app/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — PlanAssist",
@@ -624,6 +625,7 @@ export default function PrivacyPage() {
           </div>
         </main>
       </div>
+      <SiteFooter />
     </div>
   );
 }

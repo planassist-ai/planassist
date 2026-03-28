@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HomeNav } from "@/app/components/HomeNav";
+import { SiteFooter } from "@/app/components/SiteFooter";
 
 export default function Home() {
   return (
@@ -146,12 +147,7 @@ export default function Home() {
       </section>
 
       {/* ── Footer ────────────────────────────────────────── */}
-      <footer className="border-t border-gray-100 px-4 sm:px-6 py-8 text-center text-xs sm:text-sm text-gray-400">
-        <p>
-          &copy; {new Date().getFullYear()} PlanAssist &mdash; Guidance only. Not a substitute for
-          professional planning advice.
-        </p>
-      </footer>
+      <SiteFooter />
 
     </main>
   );

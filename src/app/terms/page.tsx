@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SiteFooter } from "@/app/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Terms of Service — PlanAssist",
@@ -411,6 +412,7 @@ export default function TermsPage() {
           </div>
         </main>
       </div>
+      <SiteFooter />
     </div>
   );
 }
