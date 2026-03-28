@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CountyIntelPanel } from "@/app/components/CountyIntelPanel";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
 import { calculatePlanningFee, DEV_TYPES, euro, type DevTypeKey, type FeeResult } from "@/lib/planningFee";
+import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -410,6 +411,9 @@ export default function DashboardPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
 
+  // ── Auth state ──
+  const { userEmail } = useAuthStatus();
+
   // ── Profile state ──
   const [practiceName, setPracticeName] = useState("");
   const [practiceId,   setPracticeId]   = useState<string | null>(null);
@@ -739,11 +743,13 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className="hidden sm:inline-flex items-center text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
-              Pro · €199/mo
-            </span>
+            {userEmail && (
+              <span className="hidden sm:block text-xs text-gray-400 max-w-[200px] truncate" title={userEmail}>
+                {userEmail}
+              </span>
+            )}
             <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
-              A
+              {userEmail ? userEmail[0].toUpperCase() : "A"}
             </div>
           </div>
         </div>

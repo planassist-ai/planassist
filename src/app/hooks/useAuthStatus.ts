@@ -47,27 +47,37 @@ export function useAuthStatus(): AuthStatus {
           return;
         }
 
-        // Trial window is calculated from Supabase auth user created_at.
-        // No extra DB column needed for trial tracking.
-        const createdAt = new Date(user.created_at);
-        const daysPassed = Math.floor(
-          (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        const trialDaysLeft = Math.max(0, TRIAL_DAYS - daysPassed);
-
-        // Check is_paid from the practices table.
-        // Gracefully handles the case where the column doesn't exist yet
-        // (DB migration not yet run) — falls back to false.
         let isPaid = false;
+        let trialDaysLeft = 0;
+
+        // Read is_paid and trial dates from the profiles table (primary source).
+        // Fall back gracefully if the table or row doesn't exist yet.
         try {
-          const { data: practice } = await supabase
-            .from("practices")
-            .select("is_paid")
-            .eq("architect_email", user.email)
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("is_paid, trial_end_date")
+            .eq("id", user.id)
             .maybeSingle();
-          isPaid = (practice as { is_paid?: boolean } | null)?.is_paid ?? false;
+
+          isPaid = (profile as { is_paid?: boolean } | null)?.is_paid ?? false;
+
+          const trialEnd = (profile as { trial_end_date?: string } | null)?.trial_end_date;
+          if (trialEnd) {
+            const msLeft = new Date(trialEnd).getTime() - Date.now();
+            trialDaysLeft = Math.max(0, Math.floor(msLeft / (1000 * 60 * 60 * 24)));
+          } else {
+            // Profile row not yet created — calculate from auth user created_at.
+            const daysPassed = Math.floor(
+              (Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24)
+            );
+            trialDaysLeft = Math.max(0, TRIAL_DAYS - daysPassed);
+          }
         } catch {
-          // is_paid column not yet added — treat as not paid.
+          // profiles table not yet migrated — fall back to auth user created_at.
+          const daysPassed = Math.floor(
+            (Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24)
+          );
+          trialDaysLeft = Math.max(0, TRIAL_DAYS - daysPassed);
         }
 
         const hasAccess = isPaid || trialDaysLeft > 0;

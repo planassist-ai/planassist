@@ -37,9 +37,9 @@ async function confirmPayment(sessionId: string): Promise<{ email: string | null
   // Belt-and-suspenders: also update here in case webhook hasn't fired yet.
   const supabase = getSupabaseAdmin();
   await supabase
-    .from("practices")
+    .from("profiles")
     .update({ is_paid: true })
-    .eq("architect_email", email);
+    .eq("email", email);
 
   return { email };
 }

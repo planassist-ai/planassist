@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
         }
 
         const { error } = await supabase
-          .from("practices")
+          .from("profiles")
           .update({ is_paid: true })
-          .eq("architect_email", email);
+          .eq("email", email);
 
         if (error) {
           console.error("Supabase update failed for checkout.session.completed:", error);
@@ -76,9 +76,9 @@ export async function POST(request: NextRequest) {
         }
 
         const { error } = await supabase
-          .from("practices")
+          .from("profiles")
           .update({ is_paid: false })
-          .eq("architect_email", email);
+          .eq("email", email);
 
         if (error) {
           console.error("Supabase update failed for customer.subscription.deleted:", error);

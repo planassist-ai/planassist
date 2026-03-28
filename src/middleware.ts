@@ -32,18 +32,21 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Protect the architect dashboard and onboarding — require login.
-  if (
-    !user &&
-    (pathname.startsWith("/dashboard") || pathname.startsWith("/onboarding"))
-  ) {
+  // Pages that require authentication.
+  const isProtected =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/onboarding") ||
+    pathname.startsWith("/interpreter") ||
+    pathname.startsWith("/status");
+
+  if (!user && isProtected) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Already logged in → skip the login page.
-  if (user && pathname === "/login") {
+  // Already logged in → skip the login and signup pages.
+  if (user && (pathname === "/login" || pathname === "/signup")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
