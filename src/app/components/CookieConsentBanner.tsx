@@ -47,7 +47,7 @@ export function CookieConsentBanner() {
 
   return (
     <div
-      className="fixed left-0 right-0 bottom-16 md:bottom-0 z-[55] px-3 py-3 md:px-4 md:py-4"
+      className="fixed left-0 right-0 z-[55] px-3 py-3 md:px-4 md:py-4 bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0"
       role="dialog"
       aria-label="Cookie consent"
       aria-live="polite"

@@ -285,7 +285,7 @@ export default function InterpreterPage() {
                 <button
                   type="button"
                   onClick={() => switchMode("upload")}
-                  className={`px-3 py-1.5 rounded-md transition-colors ${
+                  className={`px-3 py-2 rounded-md transition-colors ${
                     inputMode === "upload"
                       ? "bg-white text-gray-900 shadow-sm"
                       : "text-gray-500 hover:text-gray-700"
@@ -296,7 +296,7 @@ export default function InterpreterPage() {
                 <button
                   type="button"
                   onClick={() => switchMode("paste")}
-                  className={`px-3 py-1.5 rounded-md transition-colors ${
+                  className={`px-3 py-2 rounded-md transition-colors ${
                     inputMode === "paste"
                       ? "bg-white text-gray-900 shadow-sm"
                       : "text-gray-500 hover:text-gray-700"
@@ -407,7 +407,7 @@ export default function InterpreterPage() {
                   id="documentText"
                   value={documentText}
                   onChange={(e) => setDocumentText(e.target.value)}
-                  rows={12}
+                  rows={8}
                   placeholder="Paste the full text of the planning document here…"
                   className={inputClass + " resize-y leading-relaxed"}
                 />

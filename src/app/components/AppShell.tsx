@@ -276,7 +276,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Content — bottom padding clears the mobile tab bar */}
-          <div className="pb-24 md:pb-0">
+          <div className="pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
             {children}
             <SiteFooter />
           </div>

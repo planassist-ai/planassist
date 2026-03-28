@@ -438,7 +438,7 @@ export default function StatusPage() {
                     <button
                       type="submit"
                       disabled={monitorLoading}
-                      className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-medium text-sm px-5 py-3 sm:py-2.5 rounded-xl transition-colors whitespace-nowrap"
+                      className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-medium text-sm px-5 py-3 rounded-xl transition-colors whitespace-nowrap"
                     >
                       {monitorLoading ? <Spinner /> : null}
                       {monitorLoading ? "Saving…" : "Set up alert"}

@@ -146,8 +146,8 @@ export default function PrivacyPage() {
               <H2>2. What data we collect</H2>
               <p className="mb-4">We collect and process the following categories of personal data:</p>
 
-              <div className="rounded-xl border border-gray-200 overflow-hidden mb-4">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto rounded-xl mb-4"><div className="rounded-xl border border-gray-200 overflow-hidden">
+                <table className="w-full text-sm min-w-[480px]">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
                       <th className="px-4 py-3 text-left font-semibold text-gray-700 w-1/3">Category</th>
@@ -184,7 +184,7 @@ export default function PrivacyPage() {
                     </tr>
                   </tbody>
                 </table>
-              </div>
+              </div></div>
 
               <p className="text-gray-600">
                 We do not collect special category data (e.g. health, financial, or political data)
@@ -278,8 +278,8 @@ export default function PrivacyPage() {
                 We retain personal data only as long as necessary for the purposes set out in this
                 policy:
               </p>
-              <div className="rounded-xl border border-gray-200 overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto rounded-xl"><div className="rounded-xl border border-gray-200 overflow-hidden">
+                <table className="w-full text-sm min-w-[400px]">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
                       <th className="px-4 py-3 text-left font-semibold text-gray-700 w-1/2">Data type</th>
@@ -314,7 +314,7 @@ export default function PrivacyPage() {
                     </tr>
                   </tbody>
                 </table>
-              </div>
+              </div></div>
             </section>
 
             <Divider />
@@ -415,8 +415,8 @@ export default function PrivacyPage() {
                 service working and, with your consent, to understand how Planr is used.
               </p>
 
-              <div className="rounded-xl border border-gray-200 overflow-hidden mb-5">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto rounded-xl mb-5"><div className="rounded-xl border border-gray-200 overflow-hidden">
+                <table className="w-full text-sm min-w-[480px]">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
                       <th className="px-4 py-3 text-left font-semibold text-gray-700">Name</th>
@@ -455,7 +455,7 @@ export default function PrivacyPage() {
                     </tr>
                   </tbody>
                 </table>
-              </div>
+              </div></div>
 
               <p className="mb-2 font-medium text-gray-800">Managing your cookie preferences</p>
               <p className="mb-2">

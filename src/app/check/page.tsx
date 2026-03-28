@@ -123,8 +123,8 @@ function BackButton({ onClick }: { onClick: () => void }) {
 function YesNoToggle({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div className="flex gap-2 mt-2">
-      <button type="button" onClick={() => onChange("yes")} className={`px-5 py-2 rounded-lg text-sm font-semibold border transition-colors ${value === "yes" ? "bg-green-600 text-white border-green-600 shadow-sm" : "bg-white text-gray-600 border-gray-300 hover:border-green-400 hover:text-green-700"}`}>Yes</button>
-      <button type="button" onClick={() => onChange("no")} className={`px-5 py-2 rounded-lg text-sm font-semibold border transition-colors ${value === "no" ? "bg-red-500 text-white border-red-500 shadow-sm" : "bg-white text-gray-600 border-gray-300 hover:border-red-300 hover:text-red-600"}`}>No</button>
+      <button type="button" onClick={() => onChange("yes")} className={`px-5 py-3 rounded-lg text-sm font-semibold border transition-colors ${value === "yes" ? "bg-green-600 text-white border-green-600 shadow-sm" : "bg-white text-gray-600 border-gray-300 hover:border-green-400 hover:text-green-700"}`}>Yes</button>
+      <button type="button" onClick={() => onChange("no")} className={`px-5 py-3 rounded-lg text-sm font-semibold border transition-colors ${value === "no" ? "bg-red-500 text-white border-red-500 shadow-sm" : "bg-white text-gray-600 border-gray-300 hover:border-red-300 hover:text-red-600"}`}>No</button>
     </div>
   );
 }

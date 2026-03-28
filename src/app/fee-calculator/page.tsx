@@ -93,7 +93,7 @@ export default function FeeCalculatorPage() {
                 setResult(null);
               }}
               placeholder="e.g. 40"
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-colors"
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-colors"
             />
             <p className="mt-1.5 text-xs text-gray-400">
               Enter the total gross floor area of the proposed development in square metres.

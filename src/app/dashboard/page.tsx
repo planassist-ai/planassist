@@ -1313,7 +1313,7 @@ export default function DashboardPage() {
             {/* Modal form */}
             <form
               onSubmit={handleAdd}
-              className="px-5 sm:px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto"
+              className="px-5 sm:px-6 py-5 space-y-4 max-h-[85vh] overflow-y-auto"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -1484,7 +1484,7 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            <div className="px-5 sm:px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto">
+            <div className="px-5 sm:px-6 py-5 space-y-4 max-h-[85vh] overflow-y-auto">
               <div>
                 <label className={labelCls} htmlFor="fc-council">Planning authority</label>
                 <select
