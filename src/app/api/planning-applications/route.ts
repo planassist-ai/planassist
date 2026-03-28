@@ -1,5 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  validatePlanningRef,
+  validateTextArea,
+  scanFields,
+  badRequest,
+} from "@/lib/validation";
 
 // Supabase table: applications
 // Columns: id (uuid), reference (text), client_name (text), address (text),
@@ -92,6 +98,24 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const refErr = validatePlanningRef(ref);
+    if (refErr) return badRequest(refErr);
+
+    const nameErr = validateTextArea(client, "Client name", 100);
+    if (nameErr) return badRequest(nameErr);
+
+    const addrErr = validateTextArea(addr, "Property address", 200);
+    if (addrErr) return badRequest(addrErr);
+
+    const councilVal = council?.trim();
+    if (councilVal) {
+      const councilErr = validateTextArea(councilVal, "Council", 100);
+      if (councilErr) return badRequest(councilErr);
+    }
+
+    const securityErr = scanFields(client, addr, councilVal);
+    if (securityErr) return badRequest(securityErr);
 
     const deadline = (deadlineDate ?? statutoryDeadline)?.trim() || addDays(subDate, 56);
 

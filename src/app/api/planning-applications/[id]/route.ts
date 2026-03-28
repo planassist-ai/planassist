@@ -1,6 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  VALID_PLANNING_STATUSES,
+  validateTextArea,
+  scanFields,
+  badRequest,
+} from "@/lib/validation";
 
 // Supabase table: applications
 // Columns: id (uuid), reference (text), client_name (text), address (text),
@@ -54,6 +60,19 @@ export async function PATCH(
         { error: "Provide at least one of: status, notes." },
         { status: 400 }
       );
+    }
+
+    if (status !== undefined) {
+      if (typeof status !== "string" || !VALID_PLANNING_STATUSES.has(status.trim())) {
+        return badRequest("Invalid status value. Please select a valid planning status.");
+      }
+    }
+
+    if (notes !== undefined) {
+      const notesErr = validateTextArea(notes, "Notes");
+      if (notesErr) return badRequest(notesErr);
+      const securityErr = scanFields(notes);
+      if (securityErr) return badRequest(securityErr);
     }
 
     // Fetch existing record to detect status transition and get practice_id

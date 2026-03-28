@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { validatePlanningRef, validateAuthority, badRequest } from "@/lib/validation";
 
 // Required Supabase table (run once in your Supabase SQL editor):
 //
@@ -31,6 +32,12 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const refErr = validatePlanningRef(referenceNumber);
+    if (refErr) return badRequest(refErr);
+
+    const authorityErr = validateAuthority(county);
+    if (authorityErr) return badRequest(authorityErr);
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

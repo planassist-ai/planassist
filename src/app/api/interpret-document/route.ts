@@ -1,5 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { validateTextArea, scanFields, badRequest } from "@/lib/validation";
 
 const client = new Anthropic();
 
@@ -61,6 +63,9 @@ export interface InterpretDocumentResult {
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimitResponse = checkRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const body: InterpretDocumentRequest = await request.json();
     const { documentType, documentText } = body;
@@ -78,6 +83,15 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const docTypeErr = validateTextArea(documentType, "Document type", 100);
+    if (docTypeErr) return badRequest(docTypeErr);
+
+    const docTextErr = validateTextArea(documentText, "Document text");
+    if (docTextErr) return badRequest(docTextErr);
+
+    const securityErr = scanFields(documentType, documentText);
+    if (securityErr) return badRequest(securityErr);
 
     const userMessage = `Please analyse the following Irish planning document:
 

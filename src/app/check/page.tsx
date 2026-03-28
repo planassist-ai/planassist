@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { AppShell } from "@/app/components/AppShell";
+import { CountyIntelPanel } from "@/app/components/CountyIntelPanel";
+import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -481,6 +483,7 @@ function ResultPanel({ result, flowType, onReset }: { result: CheckPermissionRes
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function CheckPage() {
+  const { isPaid } = useAuthStatus();
   const [step, setStep] = useState<PageStep>("select");
   const [flowType, setFlowType] = useState<FlowType | null>(null);
   const [formData, setFormData] = useState<FormData>(EMPTY_FORM);
@@ -558,6 +561,11 @@ export default function CheckPage() {
 
         {step === "result" && result && flowType && (
           <ResultPanel result={result} flowType={flowType} onReset={handleReset} />
+        )}
+
+        {/* County intelligence panel — shown during form step when county is selected */}
+        {step === "form" && formData.county && (
+          <CountyIntelPanel county={formData.county} isPaid={isPaid} className="mt-5" />
         )}
 
         {error && (

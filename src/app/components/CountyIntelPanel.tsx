@@ -1424,9 +1424,22 @@ interface CountyIntelPanelProps {
   /** Accepts either a plain county name ("Kildare") or a full council name ("Kildare County Council") */
   county: string;
   className?: string;
+  /**
+   * Whether the current user has paid access.
+   * - true  → full panel (all policies, warnings, links, docs)
+   * - false → free tier: county name + first policy only + upgrade CTA
+   * Defaults to false so callers that haven't loaded auth yet show the safe version.
+   */
+  isPaid?: boolean;
 }
 
-export function CountyIntelPanel({ county, className = "" }: CountyIntelPanelProps) {
+function handleUpgrade() {
+  alert(
+    "Payment is coming soon.\n\nTo get early access, email us at hello@planassist.ie and we\u2019ll set you up manually."
+  );
+}
+
+export function CountyIntelPanel({ county, className = "", isPaid = false }: CountyIntelPanelProps) {
   const [open, setOpen] = useState(true);
 
   if (!county) return null;
@@ -1456,7 +1469,9 @@ export function CountyIntelPanel({ county, className = "" }: CountyIntelPanelPro
             </p>
             {!open && data && (
               <p className="text-xs text-indigo-500 mt-0.5">
-                {data.warnings.length} warning{data.warnings.length !== 1 ? "s" : ""} &middot; {data.policies.length} key {data.policies.length !== 1 ? "policies" : "policy"}
+                {isPaid
+                  ? `${data.warnings.length} warning${data.warnings.length !== 1 ? "s" : ""} \u00b7 ${data.policies.length} key ${data.policies.length !== 1 ? "policies" : "policy"}`
+                  : "1 key policy shown \u00b7 upgrade for full intelligence"}
               </p>
             )}
           </div>
@@ -1479,6 +1494,52 @@ export function CountyIntelPanel({ county, className = "" }: CountyIntelPanelPro
 
           {data ? (
             <>
+              {/* ── FREE TIER: show only first policy + upgrade CTA ── */}
+              {!isPaid && (
+                <div className="mt-4 space-y-3">
+                  {/* First policy only */}
+                  <div>
+                    <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-2">
+                      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Key county policy
+                    </h3>
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3.5">
+                      <p className="text-sm font-semibold text-emerald-900 mb-1">{data.policies[0].title}</p>
+                      <p className="text-sm text-emerald-800 leading-relaxed line-clamp-3">{data.policies[0].detail}</p>
+                    </div>
+                  </div>
+
+                  {/* Upgrade CTA */}
+                  <div className="bg-white border border-indigo-200 rounded-xl px-4 py-4 flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center mt-0.5">
+                      <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                      </svg>
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-indigo-900">
+                        {data.policies.length - 1} more {data.policies.length - 1 === 1 ? "policy" : "policies"}, {data.warnings.length} critical {data.warnings.length === 1 ? "warning" : "warnings"} &amp; all document links
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+                        Unlock the full Co. {data.countyName} intelligence panel for €39 or with an Architect subscription.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleUpgrade}
+                        className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        Get full access — €39
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── PAID TIER: full content ── */}
+              {isPaid && (
+                <>
               {/* ── Critical warnings ── */}
               {data.warnings.length > 0 && (
                 <div className="mt-4">
@@ -1579,6 +1640,8 @@ export function CountyIntelPanel({ county, className = "" }: CountyIntelPanelPro
                   </div>
                 )}
               </div>
+                </>
+              )}
             </>
           ) : (
             /* ── Unknown county — fallback notice ── */

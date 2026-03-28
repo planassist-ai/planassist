@@ -1,5 +1,12 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit } from "@/lib/rateLimit";
+import {
+  validateCounty,
+  validateTextArea,
+  scanFields,
+  badRequest,
+} from "@/lib/validation";
 
 const client = new Anthropic();
 
@@ -249,6 +256,9 @@ Assess the planning situation and likelihood of obtaining permission to replace 
 // ─── Route handler ─────────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
+  const rateLimitResponse = checkRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const body: CheckPermissionRequest = await request.json();
     const { flowType, county } = body;
@@ -256,6 +266,26 @@ export async function POST(request: NextRequest) {
     if (!flowType || !county) {
       return NextResponse.json({ error: "Flow type and county are required." }, { status: 400 });
     }
+
+    // Validate county
+    const countyErr = validateCounty(county);
+    if (countyErr) return badRequest(countyErr);
+
+    // Validate optional free-text field
+    if (body.additionalDetails !== undefined) {
+      const textErr = validateTextArea(body.additionalDetails, "Additional details");
+      if (textErr) return badRequest(textErr);
+    }
+
+    // Scan all user-supplied text for injection attempts
+    const securityErr = scanFields(
+      body.additionalDetails,
+      body.siteType,
+      body.extensionType,
+      body.replacementReason,
+      body.currentCondition,
+    );
+    if (securityErr) return badRequest(securityErr);
 
     let systemPrompt: string;
     let userMessage: string;

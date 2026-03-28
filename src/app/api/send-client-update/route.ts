@@ -1,6 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit } from "@/lib/rateLimit";
+import {
+  validatePlanningRef,
+  validateTextArea,
+  scanFields,
+  badRequest,
+} from "@/lib/validation";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const resend    = new Resend(process.env.RESEND_API_KEY);
@@ -18,6 +25,9 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export async function POST(request: NextRequest) {
+  const rateLimitResponse = checkRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const {
       referenceNumber,
@@ -39,6 +49,26 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const refErr = validatePlanningRef(referenceNumber);
+    if (refErr) return badRequest(refErr);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(clientEmail.trim())) {
+      return badRequest("Please enter a valid email address for the client.");
+    }
+
+    const nameErr = validateTextArea(clientName, "Client name", 100);
+    if (nameErr) return badRequest(nameErr);
+
+    const addrErr = validateTextArea(propertyAddress, "Property address", 200);
+    if (addrErr) return badRequest(addrErr);
+
+    const projErr = validateTextArea(projectDescription, "Project description", 500);
+    if (projErr) return badRequest(projErr);
+
+    const securityErr = scanFields(clientName, propertyAddress, projectDescription);
+    if (securityErr) return badRequest(securityErr);
 
     const statusLabel    = STATUS_LABELS[status] ?? status;
     const deadlineDate   = new Date(statutoryDeadline).toLocaleDateString("en-IE", { day: "numeric", month: "long", year: "numeric" });

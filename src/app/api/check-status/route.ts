@@ -1,5 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit } from "@/lib/rateLimit";
+import {
+  validatePlanningRef,
+  validateAuthority,
+  validateTextArea,
+  scanFields,
+  badRequest,
+} from "@/lib/validation";
 
 const client = new Anthropic();
 
@@ -55,6 +63,9 @@ export interface CheckStatusResult {
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimitResponse = checkRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const body: CheckStatusRequest = await request.json();
     const { referenceNumber, county, statusText } = body;
@@ -65,6 +76,18 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const refErr = validatePlanningRef(referenceNumber);
+    if (refErr) return badRequest(refErr);
+
+    const authorityErr = validateAuthority(county);
+    if (authorityErr) return badRequest(authorityErr);
+
+    const statusTextErr = validateTextArea(statusText, "Status text", 500);
+    if (statusTextErr) return badRequest(statusTextErr);
+
+    const securityErr = scanFields(statusText);
+    if (securityErr) return badRequest(securityErr);
 
     const userMessage = `Please interpret the following Irish planning application status:
 

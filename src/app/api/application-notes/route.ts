@@ -1,5 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  validatePlanningRef,
+  validateTextArea,
+  scanFields,
+  badRequest,
+} from "@/lib/validation";
 
 // Run once in your Supabase SQL editor:
 //
@@ -50,6 +56,15 @@ export async function POST(request: NextRequest) {
     if (typeof notes !== "string") {
       return NextResponse.json({ error: "notes must be a string." }, { status: 400 });
     }
+
+    const refErr = validatePlanningRef(referenceNumber);
+    if (refErr) return badRequest(refErr);
+
+    const notesErr = validateTextArea(notes, "Notes");
+    if (notesErr) return badRequest(notesErr);
+
+    const securityErr = scanFields(notes);
+    if (securityErr) return badRequest(securityErr);
 
     const { data, error } = await supabase()
       .from("application_notes")
