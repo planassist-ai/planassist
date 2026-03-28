@@ -4,6 +4,8 @@ import { useState, useRef, useCallback } from "react";
 import type { InterpretDocumentResult } from "@/app/api/interpret-document/route";
 import { AppShell } from "@/app/components/AppShell";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
+import { UpgradePrompt } from "@/app/components/UpgradePrompt";
+import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 
 const DOCUMENT_TYPES = [
   "RFI (Request for Further Information)",
@@ -217,6 +219,20 @@ export default function InterpreterPage() {
 
   const verdictConfig = result ? VERDICT_CONFIG[result.verdictType] : null;
   const hasText = documentText.trim().length >= 50;
+
+  const { loading: authLoading, isLoggedIn, hasAccess } = useAuthStatus();
+
+  // Gate: require login + active trial or paid subscription
+  if (!authLoading && (!isLoggedIn || !hasAccess)) {
+    return (
+      <AppShell>
+        <UpgradePrompt
+          feature="Document Interpreter"
+          description="Upload or paste any Irish planning document — an RFI, planning conditions, third party observation, or appeal decision — and get a plain-English breakdown with prioritised actions and deadlines."
+        />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
