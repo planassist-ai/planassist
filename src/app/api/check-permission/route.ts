@@ -176,6 +176,35 @@ Respond with ONLY a valid JSON object — no markdown, no code blocks, just raw 
   "caveat": "One sentence noting the single most important condition or action the applicant should take"
 }`;
 
+// ─── In-memory response cache ──────────────────────────────────────────────────
+// Prevents identical planning queries from hitting Claude on every request.
+// Module-level Map persists across requests within the same Node process.
+
+const CACHE_TTL  = 24 * 60 * 60 * 1000; // 24 hours — planning rules don't change daily
+const CACHE_MAX  = 500;                   // max entries before oldest is evicted
+
+const responseCache = new Map<string, { result: CheckPermissionResult; cachedAt: number }>();
+
+function cacheKey(body: CheckPermissionRequest): string {
+  // Sort keys so the same inputs always produce the same key regardless of property order
+  return JSON.stringify(body, Object.keys(body as object).sort() as (keyof CheckPermissionRequest)[]);
+}
+
+function getCached(body: CheckPermissionRequest): CheckPermissionResult | null {
+  const entry = responseCache.get(cacheKey(body));
+  if (!entry) return null;
+  if (Date.now() - entry.cachedAt > CACHE_TTL) { responseCache.delete(cacheKey(body)); return null; }
+  return entry.result;
+}
+
+function setCached(body: CheckPermissionRequest, result: CheckPermissionResult): void {
+  if (responseCache.size >= CACHE_MAX) {
+    const oldest = responseCache.keys().next().value;
+    if (oldest) responseCache.delete(oldest);
+  }
+  responseCache.set(cacheKey(body), { result, cachedAt: Date.now() });
+}
+
 // ─── Interfaces ────────────────────────────────────────────────────────────────
 
 export interface CheckPermissionResult {
@@ -287,6 +316,10 @@ export async function POST(request: NextRequest) {
     );
     if (securityErr) return badRequest(securityErr);
 
+    // Return cached result if available (avoids Claude API call entirely)
+    const cached = getCached(body);
+    if (cached) return NextResponse.json(cached);
+
     let systemPrompt: string;
     let userMessage: string;
 
@@ -329,6 +362,7 @@ export async function POST(request: NextRequest) {
       result = JSON.parse(cleaned);
     }
 
+    setCached(body, result);
     return NextResponse.json(result);
   } catch (error) {
     console.error("check-permission error:", error);

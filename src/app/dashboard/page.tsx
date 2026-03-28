@@ -410,6 +410,7 @@ export default function DashboardPage() {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // ── Auth state ──
   const { userEmail } = useAuthStatus();
@@ -608,6 +609,8 @@ export default function DashboardPage() {
         // If no real apps, SEED_APPLICATIONS stays in state as demo data
       } catch {
         // Supabase not configured — keep in-memory demo data already in state
+      } finally {
+        if (!cancelled) setIsInitialLoad(false);
       }
     }
 
@@ -757,8 +760,44 @@ export default function DashboardPage() {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:py-10">
 
+        {/* ── Loading skeleton ───────────────────────────────────────── */}
+        {isInitialLoad && (
+          <div className="animate-pulse">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-7 sm:mb-8">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5">
+                  <div className="h-4 w-4 bg-gray-200 rounded mb-3" />
+                  <div className="h-8 w-12 bg-gray-200 rounded mb-1.5" />
+                  <div className="h-3 w-24 bg-gray-200 rounded" />
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2 mb-5 sm:mb-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-8 w-24 bg-gray-200 rounded-lg" />
+              ))}
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-gray-200 p-5">
+                  <div className="flex justify-between mb-4">
+                    <div className="h-3 w-32 bg-gray-200 rounded" />
+                    <div className="h-5 w-20 bg-gray-200 rounded-full" />
+                  </div>
+                  <div className="h-5 w-48 bg-gray-200 rounded mb-2" />
+                  <div className="h-3 w-40 bg-gray-200 rounded mb-4" />
+                  <div className="flex gap-2">
+                    <div className="h-4 w-16 bg-gray-200 rounded" />
+                    <div className="h-4 w-20 bg-gray-200 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── Deadline alert banner ──────────────────────────────────── */}
-        {urgentApps.length > 0 && (
+        {!isInitialLoad && urgentApps.length > 0 && (
           <div className="mb-7 sm:mb-8 bg-red-600 rounded-2xl overflow-hidden">
             <div className="px-4 sm:px-5 py-4 flex items-start gap-3">
               {/* Icon */}
@@ -829,7 +868,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Stats grid ─────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-7 sm:mb-8">
+        <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-7 sm:mb-8${isInitialLoad ? " hidden" : ""}`}>
           {[
             {
               key: "all" as FilterKey,
@@ -885,7 +924,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Filter tabs ─────────────────────────────────────────────── */}
-        <div className="flex items-center gap-2 mb-5 sm:mb-6 overflow-x-auto pb-0.5 scrollbar-hide">
+        <div className={`flex items-center gap-2 mb-5 sm:mb-6 overflow-x-auto pb-0.5 scrollbar-hide${isInitialLoad ? " hidden" : ""}`}>
           {FILTERS.map(({ key, label, count }) => (
             <button
               key={key}
@@ -905,6 +944,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Application cards ───────────────────────────────────────── */}
+        <div className={isInitialLoad ? "hidden" : ""}>
         {filtered.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center shadow-sm">
             <p className="text-gray-400 text-sm">No applications in this category.</p>
@@ -1223,8 +1263,9 @@ export default function DashboardPage() {
             })}
           </div>
         )}
+        </div>
         {/* ── Tools ──────────────────────────────────────────────────── */}
-        <section className="mt-12 sm:mt-14">
+        <section className={`mt-12 sm:mt-14${isInitialLoad ? " hidden" : ""}`}>
           <div className="mb-5">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Tools</h2>
             <p className="text-sm text-gray-500 mt-1">Quick-access calculators and generators for your planning work.</p>

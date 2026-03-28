@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { SiteFooter } from "./SiteFooter";
@@ -109,12 +110,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router                 = useRouter();
   const { isLoggedIn, userEmail } = useAuthStatus();
 
-  async function handleSignOut() {
+  const handleSignOut = useCallback(async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/");
     router.refresh();
-  }
+  }, [router]);
 
   // First letter of the email for the avatar.
   const avatarLetter = userEmail ? userEmail[0].toUpperCase() : null;
