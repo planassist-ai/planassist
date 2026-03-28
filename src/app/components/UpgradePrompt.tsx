@@ -1,6 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+
+// Price IDs — keep in sync with src/app/api/create-checkout/route.ts
+const PRICE_ONE_OFF     = "price_1TG5pE1P7njYP3N2t0xrbpR4";
+const PRICE_SUBSCRIPTION = "price_1TG5pb1P7njYP3N2evNHlRUL";
 
 interface UpgradePromptProps {
   feature: string;
@@ -15,14 +20,38 @@ const PAID_FEATURES = [
   "Newspaper notice generator with statutory wording templates",
 ];
 
-function handleStripe() {
-  // Stripe integration coming soon — placeholder
-  alert(
-    "Payment is coming soon.\n\nTo get early access, email us at hello@planassist.ie and we\u2019ll set you up manually."
-  );
+async function startCheckout(priceId: string): Promise<void> {
+  const res = await fetch("/api/create-checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ priceId }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data as { error?: string }).error ?? "Failed to start checkout.");
+  }
+
+  const { url } = await res.json() as { url: string };
+  window.location.href = url;
 }
 
 export function UpgradePrompt({ feature, description }: UpgradePromptProps) {
+  const [loading, setLoading] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  async function handleCheckout(priceId: string) {
+    setLoading(priceId);
+    setCheckoutError(null);
+    try {
+      await startCheckout(priceId);
+      // Navigation happens inside startCheckout — no state reset needed.
+    } catch (err) {
+      setCheckoutError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setLoading(null);
+    }
+  }
+
   return (
     <div className="px-4 py-10 sm:px-6 sm:py-14 max-w-2xl mx-auto">
 
@@ -64,20 +93,39 @@ export function UpgradePrompt({ feature, description }: UpgradePromptProps) {
         </ul>
       </div>
 
+      {/* Error */}
+      {checkoutError && (
+        <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          {checkoutError}
+        </div>
+      )}
+
       {/* Price + CTA */}
       <div className="text-center space-y-3">
         <button
-          onClick={handleStripe}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-4 px-8 rounded-xl transition-colors text-sm"
+          onClick={() => handleCheckout(PRICE_ONE_OFF)}
+          disabled={loading !== null}
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 px-8 rounded-xl transition-colors text-sm"
         >
-          Get access — €39 one-off
+          {loading === PRICE_ONE_OFF ? (
+            <>
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Redirecting to checkout…
+            </>
+          ) : (
+            "Get access — €39 one-off"
+          )}
         </button>
 
         <p className="text-xs text-gray-400">
-          Or use with an{" "}
-          <Link href="/dashboard" className="underline underline-offset-2 hover:text-gray-600 transition-colors">
-            Architect subscription
-          </Link>
+          Or{" "}
+          <button
+            onClick={() => handleCheckout(PRICE_SUBSCRIPTION)}
+            disabled={loading !== null}
+            className="underline underline-offset-2 hover:text-gray-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading === PRICE_SUBSCRIPTION ? "Redirecting…" : "subscribe as an Architect"}
+          </button>
           {" "}(60-day free trial)
         </p>
 
