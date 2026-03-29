@@ -6,15 +6,14 @@ import { createClient } from "@/lib/supabase/browser";
 export interface AuthStatus {
   loading: boolean;
   isLoggedIn: boolean;
+  /** Whether the user has a paid Stripe subscription (used by webhook/success page only — not for feature gating). */
   isPaid: boolean;
-  /** Days left in 60-day trial. 0 = expired. -1 = not applicable (isPaid). */
+  /** @deprecated Use isLoggedIn for access decisions. Any logged-in user has full access. */
   trialDaysLeft: number;
-  /** True if user has full access: either paid or within the 60-day trial. */
+  /** True if the user has full access. Equivalent to isLoggedIn — any authenticated user gets everything. */
   hasAccess: boolean;
   userEmail: string | null;
 }
-
-const TRIAL_DAYS = 60;
 
 export function useAuthStatus(): AuthStatus {
   const [status, setStatus] = useState<AuthStatus>({
@@ -47,47 +46,26 @@ export function useAuthStatus(): AuthStatus {
           return;
         }
 
+        // Read is_paid from profiles (kept for Stripe audit trail — not used for feature gating).
         let isPaid = false;
-        let trialDaysLeft = 0;
-
-        // Read is_paid and trial dates from the profiles table (primary source).
-        // Fall back gracefully if the table or row doesn't exist yet.
         try {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("is_paid, trial_end_date")
+            .select("is_paid")
             .eq("id", user.id)
             .maybeSingle();
-
           isPaid = (profile as { is_paid?: boolean } | null)?.is_paid ?? false;
-
-          const trialEnd = (profile as { trial_end_date?: string } | null)?.trial_end_date;
-          if (trialEnd) {
-            const msLeft = new Date(trialEnd).getTime() - Date.now();
-            trialDaysLeft = Math.max(0, Math.floor(msLeft / (1000 * 60 * 60 * 24)));
-          } else {
-            // Profile row not yet created — calculate from auth user created_at.
-            const daysPassed = Math.floor(
-              (Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24)
-            );
-            trialDaysLeft = Math.max(0, TRIAL_DAYS - daysPassed);
-          }
         } catch {
-          // profiles table not yet migrated — fall back to auth user created_at.
-          const daysPassed = Math.floor(
-            (Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24)
-          );
-          trialDaysLeft = Math.max(0, TRIAL_DAYS - daysPassed);
+          // profiles table not yet migrated — fine, isPaid stays false
         }
 
-        const hasAccess = isPaid || trialDaysLeft > 0;
-
+        // Any authenticated user has full access regardless of is_paid or trial dates.
         setStatus({
           loading: false,
           isLoggedIn: true,
           isPaid,
-          trialDaysLeft: isPaid ? -1 : trialDaysLeft,
-          hasAccess,
+          trialDaysLeft: -1,
+          hasAccess: true,
           userEmail: user.email ?? null,
         });
       } catch {

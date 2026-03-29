@@ -484,7 +484,7 @@ function ResultPanel({ result, flowType, onReset }: { result: CheckPermissionRes
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function CheckPage() {
-  const { isPaid } = useAuthStatus();
+  const { isLoggedIn } = useAuthStatus();
   const [step, setStep] = useState<PageStep>("select");
   const [flowType, setFlowType] = useState<FlowType | null>(null);
   const [formData, setFormData] = useState<FormData>(EMPTY_FORM);
@@ -566,7 +566,7 @@ export default function CheckPage() {
 
         {/* County intelligence panel — shown during form step when county is selected */}
         {step === "form" && formData.county && (
-          <CountyIntelPanel county={formData.county} isPaid={isPaid} className="mt-5" />
+          <CountyIntelPanel county={formData.county} isPaid={isLoggedIn} className="mt-5" />
         )}
 
         {error && (

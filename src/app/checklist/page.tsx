@@ -407,7 +407,7 @@ const selectClass =
   "w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors appearance-none cursor-pointer";
 
 export default function ChecklistPage() {
-  const { isPaid } = useAuthStatus();
+  const { isLoggedIn } = useAuthStatus();
   const [appType, setAppType] = useState<AppType | "">("");
   const [county, setCounty] = useState("");
   const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -520,7 +520,7 @@ export default function ChecklistPage() {
 
         {/* County intelligence panel */}
         {county && (
-          <CountyIntelPanel county={county} isPaid={isPaid} className="mt-5 print:hidden" />
+          <CountyIntelPanel county={county} isPaid={isLoggedIn} className="mt-5 print:hidden" />
         )}
 
         {/* Empty state */}
