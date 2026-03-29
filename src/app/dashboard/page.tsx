@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { CountyIntelPanel } from "@/app/components/CountyIntelPanel";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
+import { GrantsDashboardWidget } from "@/app/components/GrantsAlert";
 import { calculatePlanningFee, DEV_TYPES, euro, type DevTypeKey, type FeeResult } from "@/lib/planningFee";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 
@@ -942,6 +943,11 @@ export default function DashboardPage() {
             </button>
           ))}
         </div>
+
+        {/* ── SEAI Grants widget ─────────────────────────────────────── */}
+        {!isInitialLoad && (
+          <GrantsDashboardWidget className="mb-6 sm:mb-7" />
+        )}
 
         {/* ── Application cards ───────────────────────────────────────── */}
         <div className={isInitialLoad ? "hidden" : ""}>

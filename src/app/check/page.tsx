@@ -4,7 +4,9 @@ import { useState } from "react";
 import { AppShell } from "@/app/components/AppShell";
 import { CountyIntelPanel } from "@/app/components/CountyIntelPanel";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
+import { GrantsAlert } from "@/app/components/GrantsAlert";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
+import type { GrantFlowType } from "@/lib/grants";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -991,9 +993,17 @@ function ProtectedStructureForm({ data, onChange, onBack, onSubmit, loading }: {
 
 // ─── Result Panel ──────────────────────────────────────────────────────────────
 
+const FLOW_TO_GRANT_TYPE: Partial<Record<FlowType, GrantFlowType>> = {
+  "new-build":   "new-build",
+  "extension":   "extension",
+  "appearance":  "appearance",
+  "replacement": "replacement",
+};
+
 function ResultPanel({ result, flowType, onReset }: { result: CheckPermissionResult; flowType: FlowType; onReset: () => void }) {
   const config = OUTCOME_CONFIG[result.outcome];
   const label = OUTCOME_LABELS[flowType][result.outcome];
+  const grantFlowType = FLOW_TO_GRANT_TYPE[flowType];
   return (
     <div>
       <button type="button" onClick={onReset} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors mb-6">
@@ -1033,6 +1043,9 @@ function ResultPanel({ result, flowType, onReset }: { result: CheckPermissionRes
           Check another project
         </button>
       </div>
+      {grantFlowType && (
+        <GrantsAlert flowType={grantFlowType} className="mt-5" />
+      )}
     </div>
   );
 }

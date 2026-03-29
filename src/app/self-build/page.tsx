@@ -5,6 +5,7 @@ import { AppShell } from "@/app/components/AppShell";
 import { UpgradePrompt } from "@/app/components/UpgradePrompt";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
+import { GrantsAlert } from "@/app/components/GrantsAlert";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -643,6 +644,35 @@ function StageCard({ stage, index, stageState, isMortgage, onToggleItem, onUpdat
               </div>
             </div>
           ))}
+
+          {/* Grants reminders for specific stages */}
+          {stage.id === "pre-commencement" && (
+            <div className="rounded-xl border border-green-200 bg-green-50 px-3.5 py-3 mt-2">
+              <p className="text-xs font-semibold text-green-800 mb-1">SEAI grant opportunity — apply now, before work starts</p>
+              <p className="text-xs text-green-700 leading-relaxed mb-2">
+                If you plan to install solar PV, a heat pump, or insulation, you must apply for SEAI grants <strong>before any works begin</strong>. Starting work first disqualifies your application.
+              </p>
+              <a href="/grants" className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 hover:text-green-900 underline underline-offset-2">
+                Check which grants apply to your self-build →
+              </a>
+            </div>
+          )}
+          {stage.id === "completion" && (
+            <div className="rounded-xl border border-green-200 bg-green-50 px-3.5 py-3 mt-2">
+              <p className="text-xs font-semibold text-green-800 mb-1">SEAI grants at completion</p>
+              <p className="text-xs text-green-700 leading-relaxed mb-2">
+                Your BER certificate (€200 grant) and Solar PV installation (up to €1,800) can be claimed at or after completion. Verify current amounts at seai.ie before applying.
+              </p>
+              <a
+                href="https://www.seai.ie/grants/home-energy-grants/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 hover:text-green-900 underline underline-offset-2"
+              >
+                Apply at seai.ie →
+              </a>
+            </div>
+          )}
 
           {/* Stage status controls */}
           <div className="pt-4 border-t border-gray-100">
