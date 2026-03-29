@@ -5,7 +5,6 @@ import { AppShell } from "@/app/components/AppShell";
 import { UpgradePrompt } from "@/app/components/UpgradePrompt";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
-import { GrantsAlert } from "@/app/components/GrantsAlert";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

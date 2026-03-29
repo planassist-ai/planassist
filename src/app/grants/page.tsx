@@ -47,7 +47,7 @@ function computeResults(answers: Answers): { grants: SeaiGrant[]; warmerHomes: b
   const isNewBuild = yearBuilt === "new-build" || projectType === "new-build" || projectType === "self-build";
   const isPost2011 = yearBuilt === "after-2011";
 
-  let grants = SEAI_GRANTS.filter(g => {
+  const grants = SEAI_GRANTS.filter(g => {
     // Must be applicable to this flow type
     if (!g.applicableTo.includes(flowType)) return false;
     // Filter by selected works categories (if user selected any)
