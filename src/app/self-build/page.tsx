@@ -503,12 +503,13 @@ interface StageCardProps {
   index: number;
   stageState: StageState;
   isMortgage: boolean;
+  county: string;
   onToggleItem: (stageId: string, itemId: string) => void;
   onUpdateDocument: (stageId: string, itemId: string, name: string) => void;
   onSetStatus: (stageId: string, status: StageStatus) => void;
 }
 
-function StageCard({ stage, index, stageState, isMortgage, onToggleItem, onUpdateDocument, onSetStatus }: StageCardProps) {
+function StageCard({ stage, index, stageState, isMortgage, county, onToggleItem, onUpdateDocument, onSetStatus }: StageCardProps) {
   const [expanded, setExpanded] = useState(stageState.status === "in-progress");
 
   const visibleItems = stage.items.filter(item => {
@@ -643,6 +644,22 @@ function StageCard({ stage, index, stageState, isMortgage, onToggleItem, onUpdat
               </div>
             </div>
           ))}
+
+          {/* Builder recommendation after planning-complete */}
+          {stage.id === "planning-complete" && (
+            <div className="rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-3 mt-2">
+              <p className="text-xs font-semibold text-blue-800 mb-1">Planning permission granted — now find your builder</p>
+              <p className="text-xs text-blue-700 leading-relaxed mb-2">
+                The next step is tendering your build. Get at least three quotes from builders experienced in your project type.
+              </p>
+              <a
+                href={`/find-a-professional?tab=builders${county ? `&county=${encodeURIComponent(county)}` : ""}`}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 hover:text-blue-900 underline underline-offset-2"
+              >
+                Find builders{county ? ` in Co. ${county}` : ""} →
+              </a>
+            </div>
+          )}
 
           {/* Grants reminders for specific stages */}
           {stage.id === "pre-commencement" && (
@@ -973,6 +990,7 @@ export default function SelfBuildPage() {
                 index={i}
                 stageState={stages[stage.id] ?? { status: "not-started", checkedItems: {}, documentNames: {} }}
                 isMortgage={isMortgage}
+                county={project.county}
                 onToggleItem={handleToggleItem}
                 onUpdateDocument={handleUpdateDocument}
                 onSetStatus={handleSetStatus}

@@ -31,6 +31,9 @@ export interface Professional {
   is_verified: boolean;
   is_featured: boolean;
   created_at: string;
+  // Merged from reviews
+  avg_rating?: number | null;
+  review_count?: number;
 }
 
 export const PROFESSION_LABELS: Record<ProfessionType, string> = {
