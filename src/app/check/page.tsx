@@ -8,7 +8,7 @@ import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-type FlowType = "new-build" | "extension" | "replacement";
+type FlowType = "new-build" | "extension" | "replacement" | "outbuildings" | "appearance" | "agricultural" | "change-of-use" | "other-works";
 type PageStep = "select" | "form" | "result";
 
 interface CheckPermissionResult {
@@ -33,6 +33,21 @@ interface FormData {
   protectedStructure: string;
   replacementReason: string;
   currentCondition: string;
+  // Outbuildings
+  structureType: string;
+  structureFootprint: string;
+  structureHeight: string;
+  withinCurtilage: string;
+  // Appearance
+  appearanceType: string;
+  // Agricultural
+  agriculturalType: string;
+  isFarmer: string;
+  // Change of use
+  currentUse: string;
+  proposedUse: string;
+  // Other works
+  worksDescription: string;
   additionalDetails: string;
 }
 
@@ -41,6 +56,9 @@ const EMPTY_FORM: FormData = {
   canProveConnection: "", withinFamilyLandholding: "", siteSize: "",
   extensionType: "", currentHouseSize: "", extensionSize: "",
   protectedStructure: "", replacementReason: "", currentCondition: "",
+  structureType: "", structureFootprint: "", structureHeight: "", withinCurtilage: "",
+  appearanceType: "", agriculturalType: "", isFarmer: "",
+  currentUse: "", proposedUse: "", worksDescription: "",
   additionalDetails: "",
 };
 
@@ -93,6 +111,11 @@ const OUTCOME_LABELS: Record<FlowType, Record<string, string>> = {
   "new-build": { EXEMPT: "Strong Case for Permission", LIKELY_NEEDS_PERMISSION: "Possible Case — Challenges Exist", DEFINITELY_NEEDS_PERMISSION: "Permission Required" },
   extension: { EXEMPT: "Exempt from Permission", LIKELY_NEEDS_PERMISSION: "Likely Needs Permission", DEFINITELY_NEEDS_PERMISSION: "Needs Permission" },
   replacement: { EXEMPT: "Likely Eligible", LIKELY_NEEDS_PERMISSION: "Permission Required — Case Possible", DEFINITELY_NEEDS_PERMISSION: "Permission Required" },
+  outbuildings: { EXEMPT: "Likely Exempt", LIKELY_NEEDS_PERMISSION: "May Need Permission", DEFINITELY_NEEDS_PERMISSION: "Permission Required" },
+  appearance: { EXEMPT: "Likely Exempt", LIKELY_NEEDS_PERMISSION: "May Need Permission", DEFINITELY_NEEDS_PERMISSION: "Permission Required" },
+  agricultural: { EXEMPT: "Likely Exempt Development", LIKELY_NEEDS_PERMISSION: "Permission May Be Required", DEFINITELY_NEEDS_PERMISSION: "Permission Required" },
+  "change-of-use": { EXEMPT: "Likely Exempt", LIKELY_NEEDS_PERMISSION: "Permission May Be Required", DEFINITELY_NEEDS_PERMISSION: "Permission Required" },
+  "other-works": { EXEMPT: "Likely Exempt", LIKELY_NEEDS_PERMISSION: "May Need Permission", DEFINITELY_NEEDS_PERMISSION: "Permission Required" },
 };
 
 const labelClass = "block text-sm font-medium text-gray-700 mb-2";
@@ -132,6 +155,57 @@ function YesNoToggle({ value, onChange }: { value: string; onChange: (v: string)
 // ─── Flow Selector ─────────────────────────────────────────────────────────────
 
 function FlowSelector({ onSelect }: { onSelect: (f: FlowType) => void }) {
+  const flows: { type: FlowType; title: string; desc: string; icon: React.ReactNode }[] = [
+    {
+      type: "new-build",
+      title: "New Build",
+      desc: "I want to build a new house on land I own",
+      icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" /></svg>,
+    },
+    {
+      type: "extension",
+      title: "Extension or Alteration",
+      desc: "I want to extend, convert loft, add dormer, or modify my existing home",
+      icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg>,
+    },
+    {
+      type: "replacement",
+      title: "Replacement Dwelling",
+      desc: "I want to demolish and rebuild an existing house",
+      icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>,
+    },
+    {
+      type: "outbuildings",
+      title: "Outbuildings and Structures",
+      desc: "I want to build a garage, shed, garden room, boundary wall, gate, railings or other structure",
+      icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>,
+    },
+    {
+      type: "appearance",
+      title: "Change of Appearance",
+      desc: "I want to change external finishes, add stone cladding, render, replace windows or doors, add solar panels or change the look of my home",
+      icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" /></svg>,
+    },
+    {
+      type: "agricultural",
+      title: "Agricultural and Rural Works",
+      desc: "I want to remove or add a cattle grid, build farm buildings, construct silage or slurry storage, create a new access road or carry out other agricultural works",
+      icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c-.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" /></svg>,
+    },
+    {
+      type: "change-of-use",
+      title: "Change of Use",
+      desc: "I want to convert a building from one use to another such as garage to living space or commercial to residential",
+      icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>,
+    },
+    {
+      type: "other-works",
+      title: "Other Works",
+      desc: "Something else that might need planning permission",
+      icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L3 3l1.5 1.5 3.75.75 5.91 5.91" /></svg>,
+    },
+  ];
+
   return (
     <div>
       <div className="mb-8 sm:mb-10">
@@ -139,13 +213,9 @@ function FlowSelector({ onSelect }: { onSelect: (f: FlowType) => void }) {
         <p className="text-gray-500 text-sm sm:text-base leading-relaxed">Tell us what type of project you have in mind and we&apos;ll guide you through the relevant planning questions under current Irish planning law.</p>
       </div>
       <p className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">What are you planning to do?</p>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {([
-          { type: "new-build" as FlowType, title: "New Build", desc: "I want to build a new house on a site", icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" /></svg> },
-          { type: "extension" as FlowType, title: "Extension or Renovation", desc: "I want to extend or modify my existing home", icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg> },
-          { type: "replacement" as FlowType, title: "Replacement Dwelling", desc: "I want to demolish and rebuild on the same site", icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg> },
-        ] as { type: FlowType; title: string; desc: string; icon: React.ReactNode }[]).map(({ type, title, desc, icon }) => (
-          <button key={type} onClick={() => onSelect(type)} className="group text-left bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 hover:border-green-400 hover:shadow-md active:scale-[0.98] transition-all">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {flows.map(({ type, title, desc, icon }) => (
+          <button key={type} onClick={() => onSelect(type)} className="group text-left bg-white border border-gray-200 rounded-2xl p-5 hover:border-green-400 hover:shadow-md active:scale-[0.98] transition-all">
             <div className="w-12 h-12 rounded-xl bg-green-50 group-hover:bg-green-100 flex items-center justify-center text-green-600 mb-4 transition-colors">{icon}</div>
             <h2 className="text-base font-bold text-gray-900 mb-1.5">{title}</h2>
             <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
@@ -433,6 +503,300 @@ function ReplacementForm({ data, onChange, onBack, onSubmit, loading }: { data: 
   );
 }
 
+// ─── Outbuildings Form ─────────────────────────────────────────────────────────
+
+const STRUCTURE_TYPES = ["Garage","Shed or Storage Outbuilding","Garden Room or Home Office","Greenhouse","Boundary Wall","Gate or Railings","Swimming Pool or Pond","Other Structure"];
+
+function OutbuildingsForm({ data, onChange, onBack, onSubmit, loading }: { data: FormData; onChange: (f: keyof FormData, v: string) => void; onBack: () => void; onSubmit: (e: React.FormEvent) => void; loading: boolean }) {
+  return (
+    <div>
+      <BackButton onClick={onBack} />
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
+          </span>
+          <h2 className="text-xl font-bold text-gray-900">Outbuildings and Structures</h2>
+        </div>
+        <p className="text-sm text-gray-500">Many small structures are exempt from planning permission under Irish planning regulations. This tool checks whether your proposed structure requires permission.</p>
+      </div>
+      <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label className={labelClass} htmlFor="ob-county">County <span className="text-red-500">*</span></label>
+            <select id="ob-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+              <option value="" disabled>Select a county…</option>
+              {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="ob-type">Type of structure <span className="text-red-500">*</span></label>
+            <select id="ob-type" value={data.structureType} onChange={(e) => onChange("structureType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+              <option value="" disabled>Select…</option>
+              {STRUCTURE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className={labelClass}>Is the structure within the curtilage of your house? <span className="text-red-500">*</span></label>
+          <p className="text-xs text-gray-400 mb-1">Within the garden or yard area that belongs to and is used with the house.</p>
+          <YesNoToggle value={data.withinCurtilage} onChange={(v) => onChange("withinCurtilage", v)} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label className={labelClass} htmlFor="ob-footprint">Floor area (sqm) <span className="text-red-500">*</span></label>
+            <input id="ob-footprint" type="number" min="1" max="500" step="1" value={data.structureFootprint} onChange={(e) => onChange("structureFootprint", e.target.value)} required placeholder="e.g. 20" className={inputClass} />
+            <p className="mt-1 text-xs text-gray-400">Ground floor footprint of the proposed structure.</p>
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="ob-height">Maximum height (metres) <span className="text-red-500">*</span></label>
+            <input id="ob-height" type="number" min="0.5" max="15" step="0.1" value={data.structureHeight} onChange={(e) => onChange("structureHeight", e.target.value)} required placeholder="e.g. 3.5" className={inputClass} />
+            <p className="mt-1 text-xs text-gray-400">Highest point of the structure from ground level.</p>
+          </div>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="ob-protected">Is the house a protected structure or in an Architectural Conservation Area (ACA)? <span className="text-red-500">*</span></label>
+          <select id="ob-protected" value={data.protectedStructure} onChange={(e) => onChange("protectedStructure", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select…</option>
+            <option value="no">No</option>
+            <option value="yes">Yes — it is a protected structure or in an ACA</option>
+            <option value="unsure">Unsure — I have not checked</option>
+          </select>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="ob-details">Additional details <span className="text-gray-400 font-normal">(optional)</span></label>
+          <textarea id="ob-details" value={data.additionalDetails} onChange={(e) => onChange("additionalDetails", e.target.value)} rows={3} placeholder="e.g. Detached timber shed in rear garden, set back 1m from boundary wall. No previous outbuildings on the property." className={inputClass + " resize-none leading-relaxed"} />
+        </div>
+        <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 sm:py-3.5 px-6 rounded-xl transition-colors text-sm">
+          {loading ? <><Spinner />Analysing your project…</> : "Check planning permission"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// ─── Change of Appearance Form ─────────────────────────────────────────────────
+
+const APPEARANCE_TYPES = ["External Wall Insulation (ETICS)","Stone Cladding","Render or Roughcast","Window Replacement","Door Replacement","Solar PV Panels","Solar Thermal Panels","Roof Material Change","Repainting Exterior","Other External Works"];
+
+function AppearanceForm({ data, onChange, onBack, onSubmit, loading }: { data: FormData; onChange: (f: keyof FormData, v: string) => void; onBack: () => void; onSubmit: (e: React.FormEvent) => void; loading: boolean }) {
+  return (
+    <div>
+      <BackButton onClick={onBack} />
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" /></svg>
+          </span>
+          <h2 className="text-xl font-bold text-gray-900">Change of Appearance</h2>
+        </div>
+        <p className="text-sm text-gray-500">Changes to the external appearance of your home may or may not require planning permission. This tool checks whether your proposed works need consent.</p>
+      </div>
+      <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label className={labelClass} htmlFor="ap-county">County <span className="text-red-500">*</span></label>
+            <select id="ap-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+              <option value="" disabled>Select a county…</option>
+              {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="ap-type">Type of works <span className="text-red-500">*</span></label>
+            <select id="ap-type" value={data.appearanceType} onChange={(e) => onChange("appearanceType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+              <option value="" disabled>Select…</option>
+              {APPEARANCE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="ap-protected">Is the house a protected structure or in an Architectural Conservation Area (ACA)? <span className="text-red-500">*</span></label>
+          <select id="ap-protected" value={data.protectedStructure} onChange={(e) => onChange("protectedStructure", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select…</option>
+            <option value="no">No</option>
+            <option value="yes">Yes — it is a protected structure or in an ACA</option>
+            <option value="unsure">Unsure — I have not checked</option>
+          </select>
+          <p className="mt-1.5 text-xs text-gray-400">Protected structures require permission for most external works. Check your local authority&apos;s Record of Protected Structures.</p>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="ap-details">Additional details <span className="text-gray-400 font-normal">(optional)</span></label>
+          <textarea id="ap-details" value={data.additionalDetails} onChange={(e) => onChange("additionalDetails", e.target.value)} rows={3} placeholder="e.g. Semi-detached house in an estate. Replacing original timber windows with uPVC. No previous external alterations." className={inputClass + " resize-none leading-relaxed"} />
+          <p className="mt-1.5 text-xs text-gray-400">Include house type, materials used, and whether works affect the front or rear elevation.</p>
+        </div>
+        <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 sm:py-3.5 px-6 rounded-xl transition-colors text-sm">
+          {loading ? <><Spinner />Analysing your project…</> : "Check planning permission"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// ─── Agricultural and Rural Works Form ────────────────────────────────────────
+
+const AGRICULTURAL_TYPES = ["Cattle Grid (installation or removal)","Farm Building (shed, barn, milking parlour)","Silage Pit or Slurry Storage Tank","New Farm Access Road or Entrance","Land Drainage Works","Other Agricultural Works"];
+
+function AgriculturalForm({ data, onChange, onBack, onSubmit, loading }: { data: FormData; onChange: (f: keyof FormData, v: string) => void; onBack: () => void; onSubmit: (e: React.FormEvent) => void; loading: boolean }) {
+  return (
+    <div>
+      <BackButton onClick={onBack} />
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" /></svg>
+          </span>
+          <h2 className="text-xl font-bold text-gray-900">Agricultural and Rural Works</h2>
+        </div>
+        <p className="text-sm text-gray-500">Agricultural development has specific exempted development provisions under Irish planning law. This tool assesses whether your proposed works require planning permission.</p>
+      </div>
+      <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label className={labelClass} htmlFor="ag-county">County <span className="text-red-500">*</span></label>
+            <select id="ag-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+              <option value="" disabled>Select a county…</option>
+              {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="ag-type">Type of works <span className="text-red-500">*</span></label>
+            <select id="ag-type" value={data.agriculturalType} onChange={(e) => onChange("agriculturalType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+              <option value="" disabled>Select…</option>
+              {AGRICULTURAL_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className={labelClass}>Is this on a working farm? <span className="text-red-500">*</span></label>
+          <p className="text-xs text-gray-400 mb-1">Agricultural exemptions apply only to genuine farming operations. Non-farm landowners do not benefit from these exemptions.</p>
+          <YesNoToggle value={data.isFarmer} onChange={(v) => onChange("isFarmer", v)} />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="ag-details">Additional details <span className="text-gray-400 font-normal">(optional)</span></label>
+          <textarea id="ag-details" value={data.additionalDetails} onChange={(e) => onChange("additionalDetails", e.target.value)} rows={3} placeholder="e.g. Beef and tillage farm of 80 hectares. Proposing to build a new 300 sqm storage shed 200m from the road. No Natura 2000 sites nearby." className={inputClass + " resize-none leading-relaxed"} />
+          <p className="mt-1.5 text-xs text-gray-400">Farm size, proximity to roads and watercourses, and distance from Natura 2000 sites all affect the assessment.</p>
+        </div>
+        <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 sm:py-3.5 px-6 rounded-xl transition-colors text-sm">
+          {loading ? <><Spinner />Analysing your project…</> : "Check planning requirements"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// ─── Change of Use Form ────────────────────────────────────────────────────────
+
+const CURRENT_USES = ["Residential Garage or Outbuilding","Ground Floor Commercial or Retail","Office","Industrial or Warehouse","Agricultural Building","Part of Existing House","Other"];
+const PROPOSED_USES = ["Additional Living Space (connected to house)","Separate Residential Dwelling Unit","Home Office or Studio","Short-Term Holiday Rental (e.g. Airbnb)","Commercial or Retail Use","Other Use"];
+
+function ChangeOfUseForm({ data, onChange, onBack, onSubmit, loading }: { data: FormData; onChange: (f: keyof FormData, v: string) => void; onBack: () => void; onSubmit: (e: React.FormEvent) => void; loading: boolean }) {
+  return (
+    <div>
+      <BackButton onClick={onBack} />
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
+          </span>
+          <h2 className="text-xl font-bold text-gray-900">Change of Use</h2>
+        </div>
+        <p className="text-sm text-gray-500">Changing how a building is used often requires planning permission. This tool assesses whether your proposed change of use requires formal planning consent under Irish law.</p>
+      </div>
+      <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
+        <div>
+          <label className={labelClass} htmlFor="cu-county">County <span className="text-red-500">*</span></label>
+          <select id="cu-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label className={labelClass} htmlFor="cu-current">Current use of building <span className="text-red-500">*</span></label>
+            <select id="cu-current" value={data.currentUse} onChange={(e) => onChange("currentUse", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+              <option value="" disabled>Select…</option>
+              {CURRENT_USES.map((u) => <option key={u} value={u}>{u}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="cu-proposed">Proposed use <span className="text-red-500">*</span></label>
+            <select id="cu-proposed" value={data.proposedUse} onChange={(e) => onChange("proposedUse", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+              <option value="" disabled>Select…</option>
+              {PROPOSED_USES.map((u) => <option key={u} value={u}>{u}</option>)}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="cu-protected">Is the building a protected structure or in an Architectural Conservation Area (ACA)? <span className="text-red-500">*</span></label>
+          <select id="cu-protected" value={data.protectedStructure} onChange={(e) => onChange("protectedStructure", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select…</option>
+            <option value="no">No</option>
+            <option value="yes">Yes — it is a protected structure or in an ACA</option>
+            <option value="unsure">Unsure — I have not checked</option>
+          </select>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="cu-details">Additional details <span className="text-gray-400 font-normal">(optional)</span></label>
+          <textarea id="cu-details" value={data.additionalDetails} onChange={(e) => onChange("additionalDetails", e.target.value)} rows={3} placeholder="e.g. Attached garage (30 sqm) to be converted to a home office. No change to external structure. Built in 1995." className={inputClass + " resize-none leading-relaxed"} />
+          <p className="mt-1.5 text-xs text-gray-400">Whether the building is integral, attached, or detached, its floor area, and any proposed external changes all affect the assessment.</p>
+        </div>
+        <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 sm:py-3.5 px-6 rounded-xl transition-colors text-sm">
+          {loading ? <><Spinner />Analysing your project…</> : "Check planning permission"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// ─── Other Works Form ──────────────────────────────────────────────────────────
+
+function OtherWorksForm({ data, onChange, onBack, onSubmit, loading }: { data: FormData; onChange: (f: keyof FormData, v: string) => void; onBack: () => void; onSubmit: (e: React.FormEvent) => void; loading: boolean }) {
+  return (
+    <div>
+      <BackButton onClick={onBack} />
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L3 3l1.5 1.5 3.75.75 5.91 5.91" /></svg>
+          </span>
+          <h2 className="text-xl font-bold text-gray-900">Other Works</h2>
+        </div>
+        <p className="text-sm text-gray-500">If your works don&apos;t fit the other categories, describe what you plan to do and we&apos;ll assess whether planning permission may be required under Irish law.</p>
+      </div>
+      <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
+        <div>
+          <label className={labelClass} htmlFor="ow-county">County <span className="text-red-500">*</span></label>
+          <select id="ow-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="ow-desc">Describe the works you are proposing <span className="text-red-500">*</span></label>
+          <textarea id="ow-desc" value={data.worksDescription} onChange={(e) => onChange("worksDescription", e.target.value)} rows={4} required placeholder="e.g. I want to create a new vehicular entrance from my rear garden onto a public road. The entrance would be gated and approximately 3m wide." className={inputClass + " resize-none leading-relaxed"} />
+          <p className="mt-1.5 text-xs text-gray-400">Be as specific as possible — include the type of works, materials, dimensions, and location on your property.</p>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="ow-protected">Is the property a protected structure or in an Architectural Conservation Area (ACA)?</label>
+          <select id="ow-protected" value={data.protectedStructure} onChange={(e) => onChange("protectedStructure", e.target.value)} className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="">Not specified / unsure</option>
+            <option value="no">No</option>
+            <option value="yes">Yes — it is a protected structure or in an ACA</option>
+            <option value="unsure">Unsure — I have not checked</option>
+          </select>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="ow-details">Additional details <span className="text-gray-400 font-normal">(optional)</span></label>
+          <textarea id="ow-details" value={data.additionalDetails} onChange={(e) => onChange("additionalDetails", e.target.value)} rows={3} placeholder="Any other relevant context…" className={inputClass + " resize-none leading-relaxed"} />
+        </div>
+        <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 sm:py-3.5 px-6 rounded-xl transition-colors text-sm">
+          {loading ? <><Spinner />Analysing your project…</> : "Check planning permission"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 // ─── Result Panel ──────────────────────────────────────────────────────────────
 
 function ResultPanel({ result, flowType, onReset }: { result: CheckPermissionResult; flowType: FlowType; onReset: () => void }) {
@@ -558,6 +922,21 @@ export default function CheckPage() {
         )}
         {step === "form" && flowType === "replacement" && (
           <ReplacementForm data={formData} onChange={handleFieldChange} onBack={handleBack} onSubmit={handleSubmit} loading={loading} />
+        )}
+        {step === "form" && flowType === "outbuildings" && (
+          <OutbuildingsForm data={formData} onChange={handleFieldChange} onBack={handleBack} onSubmit={handleSubmit} loading={loading} />
+        )}
+        {step === "form" && flowType === "appearance" && (
+          <AppearanceForm data={formData} onChange={handleFieldChange} onBack={handleBack} onSubmit={handleSubmit} loading={loading} />
+        )}
+        {step === "form" && flowType === "agricultural" && (
+          <AgriculturalForm data={formData} onChange={handleFieldChange} onBack={handleBack} onSubmit={handleSubmit} loading={loading} />
+        )}
+        {step === "form" && flowType === "change-of-use" && (
+          <ChangeOfUseForm data={formData} onChange={handleFieldChange} onBack={handleBack} onSubmit={handleSubmit} loading={loading} />
+        )}
+        {step === "form" && flowType === "other-works" && (
+          <OtherWorksForm data={formData} onChange={handleFieldChange} onBack={handleBack} onSubmit={handleSubmit} loading={loading} />
         )}
 
         {step === "result" && result && flowType && (

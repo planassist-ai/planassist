@@ -123,6 +123,200 @@ Respond with ONLY a valid JSON object — no markdown, no code blocks, just raw 
   "caveat": "One sentence noting the most important condition or uncertainty specific to this project"
 }`;
 
+const OUTBUILDINGS_PROMPT = `You are an expert in Irish planning law, specifically regarding outbuildings and structures within the curtilage of domestic properties. You have comprehensive knowledge of:
+- The Planning and Development Act 2000 (as amended) and the Planning and Development Act 2024
+- The Planning and Development Regulations 2001 (as amended), Schedule 2, Part 1, Class 3 (outbuildings) and Class 5 (walls, fences, and gates)
+- The updated exempted development thresholds effective from March 2026
+
+KEY EXEMPTED DEVELOPMENT RULES FOR OUTBUILDINGS (Class 3):
+- Exemption applies to garages, sheds, greenhouses, garden rooms, oil/gas storage, and similar structures within the curtilage of a house
+- The structure must be within the curtilage of the house (the garden or yard belonging to the house)
+- Combined floor area of all structures (excluding the house itself) within the curtilage must not exceed 25 sqm (where the house floor area is 100 sqm or less); larger houses may have up to 40 sqm
+- Maximum height: 4m with a pitched roof or 3m with any other type of roof
+- The structure cannot be used as a dwelling
+- Cannot be placed forward of the front building line
+- Must not reduce the rear garden to less than 25 sqm
+
+BOUNDARY WALLS, FENCES, AND GATES (Class 5):
+- Walls, fences, or enclosures not exceeding 1.2m in height adjacent to a public road are exempt
+- Walls, fences, or enclosures not exceeding 2m in all other cases are exempt
+- Gates: exempt if within height limits
+
+PROTECTED STRUCTURES AND ACAs:
+- Standard exemptions do not apply to protected structures or within their curtilage
+- Works within an Architectural Conservation Area that affect character may require permission
+
+Use EXEMPT if the structure clearly falls within exempted development thresholds.
+Use LIKELY_NEEDS_PERMISSION for borderline cases (near size limits, some uncertainty about curtilage, or minor protected structure risk).
+Use DEFINITELY_NEEDS_PERMISSION if it clearly exceeds thresholds, is outside curtilage, or involves a protected structure.
+
+Respond with ONLY a valid JSON object — no markdown, no code blocks, just raw JSON:
+{
+  "outcome": "EXEMPT" | "LIKELY_NEEDS_PERMISSION" | "DEFINITELY_NEEDS_PERMISSION",
+  "headline": "A single sentence summary of the outcome (max 20 words)",
+  "explanation": "A clear, plain English explanation of 2-3 paragraphs explaining the outcome and the key regulations that apply",
+  "keyPoints": ["2 to 4 concise bullet point strings highlighting the most critical factors"],
+  "caveat": "One sentence noting the most important condition or uncertainty specific to this project"
+}`;
+
+const APPEARANCE_PROMPT = `You are an expert in Irish planning law regarding changes to the external appearance of domestic properties. You have comprehensive knowledge of:
+- The Planning and Development Act 2000 (as amended) and the Planning and Development Act 2024
+- The Planning and Development Regulations 2001 (as amended), Schedule 2, Part 1, Class 2 (maintenance and improvement works)
+- Solar panel and renewable energy exemptions (including updates effective March 2026)
+- External wall insulation (ETICS) exemptions
+- Protected structures and Architectural Conservation Areas (ACAs)
+
+KEY EXEMPTED DEVELOPMENT RULES FOR EXTERNAL APPEARANCE WORKS:
+
+GENERAL MAINTENANCE AND IMPROVEMENT (Class 2):
+- Works of maintenance, improvement, or other alteration which do not materially affect the external appearance of a structure are generally exempt
+- Like-for-like replacement of windows, doors, or external cladding in similar materials is generally exempt
+- Changes that materially alter the external character of a structure may require permission
+
+SOLAR PANELS (updated March 2026):
+- Solar PV or solar thermal panels on the roof of a house are exempt if:
+  - The panels do not project more than 0.15m from the roof surface
+  - The panels do not extend above the roof ridgeline
+  - The total array does not exceed 12 sqm
+- Ground-mounted solar panels in the rear garden may be exempt up to 25 sqm within height limits
+
+EXTERNAL WALL INSULATION (ETICS):
+- Generally exempt if it does not project more than 0.25m from the existing wall face
+
+STONE CLADDING, RENDER, AND ROUGHCAST:
+- May constitute a material change affecting the character of the house
+- More likely to require permission if it significantly changes the character in a traditional area, estate, or ACA
+
+WINDOW AND DOOR REPLACEMENT:
+- Generally exempt if of similar design, proportions, and materials
+- Significant changes in design may require permission
+- Protected structures: all changes require assessment
+
+PROTECTED STRUCTURES AND ACAs:
+- Works to a protected structure that affect its character require planning permission
+- Standard exemptions do not apply to most works on protected structures
+
+Respond with ONLY a valid JSON object — no markdown, no code blocks, just raw JSON:
+{
+  "outcome": "EXEMPT" | "LIKELY_NEEDS_PERMISSION" | "DEFINITELY_NEEDS_PERMISSION",
+  "headline": "A single sentence summary of the outcome (max 20 words)",
+  "explanation": "A clear, plain English explanation of 2-3 paragraphs explaining the outcome and the key regulations that apply",
+  "keyPoints": ["2 to 4 concise bullet point strings highlighting the most critical factors"],
+  "caveat": "One sentence noting the most important condition or uncertainty specific to this project"
+}`;
+
+const AGRICULTURAL_PROMPT = `You are an expert in Irish planning law regarding agricultural and rural works. You have comprehensive knowledge of:
+- The Planning and Development Act 2000 (as amended) and the Planning and Development Act 2024
+- The Planning and Development Regulations 2001 (as amended), Schedule 2, Part 1, Class 6 (agricultural development)
+- EPA Good Agricultural Practice (GAP) Regulations regarding silage and slurry storage
+- Cattle grid and access road exemptions
+- The exempted development rules specific to genuine agricultural operations
+
+KEY EXEMPTED DEVELOPMENT RULES FOR AGRICULTURAL WORKS (Class 6):
+
+FARM BUILDINGS AND STRUCTURES:
+- Development by or on behalf of a farmer for genuine agricultural purposes within a farm holding is generally exempt if:
+  - The building is not within 100 metres of a public road (for buildings over 300 sqm or over 8m in height)
+  - The floor area is within Class 6 thresholds (generally up to 300 sqm for agricultural buildings)
+  - The works are genuinely required for agriculture on a working farm
+  - It is not within 100m of a Natura 2000 site without appropriate assessment
+- These exemptions do NOT apply to non-farmers or domestic landowners
+
+CATTLE GRIDS:
+- Installation or removal of cattle grids on private land or farm roads is generally exempt
+- Works involving a public road require road authority consent
+
+SILAGE PITS AND SLURRY STORAGE:
+- Must comply with EPA Good Agricultural Practice (GAP) Regulations — the farmer must notify the local authority
+- Depending on farm size and stock numbers, Integrated Pollution Control licensing may apply
+- Larger facilities near watercourses, dwellings, or Natura 2000 sites may require planning permission
+
+FARM ACCESS ROADS:
+- New or improved farm roads on the farmer's own landholding for agricultural purposes are generally exempt
+- Connections to public roads may require road authority consent
+- Access to public roads that would create traffic hazards may require permission
+
+IMPORTANT: Non-farming applicants do NOT benefit from agricultural exemptions. If the applicant is not a genuine farmer, Class 6 exemptions do not apply and permission will almost certainly be required.
+
+Respond with ONLY a valid JSON object — no markdown, no code blocks, just raw JSON:
+{
+  "outcome": "EXEMPT" | "LIKELY_NEEDS_PERMISSION" | "DEFINITELY_NEEDS_PERMISSION",
+  "headline": "A single sentence summary of the outcome (max 20 words)",
+  "explanation": "A clear, plain English explanation of 2-3 paragraphs explaining the outcome and the key regulations that apply",
+  "keyPoints": ["2 to 4 concise bullet point strings highlighting the most critical factors"],
+  "caveat": "One sentence noting the most important condition or uncertainty specific to this project"
+}`;
+
+const CHANGE_OF_USE_PROMPT = `You are an expert in Irish planning law regarding changes of use of buildings. You have comprehensive knowledge of:
+- The Planning and Development Act 2000 (as amended) and the Planning and Development Act 2024
+- The Planning and Development Regulations 2001 (as amended) and the Use Classes Order
+- Short-term letting regulations (S.I. 235/2019 and 2024 Act amendments) for Rent Pressure Zones
+- Protected structures and their implications for change of use
+- The distinction between exempt and non-exempt changes of use in Ireland
+
+KEY RULES FOR CHANGE OF USE IN IRELAND:
+
+GENERAL PRINCIPLE:
+Planning permission is generally required for any material change in the use of land or a structure. Changes within the same use class are generally exempt; changes between different use classes typically require planning permission.
+
+RESIDENTIAL-RELATED CHANGES:
+- Converting an integral or attached garage to habitable living space without extending the footprint or making external changes: may be exempt if use remains ancillary to the house
+- Converting a detached garage or outbuilding to a separate dwelling unit: always requires planning permission
+- Subdividing a house into two or more separate dwellings: always requires planning permission
+- Converting commercial/retail premises to residential: always requires planning permission
+- Converting agricultural buildings to residential use: always requires planning permission
+
+SHORT-TERM RENTAL (AIRBNB):
+- Entire-home short-term letting (renting the whole dwelling, not just a room) in a Rent Pressure Zone (RPZ) requires planning permission for change of use if let for more than 90 days per year as tourist accommodation
+- Dublin, Cork city, and many other urban areas are RPZs — check the RTB register
+- Home sharing (renting a room in the owner's principal private residence) is generally exempt
+- The 2024 Act significantly tightened enforcement of these provisions
+
+COMMERCIAL CHANGES:
+- Changes between retail, office, and café/restaurant use classes generally require planning permission
+- Change from commercial to residential requires planning permission
+
+Respond with ONLY a valid JSON object — no markdown, no code blocks, just raw JSON:
+{
+  "outcome": "EXEMPT" | "LIKELY_NEEDS_PERMISSION" | "DEFINITELY_NEEDS_PERMISSION",
+  "headline": "A single sentence summary of the outcome (max 20 words)",
+  "explanation": "A clear, plain English explanation of 2-3 paragraphs explaining the outcome and the key regulations that apply",
+  "keyPoints": ["2 to 4 concise bullet point strings highlighting the most critical factors"],
+  "caveat": "One sentence noting the most important condition or uncertainty specific to this project"
+}`;
+
+const OTHER_WORKS_PROMPT = `You are an expert in Irish planning law. You have comprehensive knowledge of:
+- The Planning and Development Act 2000 (as amended) and the Planning and Development Act 2024
+- The Planning and Development Regulations 2001 (as amended) and all schedules of exempted development
+- The full range of planning permission requirements across residential, commercial, agricultural, and other development types
+- Protected structures and Architectural Conservation Areas (ACAs)
+
+GENERAL APPROACH:
+The applicant has described works that may or may not require planning permission. Apply your knowledge of Irish planning law to assess:
+1. Whether the described works constitute "development" within the meaning of the Planning and Development Act
+2. Whether the works fall within any class of exempted development
+3. The key factors that determine whether permission is required
+
+KEY PRINCIPLES:
+- "Development" includes: building works, material changes of use, significant changes to external appearance, creation of new access to public roads, and many other operations
+- "Exempted development" is defined by statute — works not listed as exempt are presumed to require permission
+- Protected structures: almost all works require permission
+- If works are complex or unclear, recommend professional advice from a planning consultant
+
+OUTCOME GUIDANCE:
+- EXEMPT: When the works clearly fall within a well-established exempted development class
+- LIKELY_NEEDS_PERMISSION: When works are borderline, or when there is a possible argument for exemption but the weight of evidence suggests permission is likely required
+- DEFINITELY_NEEDS_PERMISSION: When the works clearly constitute non-exempt development, or involve a protected structure
+
+Respond with ONLY a valid JSON object — no markdown, no code blocks, just raw JSON:
+{
+  "outcome": "EXEMPT" | "LIKELY_NEEDS_PERMISSION" | "DEFINITELY_NEEDS_PERMISSION",
+  "headline": "A single sentence summary of the outcome (max 20 words)",
+  "explanation": "A clear, plain English explanation of 2-3 paragraphs explaining the outcome and the key regulations that apply",
+  "keyPoints": ["2 to 4 concise bullet point strings highlighting the most critical factors"],
+  "caveat": "One sentence noting the most important condition or uncertainty specific to this project"
+}`;
+
 const REPLACEMENT_PROMPT = `You are an expert in Irish planning law and policy, with comprehensive knowledge of:
 - The Planning and Development Act 2000 (as amended) and the Planning and Development Act 2024
 - Replacement dwelling policies across Irish county development plans
@@ -217,7 +411,7 @@ export interface CheckPermissionResult {
 }
 
 interface CheckPermissionRequest {
-  flowType: "new-build" | "extension" | "replacement";
+  flowType: "new-build" | "extension" | "replacement" | "outbuildings" | "appearance" | "agricultural" | "change-of-use" | "other-works";
   county: string;
   // New Build
   siteType?: string;
@@ -234,6 +428,21 @@ interface CheckPermissionRequest {
   // Replacement
   replacementReason?: string;
   currentCondition?: string;
+  // Outbuildings
+  structureType?: string;
+  structureFootprint?: string;
+  structureHeight?: string;
+  withinCurtilage?: string;
+  // Appearance
+  appearanceType?: string;
+  // Agricultural
+  agriculturalType?: string;
+  isFarmer?: string;
+  // Change of use
+  currentUse?: string;
+  proposedUse?: string;
+  // Other works
+  worksDescription?: string;
   // Shared
   additionalDetails?: string;
 }
@@ -315,6 +524,66 @@ Additional details: ${body.additionalDetails || "None provided"}
 Assess the planning situation and likelihood of obtaining permission to replace this dwelling in ${body.county} County.`;
 }
 
+function buildOutbuildingsMessage(body: CheckPermissionRequest): string {
+  const yesNo = (v?: string) => v === "yes" ? "Yes" : v === "no" ? "No" : "Not answered";
+  return `Please assess the following planning permission query for an outbuilding or structure in Ireland:
+
+County: ${body.county}
+Type of structure: ${body.structureType || "Not specified"}
+Within curtilage of house: ${yesNo(body.withinCurtilage)}
+Proposed floor area: ${body.structureFootprint ? body.structureFootprint + " sqm" : "Not specified"}
+Maximum height: ${body.structureHeight ? body.structureHeight + " metres" : "Not specified"}
+Protected structure or ACA: ${body.protectedStructure === "yes" ? "Yes" : body.protectedStructure === "no" ? "No" : "Unsure / not checked"}
+Additional details: ${body.additionalDetails || "None provided"}
+
+Based on the Planning and Development Regulations 2001 (Class 3 and Class 5 exemptions) and the March 2026 updated thresholds, assess whether this structure requires planning permission.`;
+}
+
+function buildAppearanceMessage(body: CheckPermissionRequest): string {
+  return `Please assess the following planning permission query for external appearance changes in Ireland:
+
+County: ${body.county}
+Type of works: ${body.appearanceType || "Not specified"}
+Protected structure or ACA: ${body.protectedStructure === "yes" ? "Yes" : body.protectedStructure === "no" ? "No" : "Unsure / not checked"}
+Additional details: ${body.additionalDetails || "None provided"}
+
+Based on Irish planning law (Class 2 exempted development and related provisions) and the updated March 2026 regulations, assess whether these external appearance changes require planning permission.`;
+}
+
+function buildAgriculturalMessage(body: CheckPermissionRequest): string {
+  return `Please assess the following planning permission query for agricultural or rural works in Ireland:
+
+County: ${body.county}
+Type of works: ${body.agriculturalType || "Not specified"}
+On a working farm: ${body.isFarmer === "yes" ? "Yes — this is on a working farm" : body.isFarmer === "no" ? "No — not on a working farm" : "Not answered"}
+Additional details: ${body.additionalDetails || "None provided"}
+
+Based on Irish planning law (Class 6 agricultural exemptions and EPA regulations), assess whether these works require planning permission.`;
+}
+
+function buildChangeOfUseMessage(body: CheckPermissionRequest): string {
+  return `Please assess the following planning permission query for a change of use in Ireland:
+
+County: ${body.county}
+Current use of building: ${body.currentUse || "Not specified"}
+Proposed use: ${body.proposedUse || "Not specified"}
+Protected structure or ACA: ${body.protectedStructure === "yes" ? "Yes" : body.protectedStructure === "no" ? "No" : "Unsure / not checked"}
+Additional details: ${body.additionalDetails || "None provided"}
+
+Based on Irish planning law (Use Classes Order, material change of use provisions, and the Planning and Development Act 2000 as amended), assess whether this change of use requires planning permission.`;
+}
+
+function buildOtherWorksMessage(body: CheckPermissionRequest): string {
+  return `Please assess the following planning permission query for proposed works in Ireland:
+
+County: ${body.county}
+Description of proposed works: ${body.worksDescription || "Not provided"}
+Protected structure or ACA: ${body.protectedStructure === "yes" ? "Yes" : body.protectedStructure === "no" ? "No" : "Unsure / not checked"}
+Additional details: ${body.additionalDetails || "None provided"}
+
+Based on Irish planning law and the Planning and Development Regulations 2001 (as amended), assess whether these works require planning permission.`;
+}
+
 // ─── Route handler ─────────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
@@ -339,6 +608,12 @@ export async function POST(request: NextRequest) {
       if (textErr) return badRequest(textErr);
     }
 
+    // Validate free-text fields specific to new flow types
+    if (body.worksDescription !== undefined) {
+      const textErr = validateTextArea(body.worksDescription, "Works description");
+      if (textErr) return badRequest(textErr);
+    }
+
     // Scan all user-supplied text for injection attempts
     const securityErr = scanFields(
       body.additionalDetails,
@@ -346,6 +621,12 @@ export async function POST(request: NextRequest) {
       body.extensionType,
       body.replacementReason,
       body.currentCondition,
+      body.structureType,
+      body.appearanceType,
+      body.agriculturalType,
+      body.currentUse,
+      body.proposedUse,
+      body.worksDescription,
     );
     if (securityErr) return badRequest(securityErr);
 
@@ -374,6 +655,36 @@ export async function POST(request: NextRequest) {
       }
       systemPrompt = REPLACEMENT_PROMPT;
       userMessage = buildReplacementMessage(body);
+    } else if (flowType === "outbuildings") {
+      if (!body.structureType || !body.structureFootprint || !body.structureHeight || !body.withinCurtilage || !body.protectedStructure) {
+        return NextResponse.json({ error: "Structure type, floor area, height, curtilage status, and protected structure status are required." }, { status: 400 });
+      }
+      systemPrompt = OUTBUILDINGS_PROMPT;
+      userMessage = buildOutbuildingsMessage(body);
+    } else if (flowType === "appearance") {
+      if (!body.appearanceType || !body.protectedStructure) {
+        return NextResponse.json({ error: "Type of works and protected structure status are required." }, { status: 400 });
+      }
+      systemPrompt = APPEARANCE_PROMPT;
+      userMessage = buildAppearanceMessage(body);
+    } else if (flowType === "agricultural") {
+      if (!body.agriculturalType || !body.isFarmer) {
+        return NextResponse.json({ error: "Type of works and farm status are required." }, { status: 400 });
+      }
+      systemPrompt = AGRICULTURAL_PROMPT;
+      userMessage = buildAgriculturalMessage(body);
+    } else if (flowType === "change-of-use") {
+      if (!body.currentUse || !body.proposedUse || !body.protectedStructure) {
+        return NextResponse.json({ error: "Current use, proposed use, and protected structure status are required." }, { status: 400 });
+      }
+      systemPrompt = CHANGE_OF_USE_PROMPT;
+      userMessage = buildChangeOfUseMessage(body);
+    } else if (flowType === "other-works") {
+      if (!body.worksDescription) {
+        return NextResponse.json({ error: "A description of the proposed works is required." }, { status: 400 });
+      }
+      systemPrompt = OTHER_WORKS_PROMPT;
+      userMessage = buildOtherWorksMessage(body);
     } else {
       return NextResponse.json({ error: "Invalid flow type." }, { status: 400 });
     }
