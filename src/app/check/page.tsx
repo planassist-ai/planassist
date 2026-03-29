@@ -7,6 +7,7 @@ import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
 import { GrantsAlert } from "@/app/components/GrantsAlert";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 import type { GrantFlowType } from "@/lib/grants";
+import type { ProfessionType } from "@/lib/professionals";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1000,7 +1001,57 @@ const FLOW_TO_GRANT_TYPE: Partial<Record<FlowType, GrantFlowType>> = {
   "replacement": "replacement",
 };
 
-function ResultPanel({ result, flowType, onReset }: { result: CheckPermissionResult; flowType: FlowType; onReset: () => void }) {
+// Profession types most relevant for each flow — used to pre-filter the directory
+const FLOW_TO_PROFESSIONS: Partial<Record<FlowType, ProfessionType>> = {
+  "new-build":          "planning_consultant",
+  "extension":          "architect",
+  "replacement":        "planning_consultant",
+  "outbuildings":       "architectural_technologist",
+  "appearance":         "architectural_technologist",
+  "agricultural":       "land_agent",
+  "change-of-use":      "planning_consultant",
+  "other-works":        "planning_consultant",
+  "retention":          "planning_consultant",
+  "protected-structure":"architect",
+};
+
+function FindAProfessionalPrompt({ county, flowType }: { county: string; flowType: FlowType }) {
+  const profType = FLOW_TO_PROFESSIONS[flowType];
+  const params = new URLSearchParams();
+  if (county) params.set("county", county);
+  if (profType) params.set("type", profType);
+  const href = `/find-a-professional?${params}`;
+
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 mt-5">
+      <div className="flex items-start gap-3">
+        <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+          <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-900">You will need a qualified professional to submit this application</p>
+          <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+            Planning applications in Ireland must be prepared and certified by a qualified professional. Find an architect, planning consultant or specialist
+            {county ? ` in Co. ${county}` : ""} in our free directory.
+          </p>
+        </div>
+      </div>
+      <a
+        href={href}
+        className="mt-4 w-full flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition-colors"
+      >
+        Find a professional{county ? ` in Co. ${county}` : ""}
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+        </svg>
+      </a>
+    </div>
+  );
+}
+
+function ResultPanel({ result, flowType, county, onReset }: { result: CheckPermissionResult; flowType: FlowType; county: string; onReset: () => void }) {
   const config = OUTCOME_CONFIG[result.outcome];
   const label = OUTCOME_LABELS[flowType][result.outcome];
   const grantFlowType = FLOW_TO_GRANT_TYPE[flowType];
@@ -1046,6 +1097,7 @@ function ResultPanel({ result, flowType, onReset }: { result: CheckPermissionRes
       {grantFlowType && (
         <GrantsAlert flowType={grantFlowType} className="mt-5" />
       )}
+      <FindAProfessionalPrompt county={county} flowType={flowType} />
     </div>
   );
 }
@@ -1151,7 +1203,7 @@ export default function CheckPage() {
         )}
 
         {step === "result" && result && flowType && (
-          <ResultPanel result={result} flowType={flowType} onReset={handleReset} />
+          <ResultPanel result={result} flowType={flowType} county={formData.county} onReset={handleReset} />
         )}
 
         {/* County intelligence panel — shown during form step when county is selected */}
