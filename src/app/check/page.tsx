@@ -8,7 +8,7 @@ import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-type FlowType = "new-build" | "extension" | "replacement" | "outbuildings" | "appearance" | "agricultural" | "change-of-use" | "other-works";
+type FlowType = "new-build" | "extension" | "replacement" | "outbuildings" | "appearance" | "agricultural" | "change-of-use" | "other-works" | "retention" | "protected-structure";
 type PageStep = "select" | "form" | "result";
 
 interface CheckPermissionResult {
@@ -48,6 +48,14 @@ interface FormData {
   proposedUse: string;
   // Other works
   worksDescription: string;
+  // Retention
+  retentionWorksType: string;
+  retentionWorksDate: string;
+  retentionVisible: string;
+  retentionEnforcement: string;
+  // Protected structure
+  psWorksType: string;
+  psStructureType: string;
   additionalDetails: string;
 }
 
@@ -59,6 +67,8 @@ const EMPTY_FORM: FormData = {
   structureType: "", structureFootprint: "", structureHeight: "", withinCurtilage: "",
   appearanceType: "", agriculturalType: "", isFarmer: "",
   currentUse: "", proposedUse: "", worksDescription: "",
+  retentionWorksType: "", retentionWorksDate: "", retentionVisible: "", retentionEnforcement: "",
+  psWorksType: "", psStructureType: "",
   additionalDetails: "",
 };
 
@@ -116,6 +126,8 @@ const OUTCOME_LABELS: Record<FlowType, Record<string, string>> = {
   agricultural: { EXEMPT: "Likely Exempt Development", LIKELY_NEEDS_PERMISSION: "Permission May Be Required", DEFINITELY_NEEDS_PERMISSION: "Permission Required" },
   "change-of-use": { EXEMPT: "Likely Exempt", LIKELY_NEEDS_PERMISSION: "Permission May Be Required", DEFINITELY_NEEDS_PERMISSION: "Permission Required" },
   "other-works": { EXEMPT: "Likely Exempt", LIKELY_NEEDS_PERMISSION: "May Need Permission", DEFINITELY_NEEDS_PERMISSION: "Permission Required" },
+  retention: { EXEMPT: "Strong Case for Retention", LIKELY_NEEDS_PERMISSION: "Retention Possible — Challenges Exist", DEFINITELY_NEEDS_PERMISSION: "Retention Uncertain — Enforcement Risk" },
+  "protected-structure": { EXEMPT: "Works Likely Acceptable — Permission Required", LIKELY_NEEDS_PERMISSION: "Significant Conservation Assessment Required", DEFINITELY_NEEDS_PERMISSION: "Works Very Unlikely to Be Permitted" },
 };
 
 const labelClass = "block text-sm font-medium text-gray-700 mb-2";
@@ -203,6 +215,18 @@ function FlowSelector({ onSelect }: { onSelect: (f: FlowType) => void }) {
       title: "Other Works",
       desc: "Something else that might need planning permission",
       icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L3 3l1.5 1.5 3.75.75 5.91 5.91" /></svg>,
+    },
+    {
+      type: "retention",
+      title: "Retention Permission",
+      desc: "I have already carried out works without planning permission and need to apply retrospectively",
+      icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>,
+    },
+    {
+      type: "protected-structure",
+      title: "Protected Structure",
+      desc: "I want to carry out works to a building on the Record of Protected Structures",
+      icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>,
     },
   ];
 
@@ -797,6 +821,174 @@ function OtherWorksForm({ data, onChange, onBack, onSubmit, loading }: { data: F
   );
 }
 
+// ─── Retention Form ────────────────────────────────────────────────────────────
+
+const RETENTION_WORKS_TYPES = ["Extension to House","New Outbuilding or Structure","Alteration to External Appearance","Change of Use","New Dwelling or Build","Internal Alterations","Other Works"];
+const RETENTION_DATES = ["Within the last year","1–3 years ago","3–7 years ago","More than 7 years ago","Unsure"];
+
+function RetentionForm({ data, onChange, onBack, onSubmit, loading }: { data: FormData; onChange: (f: keyof FormData, v: string) => void; onBack: () => void; onSubmit: (e: React.FormEvent) => void; loading: boolean }) {
+  const enforcementActive = data.retentionEnforcement === "yes";
+  return (
+    <div>
+      <BackButton onClick={onBack} />
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-100 text-amber-700">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+          </span>
+          <h2 className="text-xl font-bold text-gray-900">Retention Permission</h2>
+        </div>
+        <p className="text-sm text-gray-500">Retention permission is a retrospective application to regularise works already carried out without planning permission. It is assessed on the same planning merits as a prospective application — it is not a guaranteed route to regularisation.</p>
+      </div>
+
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex gap-3 mb-6">
+        <svg className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+        <div>
+          <p className="text-sm font-semibold text-amber-800 mb-1">Retention carries real legal and financial risk</p>
+          <p className="text-xs text-amber-700 leading-relaxed">Works refused retention can result in enforcement action including a requirement to demolish or restore the property to its original condition. If you have received any correspondence from your local authority, seek professional planning advice immediately before taking any further steps.</p>
+        </div>
+      </div>
+
+      <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
+        <div>
+          <label className={labelClass} htmlFor="ret-county">County <span className="text-red-500">*</span></label>
+          <select id="ret-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label className={labelClass} htmlFor="ret-type">Type of works carried out <span className="text-red-500">*</span></label>
+            <select id="ret-type" value={data.retentionWorksType} onChange={(e) => onChange("retentionWorksType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+              <option value="" disabled>Select…</option>
+              {RETENTION_WORKS_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="ret-date">When were the works carried out? <span className="text-red-500">*</span></label>
+            <select id="ret-date" value={data.retentionWorksDate} onChange={(e) => onChange("retentionWorksDate", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+              <option value="" disabled>Select…</option>
+              {RETENTION_DATES.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <p className="mt-1 text-xs text-gray-400">A 7-year enforcement time limit generally applies but does not guarantee retention.</p>
+          </div>
+        </div>
+
+        <div>
+          <label className={labelClass}>Are the works clearly visible from a public road? <span className="text-red-500">*</span></label>
+          <p className="text-xs text-gray-400 mb-1">Visible works are more likely to have attracted neighbour objections or local authority attention.</p>
+          <YesNoToggle value={data.retentionVisible} onChange={(v) => onChange("retentionVisible", v)} />
+        </div>
+
+        <div>
+          <label className={labelClass}>Has the local authority contacted you about these works? <span className="text-red-500">*</span></label>
+          <p className="text-xs text-gray-400 mb-1">This includes warning letters, enforcement notices, or any other official correspondence.</p>
+          <YesNoToggle value={data.retentionEnforcement} onChange={(v) => onChange("retentionEnforcement", v)} />
+        </div>
+
+        {enforcementActive && (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 flex gap-3">
+            <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+            <div>
+              <p className="text-sm font-semibold text-red-800 mb-1">Enforcement proceedings may be active — act immediately</p>
+              <p className="text-xs text-red-700 leading-relaxed">If you have received formal correspondence from your local authority, you should consult a planning consultant or solicitor as a matter of urgency. Do not rely on this tool alone — time limits on responses to enforcement notices are strict.</p>
+            </div>
+          </div>
+        )}
+
+        <div>
+          <label className={labelClass} htmlFor="ret-protected">Is the property a protected structure or in an Architectural Conservation Area (ACA)? <span className="text-red-500">*</span></label>
+          <select id="ret-protected" value={data.protectedStructure} onChange={(e) => onChange("protectedStructure", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select…</option>
+            <option value="no">No</option>
+            <option value="yes">Yes — it is a protected structure or in an ACA</option>
+            <option value="unsure">Unsure — I have not checked</option>
+          </select>
+        </div>
+
+        <div>
+          <label className={labelClass} htmlFor="ret-details">Describe the works carried out <span className="text-red-500">*</span></label>
+          <textarea id="ret-details" value={data.additionalDetails} onChange={(e) => onChange("additionalDetails", e.target.value)} rows={4} required placeholder="e.g. Built a single-storey rear extension of approximately 25 sqm to a semi-detached house. Works completed in 2023. No planning permission was obtained at the time." className={inputClass + " resize-none leading-relaxed"} />
+          <p className="mt-1.5 text-xs text-gray-400">Be specific about what was built, approximate dimensions, materials, and any relevant context. The more detail you provide, the more useful the AI assessment will be.</p>
+        </div>
+
+        <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 sm:py-3.5 px-6 rounded-xl transition-colors text-sm">
+          {loading ? <><Spinner />Analysing your situation…</> : "Assess retention prospects"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// ─── Protected Structure Form ──────────────────────────────────────────────────
+
+const PS_WORKS_TYPES = ["Sympathetic Repair or Restoration","Window or Door Replacement","Roof Works or Re-Roofing","Internal Alterations","External Alterations or Cladding","Extension","Partial or Full Demolition","Change of Use","Structural Works","Other Works"];
+const PS_STRUCTURE_TYPES = ["Residential House or Cottage","Commercial or Retail Premises","Agricultural or Industrial Building","Religious Building (church, chapel)","Civic or Institutional Building","Other"];
+
+function ProtectedStructureForm({ data, onChange, onBack, onSubmit, loading }: { data: FormData; onChange: (f: keyof FormData, v: string) => void; onBack: () => void; onSubmit: (e: React.FormEvent) => void; loading: boolean }) {
+  return (
+    <div>
+      <BackButton onClick={onBack} />
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+          </span>
+          <h2 className="text-xl font-bold text-gray-900">Protected Structure</h2>
+        </div>
+        <p className="text-sm text-gray-500">Works to a building on the Record of Protected Structures require planning permission even for works that would normally be exempt. The standard exempted development rules do not apply.</p>
+      </div>
+
+      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 flex gap-3 mb-6">
+        <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>
+        <div>
+          <p className="text-sm font-semibold text-blue-800 mb-1">A conservation architect is strongly recommended</p>
+          <p className="text-xs text-blue-700 leading-relaxed">Works to protected structures almost always require input from an architect with conservation accreditation (RIAI Conservation Accreditation Scheme or equivalent). Pre-planning consultation with your local authority&apos;s conservation officer is also strongly advised before lodging any application.</p>
+        </div>
+      </div>
+
+      <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
+        <div>
+          <label className={labelClass} htmlFor="ps-county">County <span className="text-red-500">*</span></label>
+          <select id="ps-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label className={labelClass} htmlFor="ps-works">Type of proposed works <span className="text-red-500">*</span></label>
+            <select id="ps-works" value={data.psWorksType} onChange={(e) => onChange("psWorksType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+              <option value="" disabled>Select…</option>
+              {PS_WORKS_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="ps-structure">Nature of the structure <span className="text-red-500">*</span></label>
+            <select id="ps-structure" value={data.psStructureType} onChange={(e) => onChange("psStructureType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+              <option value="" disabled>Select…</option>
+              {PS_STRUCTURE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label className={labelClass} htmlFor="ps-details">Additional details <span className="text-gray-400 font-normal">(optional)</span></label>
+          <textarea id="ps-details" value={data.additionalDetails} onChange={(e) => onChange("additionalDetails", e.target.value)} rows={4} placeholder="e.g. Georgian terraced house listed on the RPS. Proposing to replace original timber sash windows with double-glazed timber replicas of the same design and proportions. No other external changes proposed." className={inputClass + " resize-none leading-relaxed"} />
+          <p className="mt-1.5 text-xs text-gray-400">Include the approximate age or period of the structure, materials involved, and whether the works are reversible. The more detail you provide, the more useful the AI assessment will be.</p>
+        </div>
+
+        <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 sm:py-3.5 px-6 rounded-xl transition-colors text-sm">
+          {loading ? <><Spinner />Analysing your project…</> : "Assess protected structure works"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 // ─── Result Panel ──────────────────────────────────────────────────────────────
 
 function ResultPanel({ result, flowType, onReset }: { result: CheckPermissionResult; flowType: FlowType; onReset: () => void }) {
@@ -937,6 +1129,12 @@ export default function CheckPage() {
         )}
         {step === "form" && flowType === "other-works" && (
           <OtherWorksForm data={formData} onChange={handleFieldChange} onBack={handleBack} onSubmit={handleSubmit} loading={loading} />
+        )}
+        {step === "form" && flowType === "retention" && (
+          <RetentionForm data={formData} onChange={handleFieldChange} onBack={handleBack} onSubmit={handleSubmit} loading={loading} />
+        )}
+        {step === "form" && flowType === "protected-structure" && (
+          <ProtectedStructureForm data={formData} onChange={handleFieldChange} onBack={handleBack} onSubmit={handleSubmit} loading={loading} />
         )}
 
         {step === "result" && result && flowType && (

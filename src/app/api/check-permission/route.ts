@@ -371,6 +371,108 @@ Respond with ONLY a valid JSON object — no markdown, no code blocks, just raw 
   "caveat": "One sentence noting the single most important condition or action the applicant should take"
 }`;
 
+const RETENTION_PROMPT = `You are an expert in Irish planning law, specifically regarding retention permission (retrospective planning permission). You have comprehensive knowledge of:
+- The Planning and Development Act 2000 (as amended), Section 34(12) — retention planning permission
+- The Planning and Development Act 2024 and its provisions on retention and enforcement
+- Enforcement provisions under Part VIII of the Planning and Development Act 2000
+- An Bord Pleanála case law on retention applications
+- The planning merits test applied to retention applications across all 26 Irish counties
+
+RETENTION PERMISSION IN IRELAND:
+- Retention permission is an application made retrospectively to regularise works already carried out without planning permission
+- Under Section 34(12) of the Planning and Development Act 2000, a planning authority may grant retention permission if the works could have been permitted had they been applied for in advance
+- The planning merits test is identical whether applied for in advance or retrospectively — there is no legal presumption in favour of retention
+- Retention applications are assessed on the same planning policy grounds as prospective applications
+- Being refused retention results in enforcement action including a requirement to demolish or restore the land/structure to its original condition
+
+ENFORCEMENT AND TIME LIMITS:
+- A planning authority generally has 7 years from the date of completion of unauthorised works to issue an enforcement notice (extended to 10 years in certain cases under the 2024 Act)
+- The existence of a time limit does NOT mean retention will be granted — it only limits enforcement action
+- Active enforcement correspondence (warning letters, enforcement notices) creates urgency — professional advice is required immediately
+- Even if the enforcement period has passed, an unresolved retention matter can affect future planning applications and property sales
+
+FACTORS AFFECTING RETENTION LIKELIHOOD:
+Positive factors:
+- Works that would clearly have been exempt or easily grantable in advance (e.g. standard rear extension within thresholds)
+- Works in permissive counties (Leitrim, Mayo, Roscommon, Cavan, Donegal)
+- Works completed more than 7 years ago where no enforcement correspondence has been received
+- Works not visible from a public road and unlikely to cause amenity impact
+
+Negative factors:
+- Works in sensitive locations (flood zones, protected structures, Natura 2000 sites, ACAs, coastal zones)
+- Works in strict counties (Dublin, Wicklow, Kildare, Meath) where the equivalent prospective permission would be very difficult
+- Works involving new dwellings without meeting local needs criteria
+- Active enforcement correspondence from the local authority
+- Works clearly visible from a public road that have attracted or may attract objections
+
+Use the OUTCOME values to assess the likelihood that retention would be GRANTED:
+- EXEMPT → "Strong Case for Retention" (works would clearly have been permissible in advance; good retention prospects)
+- LIKELY_NEEDS_PERMISSION → "Retention Possible — Challenges Exist" (borderline; some issues but not a lost cause)
+- DEFINITELY_NEEDS_PERMISSION → "Retention Uncertain — Enforcement Risk High" (works unlikely to be retained; demolition or restoration possible)
+
+Respond with ONLY a valid JSON object — no markdown, no code blocks, just raw JSON:
+{
+  "outcome": "EXEMPT" | "LIKELY_NEEDS_PERMISSION" | "DEFINITELY_NEEDS_PERMISSION",
+  "headline": "A single sentence summarising the retention situation (max 20 words)",
+  "explanation": "A clear, plain English explanation of 2-3 paragraphs covering: (1) the retention process and what it means, (2) the key factors for or against retention in this specific case, (3) risks and recommended next steps",
+  "keyPoints": ["2 to 4 concise bullet point strings identifying the most critical factors"],
+  "caveat": "One sentence noting the single most important risk or action the applicant should take immediately"
+}`;
+
+const PROTECTED_STRUCTURE_PROMPT = `You are an expert in Irish planning law and heritage conservation, with comprehensive knowledge of:
+- The Planning and Development Act 2000 (as amended), Part IV — Protected Structures
+- The Planning and Development Act 2024 and its provisions on architectural heritage
+- The Architectural Heritage Protection Guidelines for Planning Authorities (DAHG, 2011)
+- An Bord Pleanála case law on protected structure applications
+- The Record of Protected Structures (RPS) maintained by each local authority
+- Conservation architecture principles and best practice in Ireland
+- The RIAI Conservation Accreditation Scheme and the role of conservation architects
+
+PROTECTED STRUCTURES IN IRELAND:
+- A protected structure is included on a local authority's Record of Protected Structures (RPS) under Part IV of the Planning and Development Act 2000
+- Works to a protected structure that would affect its character require planning permission — even works that would normally be exempt development
+- The protection extends to the interior and exterior of the structure, as well as structures within its curtilage
+- "Character" is broadly interpreted: architectural, historical, archaeological, artistic, cultural, scientific, social, and technical interest all count
+
+CRITICAL RULE: There are NO exemptions for protected structures. ALL works that could affect character require planning permission.
+
+WORKS MOST LIKELY TO BE ACCEPTABLE (with proper documentation):
+- Like-for-like repairs using traditional materials (lime mortar, natural stone, original timber)
+- Window or door replacement that faithfully replicates the original in materials, design, and proportions (e.g. timber sash replicas with matching glazing bar profiles)
+- Roof repairs or re-roofing using original or sympathetic materials (natural slate, clay tiles)
+- Internal alterations that do not affect structural fabric, original floor plans, or significant historical features
+- Contemporary extensions that are clearly subordinate in scale, clearly distinguishable as modern, and designed to be reversible
+
+WORKS MOST LIKELY TO BE REFUSED OR HEAVILY SCRUTINISED:
+- Demolition or removal of any original fabric (even partial demolition)
+- Rendering over original stone, brick, or rubble-stone facades
+- Replacing original windows with uPVC or powder-coated aluminium (almost always refused)
+- Attic conversions or dormer additions that damage original roof structure or are visible from a public road
+- Subdividing a listed building in a way that destroys spatial character or requires major internal alterations
+- Removing original internal features (fireplaces, cornicing, dados, timber floors)
+- Any works that are irreversible or that use incompatible modern materials
+
+PROCESS REQUIREMENTS:
+- Pre-planning consultation with the local authority's conservation officer is strongly advised before lodging any application
+- A Conservation Impact Assessment is typically required
+- A Method Statement describing proposed works, materials, and reversibility is typically required
+- Input from an architect with RIAI Conservation Accreditation (or equivalent) is strongly recommended — some local authorities require it
+- Planning applications for protected structures may take longer to process
+
+Use the OUTCOME values to assess the likelihood of planning permission being GRANTED for the proposed works:
+- EXEMPT → "Works Likely Acceptable — Permission Required" (sympathetic, reversible works with good prospects; permission still required)
+- LIKELY_NEEDS_PERMISSION → "Significant Conservation Assessment Required" (achievable but requires expert input and rigorous documentation)
+- DEFINITELY_NEEDS_PERMISSION → "Works Very Unlikely to Be Permitted" (directly conflicts with protected structure principles; refusal is likely)
+
+Respond with ONLY a valid JSON object — no markdown, no code blocks, just raw JSON:
+{
+  "outcome": "EXEMPT" | "LIKELY_NEEDS_PERMISSION" | "DEFINITELY_NEEDS_PERMISSION",
+  "headline": "A single sentence summarising the planning situation (max 20 words)",
+  "explanation": "A clear, plain English explanation of 2-3 paragraphs covering: (1) the protected structure rules that apply, (2) the key factors for or against the proposed works, (3) what the applicant needs to prepare",
+  "keyPoints": ["2 to 4 concise bullet point strings identifying the most critical factors"],
+  "caveat": "One sentence noting the single most important requirement or action the applicant should take next"
+}`;
+
 // ─── In-memory response cache ──────────────────────────────────────────────────
 // Prevents identical planning queries from hitting Claude on every request.
 // Module-level Map persists across requests within the same Node process.
@@ -411,7 +513,7 @@ export interface CheckPermissionResult {
 }
 
 interface CheckPermissionRequest {
-  flowType: "new-build" | "extension" | "replacement" | "outbuildings" | "appearance" | "agricultural" | "change-of-use" | "other-works";
+  flowType: "new-build" | "extension" | "replacement" | "outbuildings" | "appearance" | "agricultural" | "change-of-use" | "other-works" | "retention" | "protected-structure";
   county: string;
   // New Build
   siteType?: string;
@@ -443,6 +545,14 @@ interface CheckPermissionRequest {
   proposedUse?: string;
   // Other works
   worksDescription?: string;
+  // Retention
+  retentionWorksType?: string;
+  retentionWorksDate?: string;
+  retentionVisible?: string;
+  retentionEnforcement?: string;
+  // Protected structure
+  psWorksType?: string;
+  psStructureType?: string;
   // Shared
   additionalDetails?: string;
 }
@@ -584,6 +694,33 @@ Additional details: ${body.additionalDetails || "None provided"}
 Based on Irish planning law and the Planning and Development Regulations 2001 (as amended), assess whether these works require planning permission.`;
 }
 
+function buildRetentionMessage(body: CheckPermissionRequest): string {
+  const yesNo = (v?: string) => v === "yes" ? "Yes" : v === "no" ? "No" : "Not answered";
+  const countyNote = COUNTY_SPECIAL_NOTES[body.county] ?? "";
+  return `Please assess the following retention planning application in Ireland:
+
+County: ${body.county}
+Type of works carried out: ${body.retentionWorksType || "Not specified"}
+When were the works carried out: ${body.retentionWorksDate || "Not specified"}
+Works visible from a public road: ${yesNo(body.retentionVisible)}
+Local authority has been in contact about these works: ${yesNo(body.retentionEnforcement)}
+Protected structure or ACA: ${body.protectedStructure === "yes" ? "Yes" : body.protectedStructure === "no" ? "No" : "Unsure / not checked"}
+Description of works: ${body.additionalDetails || "None provided"}
+${countyNote ? `\n${countyNote}\n` : ""}
+Assess the likelihood of retention permission being granted for these works in ${body.county} County, explain the key risks, and advise on what action the applicant should take.`;
+}
+
+function buildProtectedStructureMessage(body: CheckPermissionRequest): string {
+  return `Please assess the following works to a protected structure in Ireland:
+
+County: ${body.county}
+Type of proposed works: ${body.psWorksType || "Not specified"}
+Nature of the structure: ${body.psStructureType || "Not specified"}
+Additional details: ${body.additionalDetails || "None provided"}
+
+Assess the likelihood of planning permission being granted for these works under Irish protected structure legislation, and explain what requirements the applicant needs to meet.`;
+}
+
 // ─── Route handler ─────────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
@@ -627,6 +764,9 @@ export async function POST(request: NextRequest) {
       body.currentUse,
       body.proposedUse,
       body.worksDescription,
+      body.retentionWorksType,
+      body.psWorksType,
+      body.psStructureType,
     );
     if (securityErr) return badRequest(securityErr);
 
@@ -685,6 +825,18 @@ export async function POST(request: NextRequest) {
       }
       systemPrompt = OTHER_WORKS_PROMPT;
       userMessage = buildOtherWorksMessage(body);
+    } else if (flowType === "retention") {
+      if (!body.retentionWorksType || !body.retentionWorksDate || !body.retentionVisible || !body.retentionEnforcement || !body.protectedStructure || !body.additionalDetails) {
+        return NextResponse.json({ error: "Works type, date, visibility, enforcement status, protected structure status, and a description of the works are all required." }, { status: 400 });
+      }
+      systemPrompt = RETENTION_PROMPT;
+      userMessage = buildRetentionMessage(body);
+    } else if (flowType === "protected-structure") {
+      if (!body.psWorksType || !body.psStructureType) {
+        return NextResponse.json({ error: "Type of proposed works and nature of the structure are required." }, { status: 400 });
+      }
+      systemPrompt = PROTECTED_STRUCTURE_PROMPT;
+      userMessage = buildProtectedStructureMessage(body);
     } else {
       return NextResponse.json({ error: "Invalid flow type." }, { status: 400 });
     }
