@@ -146,6 +146,61 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── AI Transparency Notice (EU AI Act) ───────────────── */}
+      <section className="border-t border-gray-100 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+          <div className="flex gap-3 sm:gap-4">
+            {/* Icon */}
+            <div className="flex-shrink-0 mt-0.5">
+              <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+                <svg
+                  className="w-4 h-4 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.75}
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1 .03 2.798-1.315 2.798H4.113c-1.345 0-2.315-1.798-1.315-2.798L4.2 15.3"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Text */}
+            <div>
+              <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
+                AI-generated information
+              </p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Planr uses artificial intelligence to analyse your project against Irish planning
+                regulations. All outputs are AI-generated guidance only and may not be accurate,
+                complete, or applicable to your specific circumstances.{" "}
+                <strong className="font-medium text-gray-700">
+                  Planr is not a planning consultant, architect, or legal adviser
+                </strong>{" "}
+                and nothing on this site constitutes professional advice. You should always verify
+                results with your local planning authority or a qualified planning professional
+                before making decisions with legal or financial consequences.
+              </p>
+              <p className="text-xs text-gray-400 mt-2">
+                This notice is provided in accordance with the EU Artificial Intelligence Act (Regulation (EU) 2024/1689).{" "}
+                <Link href="/terms" className="underline underline-offset-2 hover:text-gray-600 transition-colors">
+                  Terms of Service
+                </Link>
+                {" "}·{" "}
+                <Link href="/privacy" className="underline underline-offset-2 hover:text-gray-600 transition-colors">
+                  Privacy Policy
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Footer ────────────────────────────────────────── */}
       <SiteFooter />
 
