@@ -44,8 +44,9 @@ PURCHASED SITES:
 
 COUNTY VARIATION:
 - Strict counties (Dublin, Wicklow, Kildare, Meath, Louth, Cork city fringe): very few permissions; agricultural/exceptional need required
-- Moderate counties (Galway, Kerry, Clare, Tipperary, Kilkenny, Wexford, Waterford, etc.): local needs test applies but accessible with genuine local connections
+- Moderate counties (Galway, Kerry, Tipperary, Kilkenny, Wexford, Waterford, etc.): local needs test applies but accessible with genuine local connections
 - Permissive counties (Leitrim, Mayo, Roscommon, Cavan, Longford, Monaghan, Donegal): broadly supportive; population retention policies help
+- Clare is MIXED: inland/structurally weak areas are moderate-to-permissive, but the Burren SAAO and Atlantic coastline (Loop Head, Cliffs of Moher, Kilkee coast) are treated as strict/protected landscape areas where permissions are rare
 
 SITE SUITABILITY:
 Regardless of local needs, planners also assess:
@@ -237,10 +238,42 @@ interface CheckPermissionRequest {
   additionalDetails?: string;
 }
 
+// ─── County-specific planning context ────────────────────────────────────────
+// Injected into the user message so Claude has accurate local policy context
+// for counties with special designations or unusually strict/permissive policies.
+
+const COUNTY_SPECIAL_NOTES: Partial<Record<string, string>> = {
+  Clare: `IMPORTANT CLARE-SPECIFIC PLANNING CONTEXT:
+Clare has highly variable planning policy depending on location within the county:
+- The Burren (Burren Special Amenity Area Order — SAAO): This UNESCO Global Geopark designation makes it one of the most protected rural landscapes in Ireland. Applications within the Burren SAAO are extremely difficult and are usually refused unless there is an exceptional demonstrable need. The SAAO boundaries must be checked before any assessment. Even applications with strong local needs credentials face a very high bar within the SAAO.
+- Atlantic Coastline and Coastal Zone: Clare's coastline (Cliffs of Moher, Loop Head Peninsula, Kilkee, Doolin, Lahinch, Kilrush area) is subject to Coastal Zone Management policies. Development within 300m of the high water mark requires a detailed Coastal Impact Assessment. These coastal areas are treated much more strictly than inland Clare.
+- Structurally Weak/Remote Rural Areas: East Clare and parts of North Clare that have experienced depopulation are classified as Structurally Weak Areas where a more permissive approach applies.
+- If the site is in or near the Burren SAAO, the assessment should reflect a DEFINITELY_NEEDS_PERMISSION outcome with very low chances of success unless exceptional circumstances exist.`,
+
+  Dublin: `IMPORTANT DUBLIN-SPECIFIC PLANNING CONTEXT:
+Dublin is under extreme urban development pressure. Almost all rural land in the county falls within Green Belt or Metropolitan Area designations. One-off rural dwelling permissions are exceptionally rare. Agricultural need or very exceptional social circumstance is almost always required. Most applications on purchased sites without demonstrable agricultural need are refused.`,
+
+  Wicklow: `IMPORTANT WICKLOW-SPECIFIC PLANNING CONTEXT:
+Wicklow has one of the most restrictive rural housing policies in Ireland due to proximity to Dublin and designated landscapes (Wicklow Mountains National Park, AONB). Strong anti-sporadic development policy applies across most of the county. Exceptional need or agricultural connection is almost always required. Purchased sites are very rarely granted permission.`,
+
+  Kildare: `IMPORTANT KILDARE-SPECIFIC PLANNING CONTEXT:
+Kildare is a major Dublin commuter county. Almost all rural land is under strong development pressure. Agricultural need or very strong exceptional social need is typically required. One-off rural housing permissions are rare and heavily scrutinised by Kildare County Council.`,
+
+  Meath: `IMPORTANT MEATH-SPECIFIC PLANNING CONTEXT:
+Meath is among the most restrictive counties outside Dublin and Wicklow due to commuter pressure. The county has a strong anti-sporadic development policy. Agricultural need or a very compelling exceptional case is usually required for rural housing permission.`,
+
+  Cork: `IMPORTANT CORK-SPECIFIC PLANNING CONTEXT:
+Cork has highly variable planning policy. The commuter belt (Macroom, Midleton, Carrigaline, Ballincollig corridors) is very strictly controlled. West Cork and remote rural areas are more permissive. Each Local Area Plan sets different thresholds — the specific location within Cork is critical to an accurate assessment.`,
+
+  Galway: `IMPORTANT GALWAY-SPECIFIC PLANNING CONTEXT:
+Galway has varied policy. Gaeltacht areas (Connemara, South Galway) have special policies supporting indigenous rural housing. The County Development Plan uses a detailed rural housing matrix by area type. West Galway and Connemara are more permissive than the east of the county which faces commuter pressure.`,
+};
+
 // ─── Message builders ──────────────────────────────────────────────────────────
 
 function buildNewBuildMessage(body: CheckPermissionRequest): string {
   const localNeedsYesNo = (v?: string) => v === "yes" ? "Yes" : v === "no" ? "No" : "Not answered";
+  const countyNote = COUNTY_SPECIAL_NOTES[body.county] ?? "";
   return `Please assess the following rural housing planning application in Ireland:
 
 County: ${body.county}
@@ -254,7 +287,7 @@ Local Needs Assessment:
 - Site is within family's landholding: ${localNeedsYesNo(body.withinFamilyLandholding)}
 
 Additional details: ${body.additionalDetails || "None provided"}
-
+${countyNote ? `\n${countyNote}\n` : ""}
 Assess this applicant's likely eligibility for rural housing permission under the local needs test and rural housing guidelines for ${body.county} County.`;
 }
 
