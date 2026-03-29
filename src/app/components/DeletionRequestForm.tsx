@@ -78,7 +78,7 @@ export function DeletionRequestForm() {
           Your email address
         </label>
         <p className="text-xs text-gray-500 mb-4">
-          Enter the email address associated with your Planr account. We
+          Enter the email address associated with your Granted account. We
           will send a confirmation to this address.
         </p>
 

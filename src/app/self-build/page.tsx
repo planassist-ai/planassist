@@ -48,7 +48,8 @@ interface SelfBuildData {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "planr_selfbuild_v1";
+const STORAGE_KEY = "granted_selfbuild_v1";
+const STORAGE_KEY_LEGACY = "planr_selfbuild_v1";
 
 const COUNTIES = [
   "Carlow","Cavan","Clare","Cork","Donegal","Dublin","Galway","Kerry",
@@ -304,6 +305,13 @@ const PORTAL_LINKS = [
 function loadData(): SelfBuildData | null {
   if (typeof window === "undefined") return null;
   try {
+    // Migrate data from old storage key if present
+    const legacy = localStorage.getItem(STORAGE_KEY_LEGACY);
+    if (legacy) {
+      localStorage.setItem(STORAGE_KEY, legacy);
+      localStorage.removeItem(STORAGE_KEY_LEGACY);
+      return JSON.parse(legacy) as SelfBuildData;
+    }
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as SelfBuildData;
@@ -831,8 +839,9 @@ export default function SelfBuildPage() {
   if (authLoading || !loaded) {
     return (
       <AppShell>
-        <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
           <div className="w-7 h-7 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-gray-500">Loading your tracker…</p>
         </div>
       </AppShell>
     );

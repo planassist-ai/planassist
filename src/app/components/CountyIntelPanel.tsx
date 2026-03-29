@@ -1518,7 +1518,7 @@ export function CountyIntelPanel({ county, className = "", isPaid = false }: Cou
                         {data.policies.length - 1} more {data.policies.length - 1 === 1 ? "policy" : "policies"}, {data.warnings.length} critical {data.warnings.length === 1 ? "warning" : "warnings"} &amp; all document links
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                        Sign in for full Co. {data.countyName} planning intelligence — free with any Planr account.
+                        Sign in for full Co. {data.countyName} planning intelligence — free with any Granted account.
                       </p>
                       <Link
                         href="/login"

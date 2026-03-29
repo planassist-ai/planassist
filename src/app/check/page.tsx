@@ -1166,7 +1166,7 @@ export default function CheckPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell focusedMode={step !== "select"} onBack={step !== "select" ? handleBack : undefined}>
       <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 max-w-3xl mx-auto">
 
         {step === "select" && <FlowSelector onSelect={handleFlowSelect} />}

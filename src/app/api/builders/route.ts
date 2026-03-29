@@ -175,12 +175,12 @@ export async function POST(request: NextRequest) {
       renovation_specialist: "Renovation Specialist", fit_out_specialist: "Fit-Out Specialist",
     };
     await resend.emails.send({
-      from:    process.env.RESEND_FROM_EMAIL ?? "Planr <onboarding@resend.dev>",
+      from:    process.env.RESEND_FROM_EMAIL ?? "Granted <onboarding@resend.dev>",
       to:      email.trim().toLowerCase(),
-      subject: "Your Planr builders directory listing has been received",
+      subject: "Your Granted builders directory listing has been received",
       text: `Hi ${contact_name.trim().split(" ")[0]},
 
-Thank you for submitting your listing to the Planr Builders Directory.
+Thank you for submitting your listing to the Granted Builders Directory.
 
 Your details:
 - Company: ${company_name.trim()}
@@ -190,7 +190,7 @@ Your details:
 Your listing is now live at planr.ie/find-a-professional.
 
 Best regards,
-The Planr Team`,
+The Granted Team`,
     });
   } catch (emailErr) {
     console.error("builders confirmation email error:", emailErr);

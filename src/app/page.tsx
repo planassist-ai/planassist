@@ -18,7 +18,7 @@ export default function Home() {
           <span className="text-green-600">permission?</span>
         </h1>
         <p className="text-base sm:text-lg lg:text-xl text-gray-500 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
-          Planr uses AI to analyse your project against Irish planning regulations —
+          Granted uses AI to analyse your project against Irish planning regulations —
           extensions, conversions, new builds, and more — and gives you a clear answer in minutes.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
@@ -115,7 +115,7 @@ export default function Home() {
               {
                 step: "02",
                 title: "AI analyses the regulations",
-                body: "Planr checks your project against the Planning & Development Acts and the latest exemption rules.",
+                body: "Granted checks your project against the Planning & Development Acts and the latest exemption rules.",
               },
               {
                 step: "03",
@@ -176,11 +176,11 @@ export default function Home() {
                 AI-generated information
               </p>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Planr uses artificial intelligence to analyse your project against Irish planning
+                Granted uses artificial intelligence to analyse your project against Irish planning
                 regulations. All outputs are AI-generated guidance only and may not be accurate,
                 complete, or applicable to your specific circumstances.{" "}
                 <strong className="font-medium text-gray-700">
-                  Planr is not a planning consultant, architect, or legal adviser
+                  Granted is not a planning consultant, architect, or legal adviser
                 </strong>{" "}
                 and nothing on this site constitutes professional advice. You should always verify
                 results with your local planning authority or a qualified planning professional

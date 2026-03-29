@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const from = process.env.RESEND_FROM_EMAIL ?? "Planr <onboarding@resend.dev>";
+    const from = process.env.RESEND_FROM_EMAIL ?? "Granted <onboarding@resend.dev>";
     const adminEmail = process.env.ADMIN_EMAIL ?? "hello@planassist.ie";
     const submittedOn = new Date().toLocaleDateString("en-IE", {
       day: "numeric",
@@ -95,11 +95,11 @@ export async function POST(request: NextRequest) {
     await resend.emails.send({
       from,
       to: email,
-      subject: "Your data deletion request has been received — Planr",
+      subject: "Your data deletion request has been received — Granted",
       text: [
         "Hello,",
         "",
-        "We have received your request to delete your personal data from Planr.",
+        "We have received your request to delete your personal data from Granted.",
         "",
         "Your request will be processed within 30 days, as required by the General Data Protection Regulation (GDPR) Article 17.",
         "",
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         "",
         `Request reference: ${email} — submitted ${submittedOn}`,
         "",
-        "Planr",
+        "Granted",
         "hello@planassist.ie",
       ].join("\n"),
     });
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       to: adminEmail,
       subject: `[Action Required] Data deletion request — ${email}`,
       text: [
-        "A new GDPR data deletion request has been submitted via the Planr privacy page.",
+        "A new GDPR data deletion request has been submitted via the Granted privacy page.",
         "",
         `Email address: ${email}`,
         `Submitted at:  ${new Date().toISOString()}`,
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
         "2. Update the row in the deletion_requests table: set status = 'completed'.",
         "3. Send the user a confirmation email that their data has been deleted.",
         "",
-        "— Planr automated notification",
+        "— Granted automated notification",
       ].join("\n"),
     });
 

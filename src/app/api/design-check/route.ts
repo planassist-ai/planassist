@@ -247,29 +247,66 @@ export async function POST(request: NextRequest) {
     // ── Call Claude with vision ───────────────────────────────────────────────
     const userMessage = buildUserMessage(county, projectType);
 
-    const message = await client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2048,
-      system: DESIGN_CHECK_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "image", source: imageSource },
-            { type: "text", text: userMessage },
-          ],
-        },
-      ],
-    });
+    // Race the Anthropic call against a 55-second timeout so the function never hangs
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Analysis timed out — please try again.")), 55_000)
+    );
 
-    const rawText = message.content[0].type === "text" ? message.content[0].text : "";
+    const message = await Promise.race([
+      client.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 2048,
+        system: DESIGN_CHECK_PROMPT,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "image", source: imageSource },
+              { type: "text", text: userMessage },
+            ],
+          },
+        ],
+      }),
+      timeoutPromise,
+    ]);
+
+    const rawText = message.content[0].type === "text" ? message.content[0].text.trim() : "";
+
+    if (!rawText) {
+      console.error("design-check: empty response from Claude");
+      return NextResponse.json(
+        { error: "The AI returned an empty response. Please try again." },
+        { status: 500 }
+      );
+    }
 
     let result: DesignCheckResult;
     try {
       result = JSON.parse(rawText);
     } catch {
-      const cleaned = rawText.replace(/^```json\n?/, "").replace(/\n?```$/, "");
-      result = JSON.parse(cleaned);
+      // Strip any markdown code fences Claude may have added despite instructions
+      const cleaned = rawText
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```$/, "")
+        .trim();
+      try {
+        result = JSON.parse(cleaned);
+      } catch (parseErr) {
+        console.error("design-check: JSON parse failed. Raw text:", rawText, "Error:", parseErr);
+        return NextResponse.json(
+          { error: "The AI response could not be parsed. Please try again." },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Validate required fields are present
+    if (!result.alignmentLevel || !result.overallAssessment) {
+      console.error("design-check: incomplete result structure:", result);
+      return NextResponse.json(
+        { error: "The AI returned an incomplete response. Please try again." },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json(result);

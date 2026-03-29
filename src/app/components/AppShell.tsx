@@ -205,7 +205,15 @@ const NAV_ITEMS = [
   },
 ];
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  focusedMode = false,
+  onBack,
+}: {
+  children: React.ReactNode;
+  focusedMode?: boolean;
+  onBack?: () => void;
+}) {
   const pathname               = usePathname();
   const router                 = useRouter();
   const { isLoggedIn, userEmail } = useAuthStatus();
@@ -220,6 +228,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // First letter of the email for the avatar.
   const avatarLetter = userEmail ? userEmail[0].toUpperCase() : null;
 
+  // ── Focused / assessment mode: minimal header with logo + back button only ──
+  if (focusedMode) {
+    return (
+      <div className="min-h-screen bg-white text-gray-900">
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+            <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
+              Granted
+            </Link>
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
+              </button>
+            )}
+          </div>
+        </header>
+        <main>
+          {children}
+          <SiteFooter />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white text-gray-900">
 
@@ -227,7 +265,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="hidden lg:block bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
-            Planr
+            Granted
           </Link>
           <div className="flex items-center gap-1">
             <nav className="flex items-center gap-1">
@@ -291,7 +329,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <aside className="hidden md:flex lg:hidden flex-col w-60 shrink-0 min-h-screen bg-white border-r border-gray-200 sticky top-0 h-screen overflow-y-auto">
           <div className="px-5 h-16 flex items-center border-b border-gray-100">
             <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
-              Planr
+              Granted
             </Link>
           </div>
           <nav className="p-3 space-y-1 flex-1">
@@ -357,7 +395,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Mobile top bar */}
           <div className="md:hidden bg-white border-b border-gray-200 px-4 h-14 flex items-center justify-between sticky top-0 z-30">
             <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
-              Planr
+              Granted
             </Link>
             {isLoggedIn ? (
               <button

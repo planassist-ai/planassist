@@ -176,12 +176,12 @@ export async function POST(request: NextRequest) {
     };
 
     await resend.emails.send({
-      from:    process.env.RESEND_FROM_EMAIL ?? "Planr <onboarding@resend.dev>",
+      from:    process.env.RESEND_FROM_EMAIL ?? "Granted <onboarding@resend.dev>",
       to:      email.trim().toLowerCase(),
-      subject: "Your Planr directory listing has been received",
+      subject: "Your Granted directory listing has been received",
       text: `Hi ${name.trim().split(" ")[0]},
 
-Thank you for submitting your listing to the Planr Professional Directory.
+Thank you for submitting your listing to the Granted Professional Directory.
 
 Your details:
 - Name: ${name.trim()}
@@ -196,7 +196,7 @@ We may reach out to verify your listing and add a Verified badge to your profile
 If you need to update your listing or have any questions, please reply to this email.
 
 Best regards,
-The Planr Team
+The Granted Team
 planr.ie`,
     });
   } catch (emailErr) {

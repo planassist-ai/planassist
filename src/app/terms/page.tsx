@@ -3,13 +3,13 @@ import Link from "next/link";
 import { SiteFooter } from "@/app/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — Planr",
+  title: "Terms of Service — Granted",
   description:
-    "Terms and conditions for using Planr. Planr provides planning information only and is not a substitute for professional planning advice.",
+    "Terms and conditions for using Granted. Granted provides planning information only and is not a substitute for professional planning advice.",
 };
 
 const SECTIONS = [
-  { id: "about",           label: "About Planr" },
+  { id: "about",           label: "About Granted" },
   { id: "information-only", label: "Information only" },
   { id: "liability",       label: "Limitation of liability" },
   { id: "acceptable-use",  label: "Acceptable use" },
@@ -37,7 +37,7 @@ function BackLink() {
       >
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
       </svg>
-      Back to Planr
+      Back to Granted
     </Link>
   );
 }
@@ -96,7 +96,7 @@ export default function TermsPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-1">Terms of Service</h1>
           <p className="text-sm text-gray-500 mb-2">Last updated: 28 March 2026</p>
           <p className="text-sm text-gray-500 mb-8">
-            By using Planr you agree to these terms. Please read them carefully.
+            By using Granted you agree to these terms. Please read them carefully.
           </p>
 
           {/* ── Prominent disclaimer ──────────────────────────── */}
@@ -118,12 +118,12 @@ export default function TermsPage() {
               </svg>
               <div>
                 <p className="font-semibold text-amber-900 mb-1">
-                  Planr provides information only — not professional advice
+                  Granted provides information only — not professional advice
                 </p>
                 <p className="text-amber-800 text-sm leading-relaxed">
-                  Nothing on Planr constitutes professional planning, legal, architectural, or
+                  Nothing on Granted constitutes professional planning, legal, architectural, or
                   engineering advice. Output from the service is for general informational purposes
-                  only. You must not rely solely on Planr when making planning decisions.
+                  only. You must not rely solely on Granted when making planning decisions.
                   Always consult a qualified planning professional before submitting a planning
                   application or making decisions with legal or financial consequences.
                 </p>
@@ -136,14 +136,14 @@ export default function TermsPage() {
             {/* 1 — About */}
             <section>
               <SectionAnchor id="about" />
-              <H2>1. About Planr</H2>
+              <H2>1. About Granted</H2>
               <p>
-                Planr is an AI-powered planning assistance service for Ireland that helps
+                Granted is an AI-powered planning assistance service for Ireland that helps
                 users understand planning requirements, interpret planning documents, monitor
                 planning applications, and prepare for the planning process.
               </p>
               <p className="mt-2">
-                These Terms of Service (&ldquo;Terms&rdquo;) govern your use of Planr. By
+                These Terms of Service (&ldquo;Terms&rdquo;) govern your use of Granted. By
                 creating an account or using the service you confirm that you have read, understood,
                 and agree to be bound by these Terms and our{" "}
                 <Link href="/privacy" className="text-green-600 underline underline-offset-2 hover:text-green-700">
@@ -160,7 +160,7 @@ export default function TermsPage() {
               <SectionAnchor id="information-only" />
               <H2>2. Information only — not professional advice</H2>
               <p className="mb-3">
-                Planr uses artificial intelligence to provide general planning information and
+                Granted uses artificial intelligence to provide general planning information and
                 guidance. The service:
               </p>
               <ul className="list-disc pl-5 space-y-2 mb-4">
@@ -174,7 +174,7 @@ export default function TermsPage() {
                 </li>
                 <li>
                   Does not create a professional-client relationship of any kind between you and
-                  Planr.
+                  Granted.
                 </li>
                 <li>
                   Should not be used as the sole basis for submitting a planning application or
@@ -200,7 +200,7 @@ export default function TermsPage() {
               </div>
 
               <p className="mb-3">
-                <strong>3.1 No warranties.</strong> Planr is provided &ldquo;as is&rdquo; and
+                <strong>3.1 No warranties.</strong> Granted is provided &ldquo;as is&rdquo; and
                 &ldquo;as available&rdquo; without warranty of any kind, express or implied,
                 including but not limited to warranties of merchantability, fitness for a particular
                 purpose, accuracy, or non-infringement. We do not warrant that the service will be
@@ -209,7 +209,7 @@ export default function TermsPage() {
 
               <p className="mb-3">
                 <strong>3.2 Exclusion of liability for planning decisions.</strong> To the maximum
-                extent permitted by Irish and EU law, Planr and its operators, directors,
+                extent permitted by Irish and EU law, Granted and its operators, directors,
                 employees, and agents shall not be liable for any loss, damage, cost, or expense —
                 whether direct, indirect, incidental, special, consequential, or exemplary —
                 arising from or in connection with:
@@ -237,7 +237,7 @@ export default function TermsPage() {
                 <strong>3.3 Cap on liability.</strong> Where liability cannot be fully excluded
                 under applicable law, our total aggregate liability to you for any and all claims
                 arising from or relating to the service shall not exceed the total fees you have
-                paid to Planr in the twelve months immediately preceding the claim.
+                paid to Granted in the twelve months immediately preceding the claim.
               </p>
 
               <p className="mb-3">
@@ -249,7 +249,7 @@ export default function TermsPage() {
 
               <p>
                 <strong>3.5 Your responsibility.</strong> You accept full responsibility for any
-                decisions you make based on information provided by Planr. We strongly
+                decisions you make based on information provided by Granted. We strongly
                 recommend engaging a registered planning consultant, architect, or solicitor before
                 submitting any planning application.
               </p>
@@ -261,7 +261,7 @@ export default function TermsPage() {
             <section>
               <SectionAnchor id="acceptable-use" />
               <H2>4. Acceptable use</H2>
-              <p className="mb-3">You agree not to use Planr to:</p>
+              <p className="mb-3">You agree not to use Granted to:</p>
               <ul className="list-disc pl-5 space-y-2">
                 <li>Provide false, misleading, or fraudulent information.</li>
                 <li>
@@ -319,8 +319,8 @@ export default function TermsPage() {
               <SectionAnchor id="ip" />
               <H2>6. Intellectual property</H2>
               <p className="mb-3">
-                The Planr platform, brand, software, and AI-generated outputs are owned by or
-                licensed to Planr. You are granted a limited, non-exclusive, non-transferable
+                The Granted platform, brand, software, and AI-generated outputs are owned by or
+                licensed to Granted. You are granted a limited, non-exclusive, non-transferable
                 licence to use the service for its intended purpose.
               </p>
               <p>
@@ -337,7 +337,7 @@ export default function TermsPage() {
               <SectionAnchor id="termination" />
               <H2>7. Termination</H2>
               <p className="mb-3">
-                You may stop using Planr at any time. To delete your account and request
+                You may stop using Granted at any time. To delete your account and request
                 erasure of your data, email{" "}
                 <a
                   href="mailto:hello@planassist.ie"
@@ -362,7 +362,7 @@ export default function TermsPage() {
               <H2>8. Governing law</H2>
               <p className="mb-3">
                 These Terms are governed by and construed in accordance with the laws of Ireland.
-                Any dispute arising out of or relating to these Terms or your use of Planr
+                Any dispute arising out of or relating to these Terms or your use of Granted
                 shall be subject to the exclusive jurisdiction of the courts of Ireland.
               </p>
               <p>
@@ -381,7 +381,7 @@ export default function TermsPage() {
               <p>
                 We may update these Terms from time to time. We will notify you of material changes
                 via email or in-app notice at least 14 days before they take effect. Your continued
-                use of Planr after that date constitutes acceptance of the revised Terms.
+                use of Granted after that date constitutes acceptance of the revised Terms.
               </p>
             </section>
 

@@ -6,7 +6,7 @@ export default function NotFound() {
       {/* Simple header */}
       <header className="border-b border-gray-100 px-6 h-16 flex items-center">
         <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
-          Planr
+          Granted
         </Link>
       </header>
 
@@ -65,7 +65,7 @@ export default function NotFound() {
       {/* Footer note */}
       <footer className="border-t border-gray-100 px-6 py-4 text-center">
         <p className="text-xs text-gray-400">
-          Planr — AI-powered planning guidance for Ireland
+          Granted — AI-powered planning guidance for Ireland
         </p>
       </footer>
     </div>

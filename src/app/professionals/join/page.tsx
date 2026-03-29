@@ -142,7 +142,7 @@ export default function ProfessionalsJoinPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-3">Listing submitted</h1>
           <p className="text-sm text-gray-500 leading-relaxed mb-6 max-w-sm mx-auto">
-            Thank you — your listing is now live in the Planr directory.
+            Thank you — your listing is now live in the Granted directory.
             Check your email for a confirmation. We&apos;ll be in touch if we need any additional details.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -298,7 +298,7 @@ export default function ProfessionalsJoinPage() {
 
           {/* Terms note */}
           <p className="text-xs text-gray-500 leading-relaxed">
-            By submitting your listing you confirm that the information provided is accurate and that you consent to it being published in the Planr Professional Directory. Listings are free. Planr reserves the right to remove listings that are inaccurate or inappropriate.
+            By submitting your listing you confirm that the information provided is accurate and that you consent to it being published in the Granted Professional Directory. Listings are free. Granted reserves the right to remove listings that are inaccurate or inappropriate.
           </p>
 
           {error && (

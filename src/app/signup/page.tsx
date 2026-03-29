@@ -63,7 +63,7 @@ export default function SignupPage() {
         {/* Wordmark */}
         <div className="text-center mb-8">
           <Link href="/" className="text-2xl font-bold text-green-600 tracking-tight">
-            Planr
+            Granted
           </Link>
           <p className="mt-1 text-sm text-gray-500">Irish planning made simple</p>
         </div>

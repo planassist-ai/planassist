@@ -739,11 +739,11 @@ export default function DashboardPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <Link href="/" className="text-xl font-bold text-green-600 tracking-tight shrink-0">
-              Planr
+              Granted
             </Link>
             <span className="hidden sm:block w-px h-5 bg-gray-200" />
             <span className="hidden sm:block text-sm text-gray-400">
-              {practiceName || "Welcome to Planr"}
+              {practiceName || "Welcome to Granted"}
             </span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">

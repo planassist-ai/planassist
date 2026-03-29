@@ -79,7 +79,7 @@ export function CookieConsentBanner() {
               We use cookies
             </p>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Planr uses essential cookies to keep you signed in and make the
+              Granted uses essential cookies to keep you signed in and make the
               app work reliably. With your permission we also use analytics cookies
               to understand how the app is used so we can improve it. We never sell
               your data.{" "}

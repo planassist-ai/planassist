@@ -128,7 +128,7 @@ export async function PATCH(
         );
         try {
           await resend.emails.send({
-            from:    process.env.RESEND_FROM_EMAIL ?? "Planr <onboarding@resend.dev>",
+            from:    process.env.RESEND_FROM_EMAIL ?? "Granted <onboarding@resend.dev>",
             to:      alertEmail,
             subject: `⚠️ Further Information Requested — ${existing.reference}`,
             text: [
@@ -142,7 +142,7 @@ export async function PATCH(
               "",
               "Please review the request and coordinate a response with your client before the statutory deadline.",
               "",
-              "Log in to Planr to manage this application.",
+              "Log in to Granted to manage this application.",
             ].join("\n"),
           });
         } catch (emailErr) {

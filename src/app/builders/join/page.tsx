@@ -178,7 +178,7 @@ export default function BuildersJoinPage() {
           </div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">Listing submitted!</h1>
           <p className="text-sm text-gray-500 leading-relaxed mb-6">
-            Your listing is now live on the Planr Builders Directory.
+            Your listing is now live on the Granted Builders Directory.
             We have sent a confirmation to <strong>{form.email}</strong>.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

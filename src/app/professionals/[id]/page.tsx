@@ -255,7 +255,7 @@ export default function ProfessionalProfilePage() {
           {pro.email && (
             <div className="px-6 sm:px-8 pb-6 sm:pb-8">
               <a
-                href={`mailto:${pro.email}?subject=Planning enquiry via Planr`}
+                href={`mailto:${pro.email}?subject=Planning enquiry via Granted`}
                 className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm py-3.5 rounded-xl transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

@@ -268,7 +268,7 @@ export default function PlanningStatementPage() {
             Planning Statement Generator
           </h1>
           <p className="text-sm text-gray-500 leading-relaxed max-w-xl">
-            Fill in the form below and Planr will generate a professionally worded planning statement draft — ready to refine with your planning consultant before submission.
+            Fill in the form below and Granted will generate a professionally worded planning statement draft — ready to refine with your planning consultant before submission.
           </p>
         </div>
 
@@ -663,7 +663,7 @@ export default function PlanningStatementPage() {
               {/* Footer */}
               <div className="px-6 sm:px-10 py-5 border-t border-gray-100 bg-gray-50">
                 <p className="text-xs text-gray-400 leading-relaxed">
-                  This planning statement was generated as a first draft using Planr (planr.ie) and must be reviewed by a qualified planning professional before submission. Policy references should be verified against the current county development plan. Planr accepts no liability for decisions made based on this draft document.
+                  This planning statement was generated as a first draft using Granted (planr.ie) and must be reviewed by a qualified planning professional before submission. Policy references should be verified against the current county development plan. Granted accepts no liability for decisions made based on this draft document.
                 </p>
               </div>
             </div>

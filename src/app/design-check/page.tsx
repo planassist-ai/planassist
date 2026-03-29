@@ -186,6 +186,10 @@ export default function DesignCheckPage() {
     setResult(null);
     setApiError(null);
 
+    // 65-second client-side timeout so the spinner never runs forever
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 65_000);
+
     try {
       let res: Response;
 
@@ -195,13 +199,14 @@ export default function DesignCheckPage() {
         fd.append("county", county);
         fd.append("projectType", projectType);
         fd.append("image", imageFile);
-        res = await fetch("/api/design-check", { method: "POST", body: fd });
+        res = await fetch("/api/design-check", { method: "POST", body: fd, signal: controller.signal });
       } else {
         if (!imageUrl.trim()) { setApiError("Please enter an image URL."); setSubmitting(false); return; }
         res = await fetch("/api/design-check", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ county, projectType, imageUrl: imageUrl.trim() }),
+          signal: controller.signal,
         });
       }
 
@@ -212,9 +217,14 @@ export default function DesignCheckPage() {
       }
       setResult(data as DesignCheckResult);
       setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 100);
-    } catch {
-      setApiError("Network error. Please check your connection and try again.");
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        setApiError("The analysis timed out. Please try again — AI design analysis can take up to 60 seconds.");
+      } else {
+        setApiError("Network error. Please check your connection and try again.");
+      }
     } finally {
+      clearTimeout(timeoutId);
       setSubmitting(false);
     }
   }
@@ -488,6 +498,17 @@ export default function DesignCheckPage() {
               </div>
             )}
           </div>
+
+          {/* Loading banner */}
+          {submitting && (
+            <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-4 flex items-start gap-3">
+              <Spinner />
+              <div>
+                <p className="text-sm font-semibold text-green-800">Analysing your design…</p>
+                <p className="text-xs text-green-700 mt-0.5">This typically takes 15–30 seconds. Please wait.</p>
+              </div>
+            </div>
+          )}
 
           {/* Error */}
           {apiError && (
