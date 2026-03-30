@@ -1144,20 +1144,26 @@ export default function CheckPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
     try {
       const res = await fetch("/api/check-permission", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ flowType, ...formData }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Something went wrong. Please try again.");
+      let data: Record<string, unknown>;
+      try {
+        data = await res.json();
+      } catch {
+        setError("The server returned an unexpected response. Please try again.");
         return;
       }
-      setResult(data as CheckPermissionResult);
+      if (!res.ok) {
+        setError((data.error as string) ?? "Something went wrong. Please try again.");
+        return;
+      }
+      setResult(data as unknown as CheckPermissionResult);
       setStep("result");
-      setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 100);
     } catch {
       setError("Network error. Please check your connection and try again.");
     } finally {
@@ -1167,7 +1173,38 @@ export default function CheckPage() {
 
   return (
     <AppShell focusedMode={step !== "select"} onBack={step !== "select" ? handleBack : undefined}>
+
+      {/* Full-page loading overlay */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm">
+          <svg className="animate-spin h-10 w-10 text-green-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <p className="text-sm font-semibold text-gray-700">Analysing your project…</p>
+          <p className="text-xs text-gray-400 mt-1">This usually takes 5–10 seconds</p>
+        </div>
+      )}
+
       <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 max-w-3xl mx-auto">
+
+        {/* Prominent error banner */}
+        {error && (
+          <div className="mb-5 flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
+            <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-red-800 mb-0.5">Something went wrong</p>
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 transition-colors shrink-0">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         {step === "select" && <FlowSelector onSelect={handleFlowSelect} />}
 
@@ -1209,10 +1246,6 @@ export default function CheckPage() {
         {/* County intelligence panel — shown during form step when county is selected */}
         {step === "form" && formData.county && (
           <CountyIntelPanel county={formData.county} isPaid={isPaid} className="mt-5" />
-        )}
-
-        {error && (
-          <div className="mt-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>
         )}
 
         <LegalDisclaimer className="mt-8 sm:mt-10" />

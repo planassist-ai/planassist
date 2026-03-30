@@ -1,209 +1,68 @@
 "use client";
 
-import { useCallback } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { SiteFooter } from "./SiteFooter";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 import { createClient } from "@/lib/supabase/browser";
 
-const NAV_ITEMS = [
-  {
-    href: "/#features",
-    label: "Features",
-    icon: (active: boolean) => (
-      <svg
-        className={`w-6 h-6 transition-colors ${active ? "text-green-600" : "text-gray-400"}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.75}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"
-        />
-      </svg>
-    ),
-  },
-  {
-    href: "/#how-it-works",
-    label: "How It Works",
-    icon: (active: boolean) => (
-      <svg
-        className={`w-6 h-6 transition-colors ${active ? "text-green-600" : "text-gray-400"}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.75}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
-        />
-      </svg>
-    ),
-  },
-  {
-    href: "/status",
-    label: "Application Status",
-    icon: (active: boolean) => (
-      <svg
-        className={`w-6 h-6 transition-colors ${active ? "text-green-600" : "text-gray-400"}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.75}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-        />
-      </svg>
-    ),
-  },
-  {
-    href: "/interpreter",
-    label: "Document Interpreter",
-    icon: (active: boolean) => (
-      <svg
-        className={`w-6 h-6 transition-colors ${active ? "text-green-600" : "text-gray-400"}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.75}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-        />
-      </svg>
-    ),
-  },
-  {
-    href: "/checklist",
-    label: "Document Checklist",
-    icon: (active: boolean) => (
-      <svg
-        className={`w-6 h-6 transition-colors ${active ? "text-green-600" : "text-gray-400"}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.75}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-        />
-      </svg>
-    ),
-  },
-  {
-    href: "/find-a-professional",
-    label: "Directory",
-    icon: (active: boolean) => (
-      <svg
-        className={`w-6 h-6 transition-colors ${active ? "text-green-600" : "text-gray-400"}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.75}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
-        />
-      </svg>
-    ),
-  },
-  {
-    href: "/planning-statement",
-    label: "Statement",
-    icon: (active: boolean) => (
-      <svg
-        className={`w-6 h-6 transition-colors ${active ? "text-green-600" : "text-gray-400"}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.75}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-        />
-      </svg>
-    ),
-  },
-  {
-    href: "/grants",
-    label: "Grants",
-    icon: (active: boolean) => (
-      <svg
-        className={`w-6 h-6 transition-colors ${active ? "text-green-600" : "text-gray-400"}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.75}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-        />
-      </svg>
-    ),
-  },
-  {
-    href: "/self-build",
-    label: "Self-Build",
-    icon: (active: boolean) => (
-      <svg
-        className={`w-6 h-6 transition-colors ${active ? "text-green-600" : "text-gray-400"}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.75}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-        />
-      </svg>
-    ),
-  },
-  {
-    href: "/design-check",
-    label: "Design Guide",
-    icon: (active: boolean) => (
-      <svg
-        className={`w-6 h-6 transition-colors ${active ? "text-green-600" : "text-gray-400"}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.75}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-        />
-      </svg>
-    ),
-  },
+// ── Nav definitions ────────────────────────────────────────────────────────────
+
+const PRIMARY_NAV = [
+  { href: "/check",               label: "Check" },
+  { href: "/tools",               label: "Tools" },
+  { href: "/dashboard",           label: "Dashboard" },
+  { href: "/find-a-professional", label: "Find a Pro" },
 ];
+
+// Icons for mobile bottom tabs and sidebar
+const HomeIcon = ({ active }: { active: boolean }) => (
+  <svg className={`w-6 h-6 ${active ? "text-green-600" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+  </svg>
+);
+
+const CheckIcon = ({ active }: { active: boolean }) => (
+  <svg className={`w-6 h-6 ${active ? "text-green-600" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const ToolsIcon = ({ active }: { active: boolean }) => (
+  <svg className={`w-6 h-6 ${active ? "text-green-600" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L3 3l1.5 1.5 3.75.75 5.91 5.91" />
+  </svg>
+);
+
+const DashboardIcon = ({ active }: { active: boolean }) => (
+  <svg className={`w-6 h-6 ${active ? "text-green-600" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+  </svg>
+);
+
+const FindProIcon = ({ active }: { active: boolean }) => (
+  <svg className={`w-6 h-6 ${active ? "text-green-600" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+);
+
+const BOTTOM_TABS = [
+  { href: "/",         label: "Home",      Icon: HomeIcon },
+  { href: "/check",    label: "Check",     Icon: CheckIcon },
+  { href: "/tools",    label: "Tools",     Icon: ToolsIcon },
+  { href: "/dashboard",label: "Dashboard", Icon: DashboardIcon },
+];
+
+const SIDEBAR_NAV = [
+  { href: "/",                    label: "Home",       Icon: HomeIcon },
+  { href: "/check",               label: "Check",      Icon: CheckIcon },
+  { href: "/tools",               label: "Tools",      Icon: ToolsIcon },
+  { href: "/dashboard",           label: "Dashboard",  Icon: DashboardIcon },
+  { href: "/find-a-professional", label: "Find a Pro", Icon: FindProIcon },
+];
+
+// ── AppShell ───────────────────────────────────────────────────────────────────
 
 export function AppShell({
   children,
@@ -214,9 +73,10 @@ export function AppShell({
   focusedMode?: boolean;
   onBack?: () => void;
 }) {
-  const pathname               = usePathname();
-  const router                 = useRouter();
-  const { isLoggedIn, userEmail } = useAuthStatus();
+  const pathname                     = usePathname();
+  const router                       = useRouter();
+  const { isLoggedIn, userEmail }    = useAuthStatus();
+  const [drawerOpen, setDrawerOpen]  = useState(false);
 
   const handleSignOut = useCallback(async () => {
     const supabase = createClient();
@@ -225,10 +85,9 @@ export function AppShell({
     router.refresh();
   }, [router]);
 
-  // First letter of the email for the avatar.
   const avatarLetter = userEmail ? userEmail[0].toUpperCase() : null;
 
-  // ── Focused / assessment mode: minimal header with logo + back button only ──
+  // ── Focused / assessment mode ──────────────────────────────────────────────
   if (focusedMode) {
     return (
       <div className="min-h-screen bg-white text-gray-900">
@@ -261,80 +120,70 @@ export function AppShell({
   return (
     <div className="min-h-screen bg-white text-gray-900">
 
-      {/* ── Desktop top nav (lg+) ─────────────────────────── */}
+      {/* ── Desktop top nav (lg+) ──────────────────────────────────────────── */}
       <header className="hidden lg:block bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
+          <Link href="/" className="text-xl font-bold text-green-600 tracking-tight shrink-0">
             Granted
           </Link>
-          <div className="flex items-center gap-1">
-            <nav className="flex items-center gap-1">
-              {NAV_ITEMS.map(({ href, label }) => {
-                const active = pathname === href;
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      active
-                        ? "bg-green-50 text-green-700"
-                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                    }`}
-                  >
-                    {label}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Auth actions */}
-            <div className="ml-4 pl-4 border-l border-gray-200 flex items-center gap-3">
-              {isLoggedIn ? (
-                <>
-                  <span className="text-sm text-gray-500 max-w-[180px] truncate" title={userEmail ?? ""}>
-                    {userEmail}
-                  </span>
-                  <button
-                    onClick={handleSignOut}
-                    className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-                  >
-                    Sign out
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/login"
-                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-                  >
-                    Sign in
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className="text-sm font-semibold bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Sign up free
-                  </Link>
-                </>
-              )}
-            </div>
+          <nav className="flex items-center gap-1">
+            {PRIMARY_NAV.map(({ href, label }) => {
+              const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    active
+                      ? "bg-green-50 text-green-700"
+                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                  }`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="flex items-center gap-3">
+            {isLoggedIn ? (
+              <>
+                <span className="text-sm text-gray-500 max-w-[180px] truncate" title={userEmail ?? ""}>
+                  {userEmail}
+                </span>
+                <button
+                  onClick={handleSignOut}
+                  className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                  Sign in
+                </Link>
+                <Link href="/signup" className="text-sm font-semibold bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                  Sign up free
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
 
-      {/* ── Shared layout row ─────────────────────────────── */}
+      {/* ── Shared layout row ─────────────────────────────────────────────── */}
       <div className="md:flex">
 
-        {/* ── Tablet side nav (md–lg) ──────────────────────── */}
-        <aside className="hidden md:flex lg:hidden flex-col w-60 shrink-0 min-h-screen bg-white border-r border-gray-200 sticky top-0 h-screen overflow-y-auto">
+        {/* ── Tablet side nav (md–lg) ───────────────────────────────────── */}
+        <aside className="hidden md:flex lg:hidden flex-col w-56 shrink-0 min-h-screen bg-white border-r border-gray-200 sticky top-0 h-screen overflow-y-auto">
           <div className="px-5 h-16 flex items-center border-b border-gray-100">
             <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
               Granted
             </Link>
           </div>
           <nav className="p-3 space-y-1 flex-1">
-            {NAV_ITEMS.map(({ href, label, icon }) => {
-              const active = pathname === href;
+            {SIDEBAR_NAV.map(({ href, label, Icon }) => {
+              const active = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href);
               return (
                 <Link
                   key={href}
@@ -345,14 +194,12 @@ export function AppShell({
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                 >
-                  {icon(active)}
+                  <Icon active={active} />
                   <span>{label}</span>
                 </Link>
               );
             })}
           </nav>
-
-          {/* Tablet nav footer — auth state */}
           <div className="p-4 border-t border-gray-100 space-y-2">
             {isLoggedIn ? (
               <>
@@ -360,9 +207,7 @@ export function AppShell({
                   <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
                     {avatarLetter}
                   </div>
-                  <span className="text-xs text-gray-600 truncate min-w-0" title={userEmail ?? ""}>
-                    {userEmail}
-                  </span>
+                  <span className="text-xs text-gray-600 truncate min-w-0" title={userEmail ?? ""}>{userEmail}</span>
                 </div>
                 <button
                   onClick={handleSignOut}
@@ -373,16 +218,10 @@ export function AppShell({
               </>
             ) : (
               <div className="space-y-1.5">
-                <Link
-                  href="/login"
-                  className="block w-full text-center text-xs font-medium text-gray-600 hover:text-gray-900 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-                >
+                <Link href="/login" className="block w-full text-center text-xs font-medium text-gray-600 hover:text-gray-900 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                   Sign in
                 </Link>
-                <Link
-                  href="/signup"
-                  className="block w-full text-center text-xs font-semibold bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition-colors"
-                >
+                <Link href="/signup" className="block w-full text-center text-xs font-semibold bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition-colors">
                   Sign up free
                 </Link>
               </div>
@@ -390,46 +229,116 @@ export function AppShell({
           </div>
         </aside>
 
-        {/* ── Main content ─────────────────────────────────── */}
+        {/* ── Main content ──────────────────────────────────────────────── */}
         <main className="flex-1 min-w-0">
+
           {/* Mobile top bar */}
           <div className="md:hidden bg-white border-b border-gray-200 px-4 h-14 flex items-center justify-between sticky top-0 z-30">
             <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
               Granted
             </Link>
-            {isLoggedIn ? (
-              <button
-                onClick={handleSignOut}
-                className="text-xs text-gray-500 hover:text-gray-800 transition-colors"
-              >
-                Sign out
-              </button>
-            ) : (
-              <Link
-                href="/login"
-                className="text-xs font-semibold text-green-600 hover:text-green-700 transition-colors"
-              >
-                Sign in
-              </Link>
-            )}
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="p-2 -mr-2 text-gray-500 hover:text-gray-900 transition-colors"
+              aria-label="Open menu"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            </button>
           </div>
 
-          {/* Content — bottom padding clears the mobile tab bar */}
-          <div className="pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
+          {/* Content */}
+          <div className="pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
             {children}
             <SiteFooter />
           </div>
         </main>
       </div>
 
-      {/* ── Mobile bottom tab bar ─────────────────────────── */}
+      {/* ── Mobile drawer overlay ──────────────────────────────────────────── */}
+      {drawerOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setDrawerOpen(false)}
+          />
+          {/* Drawer panel */}
+          <div className="relative ml-auto w-72 max-w-[85vw] bg-white h-full flex flex-col shadow-xl">
+            <div className="px-5 h-14 flex items-center justify-between border-b border-gray-100">
+              <Link href="/" className="text-lg font-bold text-green-600 tracking-tight" onClick={() => setDrawerOpen(false)}>
+                Granted
+              </Link>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className="p-2 -mr-2 text-gray-400 hover:text-gray-700 transition-colors"
+                aria-label="Close menu"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
+              {SIDEBAR_NAV.map(({ href, label, Icon }) => {
+                const active = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setDrawerOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-colors ${
+                      active
+                        ? "bg-green-50 text-green-700 font-medium"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Icon active={active} />
+                    <span>{label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="p-4 border-t border-gray-100 space-y-2">
+              {isLoggedIn ? (
+                <>
+                  <div className="flex items-center gap-2.5 px-1 mb-1">
+                    <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                      {avatarLetter}
+                    </div>
+                    <span className="text-xs text-gray-600 truncate min-w-0" title={userEmail ?? ""}>{userEmail}</span>
+                  </div>
+                  <button
+                    onClick={() => { handleSignOut(); setDrawerOpen(false); }}
+                    className="w-full text-left text-sm text-gray-500 hover:text-gray-800 px-1 transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <Link href="/login" onClick={() => setDrawerOpen(false)} className="block w-full text-center text-sm font-medium text-gray-700 hover:text-gray-900 py-2.5 rounded-xl hover:bg-gray-50 transition-colors border border-gray-200">
+                    Sign in
+                  </Link>
+                  <Link href="/signup" onClick={() => setDrawerOpen(false)} className="block w-full text-center text-sm font-semibold bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl transition-colors">
+                    Sign up free
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Mobile bottom tab bar ─────────────────────────────────────────── */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         <div className="flex items-stretch h-16">
-          {NAV_ITEMS.map(({ href, label, icon }) => {
-            const active = pathname === href;
+          {BOTTOM_TABS.map(({ href, label, Icon }) => {
+            const active = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href);
             return (
               <Link
                 key={href}
@@ -438,12 +347,8 @@ export function AppShell({
                   active ? "text-green-600" : "text-gray-400"
                 }`}
               >
-                {icon(active)}
-                <span
-                  className={`text-[8px] font-semibold tracking-wide leading-tight text-center px-0.5 ${
-                    active ? "text-green-600" : "text-gray-400"
-                  }`}
-                >
+                <Icon active={active} />
+                <span className={`text-[10px] font-semibold tracking-wide leading-tight ${active ? "text-green-600" : "text-gray-400"}`}>
                   {label}
                 </span>
               </Link>

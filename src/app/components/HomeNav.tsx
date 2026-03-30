@@ -4,11 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 
 const NAV_ITEMS = [
-  { label: "Features", href: "#features", isAnchor: true },
-  { label: "How It Works", href: "#how-it-works", isAnchor: true },
-  { label: "Application Status", href: "/status", isAnchor: false },
-  { label: "Document Interpreter", href: "/interpreter", isAnchor: false },
-  { label: "Document Checklist", href: "/checklist", isAnchor: false },
+  { label: "Check",       href: "/check",               isAnchor: false },
+  { label: "Tools",       href: "/tools",               isAnchor: false },
+  { label: "Find a Pro",  href: "/find-a-professional", isAnchor: false },
 ];
 
 export function HomeNav() {
@@ -18,35 +16,39 @@ export function HomeNav() {
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-14 sm:h-16">
-          <span className="text-xl font-bold text-green-600 tracking-tight">Granted</span>
+          <Link href="/" className="text-xl font-bold text-green-600 tracking-tight">
+            Granted
+          </Link>
 
-          {/* Desktop nav (lg+) */}
-          <div className="hidden lg:flex items-center gap-1 text-sm text-gray-500">
-            {NAV_ITEMS.map(({ label, href, isAnchor }) =>
-              isAnchor ? (
-                <a
-                  key={href}
-                  href={href}
-                  className="px-3 py-2 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-colors"
-                >
-                  {label}
-                </a>
-              ) : (
-                <Link
-                  key={href}
-                  href={href}
-                  className="px-3 py-2 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-colors"
-                >
-                  {label}
-                </Link>
-              )
-            )}
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-1 text-sm text-gray-500">
+            {NAV_ITEMS.map(({ label, href }) => (
+              <Link
+                key={href}
+                href={href}
+                className="px-3 py-2 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-colors font-medium"
+              >
+                {label}
+              </Link>
+            ))}
+            <Link
+              href="/login"
+              className="ml-2 px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors font-medium"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/signup"
+              className="ml-1 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors"
+            >
+              Get started
+            </Link>
           </div>
 
-          {/* Hamburger (mobile + tablet) */}
+          {/* Hamburger (mobile) */}
           <button
             type="button"
-            className="lg:hidden p-2 -mr-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            className="md:hidden p-2 -mr-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
             onClick={() => setOpen(!open)}
             aria-label={open ? "Close menu" : "Open menu"}
           >
@@ -62,30 +64,35 @@ export function HomeNav() {
           </button>
         </div>
 
-        {/* Mobile / tablet dropdown */}
+        {/* Mobile dropdown */}
         {open && (
-          <div className="lg:hidden border-t border-gray-100 pb-4 pt-2 space-y-0.5">
-            {NAV_ITEMS.map(({ label, href, isAnchor }) =>
-              isAnchor ? (
-                <a
-                  key={href}
-                  href={href}
-                  className="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                  onClick={() => setOpen(false)}
-                >
-                  {label}
-                </a>
-              ) : (
-                <Link
-                  key={href}
-                  href={href}
-                  className="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                  onClick={() => setOpen(false)}
-                >
-                  {label}
-                </Link>
-              )
-            )}
+          <div className="md:hidden border-t border-gray-100 py-3 space-y-0.5">
+            {NAV_ITEMS.map(({ label, href }) => (
+              <Link
+                key={href}
+                href={href}
+                className="block px-3 py-2.5 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors font-medium"
+                onClick={() => setOpen(false)}
+              >
+                {label}
+              </Link>
+            ))}
+            <div className="pt-2 mt-2 border-t border-gray-100 flex gap-2">
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="flex-1 text-center text-sm font-medium text-gray-700 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/signup"
+                onClick={() => setOpen(false)}
+                className="flex-1 text-center text-sm font-semibold bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl transition-colors"
+              >
+                Get started
+              </Link>
+            </div>
           </div>
         )}
       </div>
