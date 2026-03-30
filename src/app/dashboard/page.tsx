@@ -8,6 +8,14 @@ import { GrantsDashboardWidget } from "@/app/components/GrantsAlert";
 import { UpgradePrompt } from "@/app/components/UpgradePrompt";
 import { calculatePlanningFee, DEV_TYPES, euro, type DevTypeKey, type FeeResult } from "@/lib/planningFee";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
+import {
+  DEMO_APPLICATIONS,
+  DEMO_ACTIVITY_LOGS,
+  DEMO_PRACTICE_NAME,
+  DEMO_USER_LABEL,
+} from "@/lib/demo-data";
+
+const IS_DEMO = process.env.NEXT_PUBLIC_IS_DEMO === "true";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -408,17 +416,20 @@ const labelCls = "block text-sm font-medium text-gray-700 mb-1.5";
 
 export default function DashboardPage() {
   // ── Core state ──
-  const [applications, setApplications] = useState<PlanningApplication[]>(SEED_APPLICATIONS);
+  const [applications, setApplications] = useState<PlanningApplication[]>(
+    IS_DEMO ? (DEMO_APPLICATIONS as unknown as PlanningApplication[]) : SEED_APPLICATIONS
+  );
   const [filter, setFilter] = useState<FilterKey>("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // ── Auth state ──
-  const { userEmail, isArchitect, loading: authLoading } = useAuthStatus();
+  const { userEmail, isLoggedIn, isArchitect, loading: authLoading } = useAuthStatus();
+  const isDemoMode = IS_DEMO && !isLoggedIn;
 
   // ── Profile state ──
-  const [practiceName, setPracticeName] = useState("");
+  const [practiceName, setPracticeName] = useState(IS_DEMO ? DEMO_PRACTICE_NAME : "");
   const [practiceId,   setPracticeId]   = useState<string | null>(null);
 
   // ── Notes state — keyed by referenceNumber ──
@@ -447,7 +458,9 @@ export default function DashboardPage() {
   const [newCouncil, setNewCouncil] = useState("");
 
   // ── Activity log state ──
-  const [activityLogs, setActivityLogs] = useState<Record<string, ActivityLogEntry[]>>(SEED_ACTIVITY_LOGS);
+  const [activityLogs, setActivityLogs] = useState<Record<string, ActivityLogEntry[]>>(
+    IS_DEMO ? (DEMO_ACTIVITY_LOGS as unknown as Record<string, ActivityLogEntry[]>) : SEED_ACTIVITY_LOGS
+  );
   const [logOpen, setLogOpen] = useState<Record<string, boolean>>({});
 
   // ── Planning Fee Calculator state ──
@@ -576,6 +589,12 @@ export default function DashboardPage() {
 
   // ── Load profile and applications on mount ──
   useEffect(() => {
+    // Demo mode: all data is pre-seeded in state — skip API calls entirely.
+    if (IS_DEMO) {
+      setIsInitialLoad(false);
+      return;
+    }
+
     let cancelled = false;
 
     async function load() {
@@ -630,6 +649,15 @@ export default function DashboardPage() {
     const app = applications.find(a => a.referenceNumber === ref);
     if (!app) return;
     setNotesStatus(prev => ({ ...prev, [ref]: "saving" }));
+    // Demo mode: simulate save without API call
+    if (isDemoMode) {
+      setTimeout(() => {
+        addLogEntry(app.id, "note_saved", "Internal note saved");
+        setNotesStatus(prev => ({ ...prev, [ref]: "saved" }));
+        setTimeout(() => setNotesStatus(prev => ({ ...prev, [ref]: "idle" })), 2000);
+      }, 400);
+      return;
+    }
     try {
       const res = await fetch(`/api/planning-applications/${app.id}`, {
         method: "PATCH",
@@ -653,6 +681,15 @@ export default function DashboardPage() {
       prev.map(a => a.id === app.id ? { ...a, status: newStatus, updatedAt: now } : a)
     );
     setStatusSaving(prev => ({ ...prev, [app.id]: "saving" }));
+    // Demo mode: commit change in-memory without API call
+    if (isDemoMode) {
+      setTimeout(() => {
+        addLogEntry(app.id, "status_change", `Status changed to ${STATUS_CONFIG[newStatus].label}`);
+        setStatusSaving(prev => ({ ...prev, [app.id]: "saved" }));
+        setTimeout(() => setStatusSaving(prev => ({ ...prev, [app.id]: "idle" })), 2000);
+      }, 300);
+      return;
+    }
     try {
       const res = await fetch(`/api/planning-applications/${app.id}`, {
         method: "PATCH",
@@ -693,6 +730,19 @@ export default function DashboardPage() {
     const email = sendEmail[ref]?.trim();
     if (!email) return;
     setSendStatus(prev => ({ ...prev, [ref]: "sending" }));
+    // Demo mode: simulate a successful send without calling the API
+    if (isDemoMode) {
+      setTimeout(() => {
+        addLogEntry(app.id, "email_sent", `Client update sent to ${email}`);
+        setSendStatus(prev => ({ ...prev, [ref]: "sent" }));
+        setSentTo(prev => ({ ...prev, [ref]: email }));
+        setTimeout(() => {
+          setSendStatus(prev => ({ ...prev, [ref]: "idle" }));
+          setSendOpen(prev => ({ ...prev, [ref]: false }));
+        }, 3000);
+      }, 800);
+      return;
+    }
     try {
       const res = await fetch("/api/send-client-update", {
         method: "POST",
@@ -732,8 +782,8 @@ export default function DashboardPage() {
     { key: "decisions",        label: "Decisions",        count: decisionCount },
   ];
 
-  // ── Architect gate ──
-  if (!authLoading && !isArchitect) {
+  // ── Architect gate (bypassed in demo mode) ──
+  if (!authLoading && !isArchitect && !isDemoMode) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-10">
         <UpgradePrompt
@@ -761,14 +811,27 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            {userEmail && (
-              <span className="hidden sm:block text-xs text-gray-400 max-w-[200px] truncate" title={userEmail}>
-                {userEmail}
-              </span>
+            {isDemoMode ? (
+              <>
+                <span className="hidden sm:block text-xs text-amber-600 font-semibold max-w-[220px] truncate">
+                  {DEMO_USER_LABEL}
+                </span>
+                <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                  M
+                </div>
+              </>
+            ) : (
+              <>
+                {userEmail && (
+                  <span className="hidden sm:block text-xs text-gray-400 max-w-[200px] truncate" title={userEmail}>
+                    {userEmail}
+                  </span>
+                )}
+                <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                  {userEmail ? userEmail[0].toUpperCase() : "A"}
+                </div>
+              </>
             )}
-            <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
-              {userEmail ? userEmail[0].toUpperCase() : "A"}
-            </div>
           </div>
         </div>
       </header>
