@@ -4,9 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 
 const NAV_ITEMS = [
-  { label: "Check",       href: "/check",               isAnchor: false },
-  { label: "Tools",       href: "/tools",               isAnchor: false },
-  { label: "Find a Pro",  href: "/find-a-professional", isAnchor: false },
+  { label: "Permission Checker", href: "/check" },
+  { label: "Planning Tools",     href: "/planning-tools" },
+  { label: "Find a Professional",href: "/find-a-professional" },
 ];
 
 export function HomeNav() {
@@ -21,12 +21,12 @@ export function HomeNav() {
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-1 text-sm text-gray-500">
+          <div className="hidden md:flex items-center gap-1 text-sm">
             {NAV_ITEMS.map(({ label, href }) => (
               <Link
                 key={href}
                 href={href}
-                className="px-3 py-2 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-colors font-medium"
+                className="px-3 py-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors font-medium"
               >
                 {label}
               </Link>

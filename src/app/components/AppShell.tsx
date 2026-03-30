@@ -7,16 +7,8 @@ import { SiteFooter } from "./SiteFooter";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 import { createClient } from "@/lib/supabase/browser";
 
-// ── Nav definitions ────────────────────────────────────────────────────────────
+// ── Icons ──────────────────────────────────────────────────────────────────────
 
-const PRIMARY_NAV = [
-  { href: "/check",               label: "Check" },
-  { href: "/tools",               label: "Tools" },
-  { href: "/dashboard",           label: "Dashboard" },
-  { href: "/find-a-professional", label: "Find a Pro" },
-];
-
-// Icons for mobile bottom tabs and sidebar
 const HomeIcon = ({ active }: { active: boolean }) => (
   <svg className={`w-6 h-6 ${active ? "text-green-600" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
@@ -47,20 +39,31 @@ const FindProIcon = ({ active }: { active: boolean }) => (
   </svg>
 );
 
-const BOTTOM_TABS = [
-  { href: "/",         label: "Home",      Icon: HomeIcon },
-  { href: "/check",    label: "Check",     Icon: CheckIcon },
-  { href: "/tools",    label: "Tools",     Icon: ToolsIcon },
-  { href: "/dashboard",label: "Dashboard", Icon: DashboardIcon },
+// ── Nav definitions ─────────────────────────────────────────────────────────────
+
+// Desktop top nav — always visible items
+const DESKTOP_NAV = [
+  { href: "/check",               label: "Permission Checker" },
+  { href: "/planning-tools",      label: "Planning Tools" },
+  { href: "/find-a-professional", label: "Find a Professional" },
 ];
 
-const SIDEBAR_NAV = [
-  { href: "/",                    label: "Home",       Icon: HomeIcon },
-  { href: "/check",               label: "Check",      Icon: CheckIcon },
-  { href: "/tools",               label: "Tools",      Icon: ToolsIcon },
-  { href: "/dashboard",           label: "Dashboard",  Icon: DashboardIcon },
-  { href: "/find-a-professional", label: "Find a Pro", Icon: FindProIcon },
+// Sidebar & drawer nav (includes dashboard — filtered at render time)
+const ALL_SIDEBAR_NAV = [
+  { href: "/",                    label: "Home",                Icon: HomeIcon,      architectOnly: false },
+  { href: "/check",               label: "Permission Checker",  Icon: CheckIcon,     architectOnly: false },
+  { href: "/planning-tools",      label: "Planning Tools",      Icon: ToolsIcon,     architectOnly: false },
+  { href: "/find-a-professional", label: "Find a Professional", Icon: FindProIcon,   architectOnly: false },
+  { href: "/dashboard",           label: "Dashboard",           Icon: DashboardIcon, architectOnly: true  },
 ];
+
+// Bottom tab bar — max 4 items (dashboard conditionally appended at render time)
+const BASE_BOTTOM_TABS = [
+  { href: "/",               label: "Home",  Icon: HomeIcon  },
+  { href: "/check",          label: "Check", Icon: CheckIcon },
+  { href: "/planning-tools", label: "Tools", Icon: ToolsIcon },
+];
+const DASHBOARD_TAB = { href: "/dashboard", label: "Dashboard", Icon: DashboardIcon };
 
 // ── AppShell ───────────────────────────────────────────────────────────────────
 
@@ -73,10 +76,10 @@ export function AppShell({
   focusedMode?: boolean;
   onBack?: () => void;
 }) {
-  const pathname                     = usePathname();
-  const router                       = useRouter();
-  const { isLoggedIn, userEmail }    = useAuthStatus();
-  const [drawerOpen, setDrawerOpen]  = useState(false);
+  const pathname                                    = usePathname();
+  const router                                      = useRouter();
+  const { isLoggedIn, isArchitect, userEmail }      = useAuthStatus();
+  const [drawerOpen, setDrawerOpen]                 = useState(false);
 
   const handleSignOut = useCallback(async () => {
     const supabase = createClient();
@@ -86,6 +89,20 @@ export function AppShell({
   }, [router]);
 
   const avatarLetter = userEmail ? userEmail[0].toUpperCase() : null;
+
+  // Dashboard only visible to logged-in architects
+  const showDashboard = isLoggedIn && isArchitect;
+
+  const sidebarNav = ALL_SIDEBAR_NAV.filter((item) => !item.architectOnly || showDashboard);
+  const bottomTabs = showDashboard
+    ? [...BASE_BOTTOM_TABS, DASHBOARD_TAB]
+    : BASE_BOTTOM_TABS;
+  const desktopNav = showDashboard
+    ? [...DESKTOP_NAV, { href: "/dashboard", label: "Dashboard" }]
+    : DESKTOP_NAV;
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href);
 
   // ── Focused / assessment mode ──────────────────────────────────────────────
   if (focusedMode) {
@@ -120,29 +137,26 @@ export function AppShell({
   return (
     <div className="min-h-screen bg-white text-gray-900">
 
-      {/* ── Desktop top nav (lg+) ──────────────────────────────────────────── */}
+      {/* ── Desktop top nav (lg+) ─────────────────────────────────────────── */}
       <header className="hidden lg:block bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-green-600 tracking-tight shrink-0">
             Granted
           </Link>
           <nav className="flex items-center gap-1">
-            {PRIMARY_NAV.map(({ href, label }) => {
-              const active = pathname === href || (href !== "/" && pathname.startsWith(href));
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    active
-                      ? "bg-green-50 text-green-700"
-                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
-                >
-                  {label}
-                </Link>
-              );
-            })}
+            {desktopNav.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isActive(href)
+                    ? "bg-green-50 text-green-700"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
           </nav>
           <div className="flex items-center gap-3">
             {isLoggedIn ? (
@@ -182,8 +196,8 @@ export function AppShell({
             </Link>
           </div>
           <nav className="p-3 space-y-1 flex-1">
-            {SIDEBAR_NAV.map(({ href, label, Icon }) => {
-              const active = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href);
+            {sidebarNav.map(({ href, label, Icon }) => {
+              const active = isActive(href);
               return (
                 <Link
                   key={href}
@@ -256,15 +270,10 @@ export function AppShell({
         </main>
       </div>
 
-      {/* ── Mobile drawer overlay ──────────────────────────────────────────── */}
+      {/* ── Mobile drawer ─────────────────────────────────────────────────── */}
       {drawerOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setDrawerOpen(false)}
-          />
-          {/* Drawer panel */}
+          <div className="absolute inset-0 bg-black/40" onClick={() => setDrawerOpen(false)} />
           <div className="relative ml-auto w-72 max-w-[85vw] bg-white h-full flex flex-col shadow-xl">
             <div className="px-5 h-14 flex items-center justify-between border-b border-gray-100">
               <Link href="/" className="text-lg font-bold text-green-600 tracking-tight" onClick={() => setDrawerOpen(false)}>
@@ -281,8 +290,8 @@ export function AppShell({
               </button>
             </div>
             <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
-              {SIDEBAR_NAV.map(({ href, label, Icon }) => {
-                const active = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href);
+              {sidebarNav.map(({ href, label, Icon }) => {
+                const active = isActive(href);
                 return (
                   <Link
                     key={href}
@@ -337,8 +346,8 @@ export function AppShell({
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         <div className="flex items-stretch h-16">
-          {BOTTOM_TABS.map(({ href, label, Icon }) => {
-            const active = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href);
+          {bottomTabs.map(({ href, label, Icon }) => {
+            const active = isActive(href);
             return (
               <Link
                 key={href}

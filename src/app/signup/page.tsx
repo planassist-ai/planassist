@@ -7,12 +7,12 @@ import { createClient } from "@/lib/supabase/browser";
 
 export default function SignupPage() {
   const router = useRouter();
-  const [email, setEmail]                   = useState("");
-  const [password, setPassword]             = useState("");
+  const [email, setEmail]                     = useState("");
+  const [password, setPassword]               = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading]               = useState(false);
-  const [error, setError]                   = useState<string | null>(null);
-  const [sent, setSent]                     = useState(false);
+  const [loading, setLoading]                 = useState(false);
+  const [error, setError]                     = useState<string | null>(null);
+  const [sent, setSent]                       = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,7 +34,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/planning-tools`,
       },
     });
 
@@ -45,14 +45,11 @@ export default function SignupPage() {
       return;
     }
 
-    // If Supabase returns a session immediately (email confirmation disabled),
-    // redirect straight to the dashboard.
     if (data.session) {
-      router.push("/dashboard");
+      router.push("/planning-tools");
       return;
     }
 
-    // Otherwise show the "check your email" confirmation state.
     setSent(true);
   }
 
@@ -68,11 +65,11 @@ export default function SignupPage() {
           <p className="mt-1 text-sm text-gray-500">Irish planning made simple</p>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-2xl p-7 sm:p-8 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
 
           {sent ? (
             /* ── Confirmation state ── */
-            <div className="text-center">
+            <div className="p-7 sm:p-8 text-center">
               <div className="w-14 h-14 rounded-2xl bg-green-50 border border-green-200 flex items-center justify-center mx-auto mb-5">
                 <svg className="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -94,108 +91,128 @@ export default function SignupPage() {
           ) : (
             /* ── Signup form ── */
             <>
-              <div className="mb-6">
-                <h1 className="text-xl font-bold text-gray-900 mb-1">Create your account</h1>
-                <p className="text-sm text-gray-500">
-                  Start your 60-day free trial — no credit card required.
+              {/* Value prop banner */}
+              <div className="bg-green-50 border-b border-green-100 px-7 py-4">
+                <p className="text-sm font-semibold text-green-800 mb-1">
+                  Join Granted to access all planning tools
                 </p>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-5">
+                  <div className="flex items-start gap-2">
+                    <svg className="w-4 h-4 text-green-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-xs text-green-700 leading-relaxed">
+                      <strong>Homeowners</strong> — €39 one-off payment. All tools, forever.
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <svg className="w-4 h-4 text-green-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-xs text-green-700 leading-relaxed">
+                      <strong>Architects</strong> — €99/month. Full platform access.
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              {error && (
-                <div className="mb-5 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email address
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoFocus
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                  />
+              <div className="p-7 sm:p-8">
+                <div className="mb-6">
+                  <h1 className="text-xl font-bold text-gray-900 mb-1">Create your account</h1>
+                  <p className="text-sm text-gray-500">
+                    Free to sign up. Unlock all tools from €39.
+                  </p>
                 </div>
 
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    autoComplete="new-password"
-                    placeholder="At least 8 characters"
-                    className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                  />
-                </div>
+                {error && (
+                  <div className="mb-5 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+                    {error}
+                  </div>
+                )}
 
-                <div>
-                  <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-2">
-                    Confirm password
-                  </label>
-                  <input
-                    id="confirm-password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    autoComplete="new-password"
-                    placeholder="Re-enter your password"
-                    className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                  />
-                </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                      Email address
+                    </label>
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      autoFocus
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                    />
+                  </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3.5 px-6 rounded-xl transition-colors text-sm"
-                >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                      Creating account…
-                    </>
-                  ) : (
-                    "Create account"
-                  )}
-                </button>
-              </form>
+                  <div>
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                      Password
+                    </label>
+                    <input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      autoComplete="new-password"
+                      placeholder="At least 8 characters"
+                      className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                    />
+                  </div>
 
-              <p className="mt-5 text-xs text-gray-400 text-center leading-relaxed">
-                By signing up you agree to our{" "}
-                <Link href="/terms" className="underline underline-offset-2 hover:text-gray-600 transition-colors">
-                  Terms of Service
-                </Link>
-                {" "}and{" "}
-                <Link href="/privacy" className="underline underline-offset-2 hover:text-gray-600 transition-colors">
-                  Privacy Policy
-                </Link>.
-              </p>
+                  <div>
+                    <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-2">
+                      Confirm password
+                    </label>
+                    <input
+                      id="confirm-password"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      autoComplete="new-password"
+                      placeholder="Re-enter your password"
+                      className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3.5 px-6 rounded-xl transition-colors text-sm"
+                  >
+                    {loading ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        Creating account…
+                      </>
+                    ) : (
+                      "Create free account"
+                    )}
+                  </button>
+                </form>
+
+                <p className="mt-5 text-xs text-gray-400 text-center leading-relaxed">
+                  By signing up you agree to our{" "}
+                  <Link href="/terms" className="underline underline-offset-2 hover:text-gray-600 transition-colors">Terms of Service</Link>
+                  {" "}and{" "}
+                  <Link href="/privacy" className="underline underline-offset-2 hover:text-gray-600 transition-colors">Privacy Policy</Link>.
+                </p>
+              </div>
             </>
           )}
         </div>
 
         <p className="mt-5 text-center text-sm text-gray-500">
           Already have an account?{" "}
-          <Link
-            href="/login"
-            className="text-green-600 hover:text-green-700 font-medium underline underline-offset-2 transition-colors"
-          >
+          <Link href="/login" className="text-green-600 hover:text-green-700 font-medium underline underline-offset-2 transition-colors">
             Sign in
           </Link>
         </p>
