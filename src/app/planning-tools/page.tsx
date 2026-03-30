@@ -6,24 +6,16 @@ import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-interface FreeTool {
+interface Tool {
   href: string;
   title: string;
   desc: string;
-  icon: React.ReactNode;
-}
-
-interface PaidTool {
-  href: string;
-  title: string;
-  desc: string;
-  price: string;
   icon: React.ReactNode;
 }
 
 // ── Tool definitions ───────────────────────────────────────────────────────────
 
-const FREE_TOOLS: FreeTool[] = [
+const FREE_TOOLS: Tool[] = [
   {
     href: "/check",
     title: "Permission Checker",
@@ -86,12 +78,11 @@ const FREE_TOOLS: FreeTool[] = [
   },
 ];
 
-const PAID_TOOLS: PaidTool[] = [
+const HOMEOWNER_TOOLS: Tool[] = [
   {
     href: "/status",
     title: "Application Monitoring",
     desc: "Track your live planning application through every stage, get plain-English status updates, and be notified of any changes.",
-    price: "Included in €39 plan",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
@@ -102,7 +93,6 @@ const PAID_TOOLS: PaidTool[] = [
     href: "/interpreter",
     title: "Document Interpreter",
     desc: "Upload any planning document — conditions, RFIs, appeal decisions — and get a clear breakdown of what it means and what to do next.",
-    price: "Included in €39 plan",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
@@ -113,7 +103,6 @@ const PAID_TOOLS: PaidTool[] = [
     href: "/check",
     title: "Full County Intelligence",
     desc: "Get detailed county-by-county planning policy analysis — strictness ratings, local needs criteria, and what planners in your county look for.",
-    price: "Included in €39 plan",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c-.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
@@ -122,20 +111,8 @@ const PAID_TOOLS: PaidTool[] = [
   },
   {
     href: "/dashboard",
-    title: "County Document Library",
-    desc: "Access the full library of county development plans, local area plans, and design guidelines — all in one searchable place.",
-    price: "Included in €39 plan",
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
-      </svg>
-    ),
-  },
-  {
-    href: "/dashboard",
     title: "Newspaper Notice Finder",
     desc: "Find the correct local newspapers for your statutory planning notice — required for all planning applications in Ireland.",
-    price: "Included in €39 plan",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" />
@@ -143,10 +120,42 @@ const PAID_TOOLS: PaidTool[] = [
     ),
   },
   {
+    href: "/self-build",
+    title: "Self-Build Tracker",
+    desc: "A step-by-step guide to self-building in Ireland — from site acquisition and planning through to completion and snagging.",
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+      </svg>
+    ),
+  },
+  {
+    href: "/grants",
+    title: "Full Grants Checker",
+    desc: "Get personalised grant recommendations across SEAI, the Department of Housing, and local council schemes matched to your exact project.",
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  },
+];
+
+const PRO_TOOLS: Tool[] = [
+  {
+    href: "/dashboard",
+    title: "County Document Library",
+    desc: "Access the full library of county development plans, local area plans, and design guidelines — all in one searchable place.",
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+      </svg>
+    ),
+  },
+  {
     href: "/design-check",
     title: "Design Guide Checker",
     desc: "Check whether your proposed design meets local authority design guidelines and urban design standards before you submit.",
-    price: "Included in €39 plan",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -158,48 +167,17 @@ const PAID_TOOLS: PaidTool[] = [
     href: "/planning-statement",
     title: "Planning Statement Generator",
     desc: "Generate a professional draft planning statement to support your application, tailored to your project type and county.",
-    price: "Included in €39 plan",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
       </svg>
     ),
   },
-  {
-    href: "/self-build",
-    title: "Self-Build Tracker",
-    desc: "A step-by-step guide to self-building in Ireland — from site acquisition and planning through to completion and snagging.",
-    price: "Included in €39 plan",
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-      </svg>
-    ),
-  },
-  {
-    href: "/grants",
-    title: "Full Grants Checker",
-    desc: "Get personalised grant recommendations across SEAI, the Department of Housing, and local council schemes matched to your exact project.",
-    price: "Included in €39 plan",
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
 ];
 
-// ── Paid tool CTA logic ────────────────────────────────────────────────────────
+// ── CTAs ───────────────────────────────────────────────────────────────────────
 
-function PaidToolCTA({
-  href,
-  isLoggedIn,
-  isPaid,
-}: {
-  href: string;
-  isLoggedIn: boolean;
-  isPaid: boolean;
-}) {
+function HomeownerToolCTA({ href, isPaid, isLoggedIn }: { href: string; isPaid: boolean; isLoggedIn: boolean }) {
   if (isPaid) {
     return (
       <Link
@@ -213,28 +191,12 @@ function PaidToolCTA({
       </Link>
     );
   }
-  if (isLoggedIn) {
-    return (
-      <Link
-        href="/signup"
-        className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors"
-      >
-        Upgrade to Access
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-      </Link>
-    );
-  }
   return (
     <Link
       href="/signup"
-      className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+      className="mt-4 inline-flex items-center justify-center gap-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
     >
-      Sign Up To Access
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-      </svg>
+      {isLoggedIn ? "Upgrade — €39" : "Sign Up — €39"}
     </Link>
   );
 }
@@ -254,12 +216,12 @@ export default function PlanningToolsPage() {
             Planning Tools
           </h1>
           <p className="text-gray-500 text-sm sm:text-base leading-relaxed max-w-2xl">
-            Everything you need to navigate the Irish planning system. Some tools are free with no account needed. The full suite is available for a one-off payment of €39.
+            Everything you need to navigate the Irish planning system — from your first permission check to final decision.
           </p>
         </div>
 
-        {/* ── Section 1: Free Tools ────────────────────────────────────── */}
-        <section className="mb-10 sm:mb-14">
+        {/* ── Section 1: Free Tools ────────────────────────────────────────── */}
+        <section className="mb-12 sm:mb-16">
           <div className="flex items-center gap-3 mb-5">
             <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-200">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -270,10 +232,7 @@ export default function PlanningToolsPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {FREE_TOOLS.map(({ href, title, desc, icon }) => (
-              <div
-                key={title}
-                className="bg-white border border-gray-200 rounded-2xl p-5 flex flex-col"
-              >
+              <div key={title} className="bg-white border border-gray-200 rounded-2xl p-5 flex flex-col">
                 <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600 mb-4 shrink-0">
                   {icon}
                 </div>
@@ -293,65 +252,93 @@ export default function PlanningToolsPage() {
           </div>
         </section>
 
-        {/* ── Section 2: Paid Tools ────────────────────────────────────── */}
-        <section>
-          <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-amber-200">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-              </svg>
-              Paid — €39 one-off for homeowners · €99/month for architects
-            </span>
-            {!isPaid && !loading && (
-              <Link
-                href="/signup"
-                className="text-sm font-semibold bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Get full access — €39
-              </Link>
-            )}
+        {/* ── Section 2: Homeowner Tools ───────────────────────────────────── */}
+        <section className="mb-12 sm:mb-16">
+          <div className="mb-6">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
+              For Homeowners — simple one-off pricing.
+            </h2>
+            <p className="text-sm text-gray-500">
+              Get full access to all homeowner tools for a single one-off payment of €39. No subscription, no hidden fees.
+            </p>
           </div>
 
-          {/* Value callout for non-paid users */}
           {!isPaid && !loading && (
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900 mb-1">
-                  Unlock all 9 paid tools for a single payment of €39
-                </p>
-                <p className="text-sm text-gray-500 leading-relaxed">
-                  One-off payment. No subscription. No hidden fees. Covers everything you need for a homeowner planning project from start to finish.
-                  Architects and professionals can access the full platform for €99/month.
-                </p>
-              </div>
+            <div className="bg-green-50 border border-green-200 rounded-2xl px-5 py-4 mb-6 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
+              <p className="text-sm text-green-800 flex-1 leading-relaxed">
+                <strong>€39 one-off payment</strong> — covers everything below, forever. From permission check to final decision.
+              </p>
               <Link
                 href="/signup"
                 className="shrink-0 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors text-center"
               >
-                {isLoggedIn ? "Upgrade now" : "Sign up — €39"}
+                {isLoggedIn ? "Upgrade now — €39" : "Get started — €39"}
               </Link>
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {PAID_TOOLS.map(({ href, title, desc, price, icon }) => (
+            {HOMEOWNER_TOOLS.map(({ href, title, desc, icon }) => (
               <div
                 key={title}
-                className={`bg-white border rounded-2xl p-5 flex flex-col ${
-                  isPaid ? "border-gray-200" : "border-gray-200 opacity-90"
-                }`}
+                className={`bg-white border border-gray-200 rounded-2xl p-5 flex flex-col ${!isPaid && !loading ? "opacity-90" : ""}`}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 shrink-0 ${
-                  isPaid ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-400"
-                }`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 shrink-0 ${isPaid ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-400"}`}>
                   {icon}
                 </div>
                 <h2 className="text-base font-bold text-gray-900 mb-1.5">{title}</h2>
                 <p className="text-sm text-gray-500 leading-relaxed flex-1">{desc}</p>
-                <p className="mt-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">{price}</p>
-                <PaidToolCTA href={href} isLoggedIn={isLoggedIn} isPaid={isPaid} />
+                <HomeownerToolCTA href={href} isPaid={isPaid} isLoggedIn={isLoggedIn} />
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* ── Section 3: Professional Tools ───────────────────────────────── */}
+        <section>
+          <div className="mb-6">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
+              For Architects and Planning Professionals — talk to us about access.
+            </h2>
+            <p className="text-sm text-gray-500">
+              Professional tools built for practice workflows. We work with practices of all sizes — get in touch to find the right plan for your team.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {PRO_TOOLS.map(({ title, desc, icon }) => (
+              <div key={title} className="bg-white border border-gray-200 rounded-2xl p-5 flex flex-col">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 mb-4 shrink-0">
+                  {icon}
+                </div>
+                <h2 className="text-base font-bold text-gray-900 mb-1.5">{title}</h2>
+                <p className="text-sm text-gray-500 leading-relaxed flex-1">{desc}</p>
+                <div className="mt-4">
+                  <a
+                    href="mailto:hello@granted.ie"
+                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                  >
+                    Get Started — Talk To Us
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Pro contact callout */}
+          <div className="mt-6 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
+            <p className="text-sm text-gray-700 flex-1 leading-relaxed">
+              We work with practices of all sizes — from sole practitioners to multi-county studios. Get in touch to find the right plan for your team.
+            </p>
+            <a
+              href="mailto:hello@granted.ie"
+              className="shrink-0 border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors text-center"
+            >
+              hello@granted.ie
+            </a>
           </div>
         </section>
 
