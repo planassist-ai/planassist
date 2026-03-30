@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import type { CheckStatusResult } from "@/app/api/check-status/route";
 import { AppShell } from "@/app/components/AppShell";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
