@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { CheckStatusResult } from "@/app/api/check-status/route";
 import { AppShell } from "@/app/components/AppShell";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
+import { UpgradePrompt } from "@/app/components/UpgradePrompt";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 
 const COUNTIES = [
@@ -78,7 +79,7 @@ export default function StatusPage() {
   const [resultMeta, setResultMeta] = useState<{ ref: string; county: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { isLoggedIn } = useAuthStatus();
+  const { isPaid, loading: authLoading } = useAuthStatus();
 
   // Monitor state
   const [showMonitor, setShowMonitor] = useState(false);
@@ -157,6 +158,18 @@ export default function StatusPage() {
     } finally {
       setMonitorLoading(false);
     }
+  }
+
+  // Gate: require paid subscription
+  if (!authLoading && !isPaid) {
+    return (
+      <AppShell>
+        <UpgradePrompt
+          feature="Application Status & Monitoring"
+          description="Enter your planning reference number and get a plain-English breakdown of exactly where you are in the process — plus email alerts when your status changes."
+        />
+      </AppShell>
+    );
   }
 
   return (
@@ -378,30 +391,9 @@ export default function StatusPage() {
               </div>
             )}
 
-            {/* Monitor this application — requires login */}
+            {/* Monitor this application */}
             <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
-              {!isLoggedIn ? (
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                    <IconBell className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">Monitor this application</p>
-                    <p className="text-sm text-gray-500 mt-0.5 mb-3">
-                      Get an email alert when the status changes. Sign in to set up monitoring.
-                    </p>
-                    <Link
-                      href="/login"
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors"
-                    >
-                      Sign in to monitor
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                      </svg>
-                    </Link>
-                  </div>
-                </div>
-              ) : monitorSuccess ? (
+              {monitorSuccess ? (
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                     <IconCheck className="w-4 h-4 text-green-600" />

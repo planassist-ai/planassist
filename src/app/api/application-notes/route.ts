@@ -6,6 +6,7 @@ import {
   scanFields,
   badRequest,
 } from "@/lib/validation";
+import { resolveUserTier, unauthorized, architectOnly } from "@/lib/authGuard";
 
 // Run once in your Supabase SQL editor:
 //
@@ -26,6 +27,10 @@ function supabase() {
 
 // GET /api/application-notes — return all notes rows
 export async function GET() {
+  const tier = await resolveUserTier();
+  if (!tier) return unauthorized();
+  if (!tier.isArchitect) return architectOnly();
+
   try {
     const { data, error } = await supabase()
       .from("application_notes")
@@ -46,6 +51,10 @@ export async function GET() {
 
 // POST /api/application-notes — upsert notes for one application
 export async function POST(request: NextRequest) {
+  const tier = await resolveUserTier();
+  if (!tier) return unauthorized();
+  if (!tier.isArchitect) return architectOnly();
+
   try {
     const { referenceNumber, notes } = await request.json();
 

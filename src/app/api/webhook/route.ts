@@ -4,6 +4,9 @@ import { createClient } from "@supabase/supabase-js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
+// Architect subscription price ID — keep in sync with create-checkout/route.ts
+const ARCHITECT_PRICE_ID = "price_1TG5pb1P7njYP3N2evNHlRUL";
+
 // Use service role key to bypass RLS when updating payment status.
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -34,7 +37,6 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        // Email may be on customer_email or in metadata (we store both).
         const email =
           session.customer_email ??
           (session.metadata?.email as string | undefined) ??
@@ -45,9 +47,19 @@ export async function POST(request: NextRequest) {
           break;
         }
 
+        // Determine if this is an architect subscription or a one-off homeowner payment.
+        let isArchitect = false;
+        try {
+          const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
+          const priceId = lineItems.data[0]?.price?.id ?? null;
+          isArchitect = priceId === ARCHITECT_PRICE_ID;
+        } catch (err) {
+          console.warn("Could not retrieve line items for session", session.id, err);
+        }
+
         const { error } = await supabase
           .from("profiles")
-          .update({ is_paid: true })
+          .update({ is_paid: true, ...(isArchitect ? { is_architect: true } : {}) })
           .eq("email", email);
 
         if (error) {
@@ -55,13 +67,12 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "DB update failed." }, { status: 500 });
         }
 
-        console.log("Payment confirmed — is_paid=true for", email);
+        console.log(`Payment confirmed — is_paid=true${isArchitect ? ", is_architect=true" : ""} for`, email);
         break;
       }
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-        // Retrieve the customer to get the email.
         const customer = await stripe.customers.retrieve(subscription.customer as string);
 
         if (customer.deleted) {
@@ -77,7 +88,7 @@ export async function POST(request: NextRequest) {
 
         const { error } = await supabase
           .from("profiles")
-          .update({ is_paid: false })
+          .update({ is_paid: false, is_architect: false })
           .eq("email", email);
 
         if (error) {
@@ -85,12 +96,11 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "DB update failed." }, { status: 500 });
         }
 
-        console.log("Subscription cancelled — is_paid=false for", email);
+        console.log("Subscription cancelled — is_paid=false, is_architect=false for", email);
         break;
       }
 
       default:
-        // Acknowledge unhandled event types without error.
         break;
     }
   } catch (err) {

@@ -32,12 +32,12 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Pages that require authentication.
+  // Pages that require authentication (login redirect).
+  // Note: paid-feature pages (/interpreter, /status, /design-check, /planning-statement,
+  // /self-build) handle their own upgrade prompt — no middleware redirect needed there.
   const isProtected =
     pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/onboarding") ||
-    pathname.startsWith("/interpreter") ||
-    pathname.startsWith("/status");
+    pathname.startsWith("/onboarding");
 
   if (!user && isProtected) {
     const loginUrl = new URL("/login", request.url);

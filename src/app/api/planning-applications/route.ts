@@ -6,6 +6,7 @@ import {
   scanFields,
   badRequest,
 } from "@/lib/validation";
+import { resolveUserTier, unauthorized, architectOnly } from "@/lib/authGuard";
 
 // Supabase table: applications
 // Columns: id (uuid), reference (text), client_name (text), address (text),
@@ -52,6 +53,10 @@ function addDays(dateStr: string, days: number): string {
 
 // GET /api/planning-applications — return all applications ordered by last updated
 export async function GET() {
+  const tier = await resolveUserTier();
+  if (!tier) return unauthorized();
+  if (!tier.isArchitect) return architectOnly();
+
   try {
     const { data, error } = await supabase()
       .from("applications")
@@ -72,6 +77,10 @@ export async function GET() {
 
 // POST /api/planning-applications — create a new application
 export async function POST(request: NextRequest) {
+  const tier = await resolveUserTier();
+  if (!tier) return unauthorized();
+  if (!tier.isArchitect) return architectOnly();
+
   try {
     const body = await request.json();
     const {

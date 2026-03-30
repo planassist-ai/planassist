@@ -220,10 +220,10 @@ export default function InterpreterPage() {
   const verdictConfig = result ? VERDICT_CONFIG[result.verdictType] : null;
   const hasText = documentText.trim().length >= 50;
 
-  const { loading: authLoading, isLoggedIn } = useAuthStatus();
+  const { loading: authLoading, isPaid } = useAuthStatus();
 
-  // Gate: require login — any authenticated user has full access
-  if (!authLoading && !isLoggedIn) {
+  // Gate: require paid subscription
+  if (!authLoading && !isPaid) {
     return (
       <AppShell>
         <UpgradePrompt

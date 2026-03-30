@@ -4,12 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 
 // Price IDs — keep in sync with src/app/api/create-checkout/route.ts
-const PRICE_ONE_OFF     = "price_1TG5pE1P7njYP3N2t0xrbpR4";
+const PRICE_ONE_OFF      = "price_1TG5pE1P7njYP3N2t0xrbpR4";
 const PRICE_SUBSCRIPTION = "price_1TG5pb1P7njYP3N2evNHlRUL";
 
 interface UpgradePromptProps {
   feature: string;
   description: string;
+  /** "paid" (default) = homeowner/any subscription. "architect" = architect subscription only. */
+  tier?: "paid" | "architect";
 }
 
 const PAID_FEATURES = [
@@ -18,6 +20,20 @@ const PAID_FEATURES = [
   "Document interpreter — RFIs, conditions, appeals decoded instantly",
   "Application monitoring with email alerts on status changes",
   "Newspaper notice generator with statutory wording templates",
+  "Design guide checker — AI analysis against county design guidelines",
+  "Planning statement generator — professional draft in minutes",
+  "Full grants checker with conditions and application links",
+  "Self-build tracker — milestones, checklists, bank drawdown documents",
+];
+
+const ARCHITECT_FEATURES = [
+  "Architect dashboard with full pipeline management",
+  "Client portal with document upload and sharing",
+  "Deadline alerts and statutory calendar management",
+  "RFI assistant — plain-English breakdown with prioritised actions",
+  "Pre-submission validator — catch issues before lodging",
+  "Notice generator with statutory wording templates",
+  "Client update notifications and communication tools",
 ];
 
 async function startCheckout(priceId: string): Promise<void> {
@@ -36,7 +52,7 @@ async function startCheckout(priceId: string): Promise<void> {
   window.location.href = url;
 }
 
-export function UpgradePrompt({ feature, description }: UpgradePromptProps) {
+export function UpgradePrompt({ feature, description, tier = "paid" }: UpgradePromptProps) {
   const [loading, setLoading] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
@@ -45,12 +61,14 @@ export function UpgradePrompt({ feature, description }: UpgradePromptProps) {
     setCheckoutError(null);
     try {
       await startCheckout(priceId);
-      // Navigation happens inside startCheckout — no state reset needed.
     } catch (err) {
       setCheckoutError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setLoading(null);
     }
   }
+
+  const isArchitectTier = tier === "architect";
+  const features = isArchitectTier ? ARCHITECT_FEATURES : PAID_FEATURES;
 
   return (
     <div className="px-4 py-10 sm:px-6 sm:py-14 max-w-2xl mx-auto">
@@ -77,10 +95,12 @@ export function UpgradePrompt({ feature, description }: UpgradePromptProps) {
       {/* Feature list */}
       <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 mb-6 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
-          Everything included for €39
+          {isArchitectTier
+            ? "Everything included with Architect subscription"
+            : "Everything included for €39"}
         </p>
         <ul className="space-y-3">
-          {PAID_FEATURES.map((item, i) => (
+          {features.map((item, i) => (
             <li key={i} className="flex items-start gap-3">
               <span className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mt-0.5">
                 <svg className="w-3 h-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -102,42 +122,72 @@ export function UpgradePrompt({ feature, description }: UpgradePromptProps) {
 
       {/* Price + CTA */}
       <div className="text-center space-y-3">
-        <button
-          onClick={() => handleCheckout(PRICE_ONE_OFF)}
-          disabled={loading !== null}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 px-8 rounded-xl transition-colors text-sm"
-        >
-          {loading === PRICE_ONE_OFF ? (
-            <>
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Redirecting to checkout…
-            </>
-          ) : (
-            "Get access — €39 one-off"
-          )}
-        </button>
+        {isArchitectTier ? (
+          <>
+            <button
+              onClick={() => handleCheckout(PRICE_SUBSCRIPTION)}
+              disabled={loading !== null}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 px-8 rounded-xl transition-colors text-sm"
+            >
+              {loading === PRICE_SUBSCRIPTION ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Redirecting to checkout…
+                </>
+              ) : (
+                "Subscribe as Architect — 60-day free trial"
+              )}
+            </button>
+            <p className="text-xs text-gray-400 pt-1">
+              Already subscribed?{" "}
+              <Link
+                href="/login"
+                className="text-green-600 hover:text-green-700 underline underline-offset-2 transition-colors font-medium"
+              >
+                Sign in
+              </Link>
+            </p>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => handleCheckout(PRICE_ONE_OFF)}
+              disabled={loading !== null}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 px-8 rounded-xl transition-colors text-sm"
+            >
+              {loading === PRICE_ONE_OFF ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Redirecting to checkout…
+                </>
+              ) : (
+                "Get access — €39 one-off"
+              )}
+            </button>
 
-        <p className="text-xs text-gray-400">
-          Or{" "}
-          <button
-            onClick={() => handleCheckout(PRICE_SUBSCRIPTION)}
-            disabled={loading !== null}
-            className="underline underline-offset-2 hover:text-gray-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading === PRICE_SUBSCRIPTION ? "Redirecting…" : "subscribe as an Architect"}
-          </button>
-          {" "}(60-day free trial)
-        </p>
+            <p className="text-xs text-gray-400">
+              Or{" "}
+              <button
+                onClick={() => handleCheckout(PRICE_SUBSCRIPTION)}
+                disabled={loading !== null}
+                className="underline underline-offset-2 hover:text-gray-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading === PRICE_SUBSCRIPTION ? "Redirecting…" : "subscribe as an Architect"}
+              </button>
+              {" "}(60-day free trial)
+            </p>
 
-        <p className="text-xs text-gray-400 pt-1">
-          Already have access?{" "}
-          <Link
-            href="/login"
-            className="text-green-600 hover:text-green-700 underline underline-offset-2 transition-colors font-medium"
-          >
-            Sign in
-          </Link>
-        </p>
+            <p className="text-xs text-gray-400 pt-1">
+              Already have access?{" "}
+              <Link
+                href="/login"
+                className="text-green-600 hover:text-green-700 underline underline-offset-2 transition-colors font-medium"
+              >
+                Sign in
+              </Link>
+            </p>
+          </>
+        )}
       </div>
 
     </div>

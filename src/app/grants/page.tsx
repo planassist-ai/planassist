@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { AppShell } from "@/app/components/AppShell";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
+import { UpgradePrompt } from "@/app/components/UpgradePrompt";
+import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 import { SEAI_GRANTS, type SeaiGrant } from "@/lib/grants";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -165,6 +167,7 @@ function MultiOptionCard({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function GrantsPage() {
+  const { isPaid } = useAuthStatus();
   const [step, setStep] = useState<Step>(1);
   const [answers, setAnswers] = useState<Answers>({
     projectType: null,
@@ -419,8 +422,8 @@ export default function GrantsPage() {
               )}
             </div>
 
-            {/* Warmer Homes Scheme notice */}
-            {warmerHomes && (
+            {/* Warmer Homes Scheme notice — paid only */}
+            {warmerHomes && isPaid && (
               <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 mb-5">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center shrink-0">
@@ -449,12 +452,22 @@ export default function GrantsPage() {
               </div>
             )}
 
+            {/* Warmer Homes teaser — free users */}
+            {warmerHomes && !isPaid && (
+              <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 mb-5">
+                <p className="text-xs font-semibold text-blue-800">
+                  You may also qualify for the Warmer Homes Scheme (free upgrades).
+                </p>
+                <p className="text-xs text-blue-600 mt-1">Upgrade to see full details and eligibility criteria.</p>
+              </div>
+            )}
+
             {/* Grant cards */}
             {grants.length > 0 && (
               <div className="space-y-4 mb-5">
                 {grants.map(grant => (
                   <div key={grant.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-                    {/* Card header */}
+                    {/* Card header — always shown */}
                     <div className="flex items-start justify-between gap-3 p-4 sm:p-5 border-b border-gray-100">
                       <div>
                         <h3 className="text-sm font-semibold text-gray-900">{grant.name}</h3>
@@ -462,43 +475,58 @@ export default function GrantsPage() {
                       </div>
                       <span className="text-lg font-bold text-green-700 shrink-0 whitespace-nowrap">{grant.amount}</span>
                     </div>
-                    {/* Conditions */}
-                    <div className="p-4 sm:p-5">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2.5">Key conditions</p>
-                      <ul className="space-y-1.5">
-                        {grant.conditions.map((cond, i) => (
-                          <li key={i} className={`flex items-start gap-2.5 text-xs leading-relaxed ${
-                            cond.includes("NOT start") || cond.includes("forfeits")
-                              ? "font-semibold text-red-700"
-                              : "text-gray-600"
-                          }`}>
-                            <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${
-                              cond.includes("NOT start") || cond.includes("forfeits")
-                                ? "bg-red-500"
-                                : "bg-gray-400"
-                            }`} />
-                            {cond}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    {/* Apply link */}
-                    <div className="px-4 sm:px-5 pb-4 sm:pb-5">
-                      <a
-                        href={grant.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 hover:text-green-900 transition-colors border border-green-200 rounded-lg px-3 py-1.5 hover:bg-green-50"
-                      >
-                        Apply at seai.ie
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                        </svg>
-                      </a>
-                    </div>
+                    {/* Conditions + apply link — paid only */}
+                    {isPaid ? (
+                      <>
+                        <div className="p-4 sm:p-5">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2.5">Key conditions</p>
+                          <ul className="space-y-1.5">
+                            {grant.conditions.map((cond, i) => (
+                              <li key={i} className={`flex items-start gap-2.5 text-xs leading-relaxed ${
+                                cond.includes("NOT start") || cond.includes("forfeits")
+                                  ? "font-semibold text-red-700"
+                                  : "text-gray-600"
+                              }`}>
+                                <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${
+                                  cond.includes("NOT start") || cond.includes("forfeits")
+                                    ? "bg-red-500"
+                                    : "bg-gray-400"
+                                }`} />
+                                {cond}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="px-4 sm:px-5 pb-4 sm:pb-5">
+                          <a
+                            href={grant.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 hover:text-green-900 transition-colors border border-green-200 rounded-lg px-3 py-1.5 hover:bg-green-50"
+                          >
+                            Apply at seai.ie
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg>
+                          </a>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="px-4 sm:px-5 py-3 text-xs text-gray-400">
+                        Conditions and application link available with full access.
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
+            )}
+
+            {/* Upgrade prompt for free users after results */}
+            {!isPaid && grants.length > 0 && (
+              <UpgradePrompt
+                feature="Full SEAI Grants Checker"
+                description="See key conditions for each grant, Warmer Homes eligibility details, and direct application links at seai.ie."
+              />
             )}
 
             {/* Critical warning */}

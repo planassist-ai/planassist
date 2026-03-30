@@ -1466,7 +1466,7 @@ export function CountyIntelPanel({ county, className = "", isPaid = false }: Cou
               <p className="text-xs text-indigo-500 mt-0.5">
                 {isPaid
                   ? `${data.warnings.length} warning${data.warnings.length !== 1 ? "s" : ""} \u00b7 ${data.policies.length} key ${data.policies.length !== 1 ? "policies" : "policy"}`
-                  : "1 key policy shown \u00b7 sign in for full intelligence"}
+                  : "1 key policy shown \u00b7 upgrade for full intelligence"}
               </p>
             )}
           </div>
@@ -1489,7 +1489,7 @@ export function CountyIntelPanel({ county, className = "", isPaid = false }: Cou
 
           {data ? (
             <>
-              {/* ── NOT LOGGED IN: show first policy + sign-in prompt ── */}
+              {/* ── FREE TIER: show first policy + upgrade prompt ── */}
               {!isPaid && (
                 <div className="mt-4 space-y-3">
                   {/* First policy only */}
@@ -1506,7 +1506,7 @@ export function CountyIntelPanel({ county, className = "", isPaid = false }: Cou
                     </div>
                   </div>
 
-                  {/* Sign-in CTA */}
+                  {/* Upgrade CTA */}
                   <div className="bg-white border border-indigo-200 rounded-xl px-4 py-4 flex items-start gap-3">
                     <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center mt-0.5">
                       <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1518,13 +1518,13 @@ export function CountyIntelPanel({ county, className = "", isPaid = false }: Cou
                         {data.policies.length - 1} more {data.policies.length - 1 === 1 ? "policy" : "policies"}, {data.warnings.length} critical {data.warnings.length === 1 ? "warning" : "warnings"} &amp; all document links
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                        Sign in for full Co. {data.countyName} planning intelligence — free with any Granted account.
+                        Full Co. {data.countyName} planning intelligence included with Granted access — €39 one-off.
                       </p>
                       <Link
-                        href="/login"
+                        href="/interpreter"
                         className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors"
                       >
-                        Sign in for full access
+                        Get full access — €39
                       </Link>
                     </div>
                   </div>

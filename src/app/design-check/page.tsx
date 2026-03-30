@@ -116,7 +116,7 @@ function BulletList({ items, dotColor }: { items: string[]; dotColor: string }) 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 
 export default function DesignCheckPage() {
-  const { isLoggedIn, loading: authLoading } = useAuthStatus();
+  const { isPaid, loading: authLoading } = useAuthStatus();
 
   const [county, setCounty]               = useState("");
   const [projectType, setProjectType]     = useState("");
@@ -143,7 +143,7 @@ export default function DesignCheckPage() {
     );
   }
 
-  if (!isLoggedIn) {
+  if (!isPaid) {
     return (
       <AppShell>
         <UpgradePrompt

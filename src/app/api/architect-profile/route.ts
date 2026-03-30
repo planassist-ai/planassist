@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { resolveUserTier, unauthorized, architectOnly } from "@/lib/authGuard";
 
 // Supabase table: practices
 // Columns: id (uuid), name (text), architect_email (text), created_at (timestamptz)
@@ -23,6 +24,10 @@ function mapRow(row: Record<string, any>) {
 
 // GET /api/architect-profile — return the first practice (single-tenant)
 export async function GET() {
+  const tier = await resolveUserTier();
+  if (!tier) return unauthorized();
+  if (!tier.isArchitect) return architectOnly();
+
   try {
     const { data, error } = await supabase()
       .from("practices")
@@ -45,6 +50,10 @@ export async function GET() {
 
 // POST /api/architect-profile — create a practice
 export async function POST(request: NextRequest) {
+  const tier = await resolveUserTier();
+  if (!tier) return unauthorized();
+  if (!tier.isArchitect) return architectOnly();
+
   try {
     const { practiceName, architectEmail } = await request.json();
 

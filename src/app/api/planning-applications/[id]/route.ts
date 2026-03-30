@@ -7,6 +7,7 @@ import {
   scanFields,
   badRequest,
 } from "@/lib/validation";
+import { resolveUserTier, unauthorized, architectOnly } from "@/lib/authGuard";
 
 // Supabase table: applications
 // Columns: id (uuid), reference (text), client_name (text), address (text),
@@ -50,6 +51,10 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const tier = await resolveUserTier();
+  if (!tier) return unauthorized();
+  if (!tier.isArchitect) return architectOnly();
+
   try {
     const { id } = params;
     const body = await request.json();

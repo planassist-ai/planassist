@@ -8,6 +8,7 @@ import {
   scanFields,
   badRequest,
 } from "@/lib/validation";
+import { resolveUserTier, unauthorized, architectOnly } from "@/lib/authGuard";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const resend    = new Resend(process.env.RESEND_API_KEY);
@@ -27,6 +28,11 @@ const STATUS_LABELS: Record<string, string> = {
 export async function POST(request: NextRequest) {
   const rateLimitResponse = checkRateLimit(request);
   if (rateLimitResponse) return rateLimitResponse;
+
+  const tier = await resolveUserTier();
+  if (!tier) return unauthorized();
+  if (!tier.isArchitect) return architectOnly();
+
 
   try {
     const {

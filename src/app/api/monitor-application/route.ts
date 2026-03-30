@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { validatePlanningRef, validateAuthority, badRequest } from "@/lib/validation";
+import { resolveUserTier, unauthorized, paymentRequired } from "@/lib/authGuard";
 
 // Required Supabase table (run once in your Supabase SQL editor):
 //
@@ -15,6 +16,10 @@ import { validatePlanningRef, validateAuthority, badRequest } from "@/lib/valida
 // CREATE INDEX ON application_monitors (reference_number, county);
 
 export async function POST(request: NextRequest) {
+  const tier = await resolveUserTier();
+  if (!tier) return unauthorized();
+  if (!tier.isPaid) return paymentRequired();
+
   try {
     const { email, referenceNumber, county } = await request.json();
 

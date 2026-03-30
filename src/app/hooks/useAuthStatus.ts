@@ -6,11 +6,13 @@ import { createClient } from "@/lib/supabase/browser";
 export interface AuthStatus {
   loading: boolean;
   isLoggedIn: boolean;
-  /** Whether the user has a paid Stripe subscription (used by webhook/success page only — not for feature gating). */
+  /** True if the user has a paid subscription (€39 one-off or any active subscription). */
   isPaid: boolean;
-  /** @deprecated Use isLoggedIn for access decisions. Any logged-in user has full access. */
+  /** True if the user has an active Architect subscription. */
+  isArchitect: boolean;
+  /** @deprecated Kept for backward-compat — always -1. Use isPaid / isArchitect. */
   trialDaysLeft: number;
-  /** True if the user has full access. Equivalent to isLoggedIn — any authenticated user gets everything. */
+  /** @deprecated Use isPaid for paid-feature access decisions. */
   hasAccess: boolean;
   userEmail: string | null;
 }
@@ -20,7 +22,8 @@ export function useAuthStatus(): AuthStatus {
     loading: true,
     isLoggedIn: false,
     isPaid: false,
-    trialDaysLeft: 0,
+    isArchitect: false,
+    trialDaysLeft: -1,
     hasAccess: false,
     userEmail: null,
   });
@@ -39,33 +42,35 @@ export function useAuthStatus(): AuthStatus {
             loading: false,
             isLoggedIn: false,
             isPaid: false,
-            trialDaysLeft: 0,
+            isArchitect: false,
+            trialDaysLeft: -1,
             hasAccess: false,
             userEmail: null,
           });
           return;
         }
 
-        // Read is_paid from profiles (kept for Stripe audit trail — not used for feature gating).
         let isPaid = false;
+        let isArchitect = false;
         try {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("is_paid")
+            .select("is_paid, is_architect")
             .eq("id", user.id)
             .maybeSingle();
-          isPaid = (profile as { is_paid?: boolean } | null)?.is_paid ?? false;
+          isPaid = (profile as { is_paid?: boolean; is_architect?: boolean } | null)?.is_paid ?? false;
+          isArchitect = (profile as { is_paid?: boolean; is_architect?: boolean } | null)?.is_architect ?? false;
         } catch {
-          // profiles table not yet migrated — fine, isPaid stays false
+          // profiles table not yet migrated — safe default
         }
 
-        // Any authenticated user has full access regardless of is_paid or trial dates.
         setStatus({
           loading: false,
           isLoggedIn: true,
           isPaid,
+          isArchitect,
           trialDaysLeft: -1,
-          hasAccess: true,
+          hasAccess: isPaid,
           userEmail: user.email ?? null,
         });
       } catch {
@@ -73,7 +78,8 @@ export function useAuthStatus(): AuthStatus {
           loading: false,
           isLoggedIn: false,
           isPaid: false,
-          trialDaysLeft: 0,
+          isArchitect: false,
+          trialDaysLeft: -1,
           hasAccess: false,
           userEmail: null,
         });

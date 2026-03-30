@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CountyIntelPanel } from "@/app/components/CountyIntelPanel";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
 import { GrantsDashboardWidget } from "@/app/components/GrantsAlert";
+import { UpgradePrompt } from "@/app/components/UpgradePrompt";
 import { calculatePlanningFee, DEV_TYPES, euro, type DevTypeKey, type FeeResult } from "@/lib/planningFee";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 
@@ -414,7 +415,7 @@ export default function DashboardPage() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // ── Auth state ──
-  const { userEmail } = useAuthStatus();
+  const { userEmail, isArchitect, loading: authLoading } = useAuthStatus();
 
   // ── Profile state ──
   const [practiceName, setPracticeName] = useState("");
@@ -730,6 +731,19 @@ export default function DashboardPage() {
     { key: "needs_attention",  label: "Needs Attention",  count: attentionCount },
     { key: "decisions",        label: "Decisions",        count: decisionCount },
   ];
+
+  // ── Architect gate ──
+  if (!authLoading && !isArchitect) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-10">
+        <UpgradePrompt
+          feature="Architect Dashboard"
+          description="The full pipeline management dashboard is available on the Architect subscription — manage applications, client updates, deadlines, and notice generation in one place."
+          tier="architect"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
