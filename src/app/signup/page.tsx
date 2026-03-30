@@ -92,26 +92,35 @@ export default function SignupPage() {
             /* ── Signup form ── */
             <>
               {/* Value prop banner */}
-              <div className="bg-green-50 border-b border-green-100 px-7 py-4">
-                <p className="text-sm font-semibold text-green-800 mb-1">
-                  Join Granted to access all planning tools
+              <div className="bg-green-50 border-b border-green-100 px-7 py-5">
+                <p className="text-sm font-semibold text-green-800 mb-3">
+                  Join Granted — free to sign up
                 </p>
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-5">
-                  <div className="flex items-start gap-2">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start gap-2.5">
                     <svg className="w-4 h-4 text-green-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="text-xs text-green-700 leading-relaxed">
-                      <strong>Homeowners</strong> — €39 one-off payment. All tools, forever.
-                    </span>
+                    <div>
+                      <p className="text-xs font-semibold text-green-800 mb-0.5">Homeowners</p>
+                      <p className="text-xs text-green-700 leading-relaxed">
+                        Get full access to all planning tools — monitor your application, interpret documents and access county intelligence.
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-2.5">
                     <svg className="w-4 h-4 text-green-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="text-xs text-green-700 leading-relaxed">
-                      <strong>Architects</strong> — €99/month. Full platform access.
-                    </span>
+                    <div>
+                      <p className="text-xs font-semibold text-green-800 mb-0.5">Architects &amp; Professionals</p>
+                      <p className="text-xs text-green-700 leading-relaxed">
+                        Get full access to the professional dashboard — manage your pipeline, automate client updates and access all planning tools. Plans start from €99/month after your free trial.
+                      </p>
+                      <p className="text-xs text-green-600 font-medium mt-1">
+                        60-day free trial — no card required to start.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -120,7 +129,7 @@ export default function SignupPage() {
                 <div className="mb-6">
                   <h1 className="text-xl font-bold text-gray-900 mb-1">Create your account</h1>
                   <p className="text-sm text-gray-500">
-                    Free to sign up. Unlock all tools from €39.
+                    Free to sign up. Unlock all tools after your trial.
                   </p>
                 </div>
 
