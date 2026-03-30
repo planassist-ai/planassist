@@ -39,10 +39,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/onboarding");
 
-  // In demo mode, /dashboard is publicly accessible without login.
-  const isDemoMode = process.env.NEXT_PUBLIC_IS_DEMO === "true";
-
-  if (!user && isProtected && !isDemoMode) {
+  if (!user && isProtected) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
