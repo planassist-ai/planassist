@@ -8,6 +8,7 @@ import { GrantsDashboardWidget } from "@/app/components/GrantsAlert";
 import { UpgradePrompt } from "@/app/components/UpgradePrompt";
 import { calculatePlanningFee, DEV_TYPES, euro, type DevTypeKey, type FeeResult } from "@/lib/planningFee";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
+import { isDemoMode as checkDemoMode } from "@/lib/demo-mode";
 import {
   DEMO_APPLICATIONS,
   DEMO_ACTIVITY_LOGS,
@@ -15,7 +16,7 @@ import {
   DEMO_USER_LABEL,
 } from "@/lib/demo-data";
 
-const IS_DEMO = process.env.NEXT_PUBLIC_IS_DEMO === "true";
+const IS_DEMO = checkDemoMode();
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -425,8 +426,10 @@ export default function DashboardPage() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // ── Auth state ──
-  const { userEmail, isLoggedIn, isArchitect, loading: authLoading } = useAuthStatus();
-  const isDemoMode = IS_DEMO && !isLoggedIn;
+  const { userEmail, isArchitect, loading: authLoading } = useAuthStatus();
+  // In demo mode, useAuthStatus already returns isArchitect: true — isDemoMode drives
+  // in-memory mutations and UI overrides (header label, skipping API calls).
+  const isDemoMode = IS_DEMO;
 
   // ── Profile state ──
   const [practiceName, setPracticeName] = useState(IS_DEMO ? DEMO_PRACTICE_NAME : "");

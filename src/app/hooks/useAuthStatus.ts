@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
+import { isDemoMode } from "@/lib/demo-mode";
 
 export interface AuthStatus {
   loading: boolean;
@@ -17,18 +18,34 @@ export interface AuthStatus {
   userEmail: string | null;
 }
 
+// In demo mode every user appears fully paid and fully unlocked — no Supabase calls needed.
+const DEMO_STATUS: AuthStatus = {
+  loading: false,
+  isLoggedIn: true,
+  isPaid: true,
+  isArchitect: true,
+  trialDaysLeft: -1,
+  hasAccess: true,
+  userEmail: "demo@murphy-architecture.ie",
+};
+
 export function useAuthStatus(): AuthStatus {
-  const [status, setStatus] = useState<AuthStatus>({
-    loading: true,
-    isLoggedIn: false,
-    isPaid: false,
-    isArchitect: false,
-    trialDaysLeft: -1,
-    hasAccess: false,
-    userEmail: null,
-  });
+  const [status, setStatus] = useState<AuthStatus>(
+    isDemoMode() ? DEMO_STATUS : {
+      loading: true,
+      isLoggedIn: false,
+      isPaid: false,
+      isArchitect: false,
+      trialDaysLeft: -1,
+      hasAccess: false,
+      userEmail: null,
+    }
+  );
 
   useEffect(() => {
+    // Demo mode: state is already set to DEMO_STATUS — skip all Supabase calls.
+    if (isDemoMode()) return;
+
     const supabase = createClient();
 
     async function load() {

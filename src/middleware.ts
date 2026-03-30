@@ -2,6 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  // Demo mode: skip all auth redirects — every page is publicly accessible.
+  if (process.env.NEXT_PUBLIC_IS_DEMO === "true") {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -39,10 +44,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/onboarding");
 
-  // In demo mode, /dashboard is publicly accessible without login.
-  const isDemoMode = process.env.NEXT_PUBLIC_IS_DEMO === "true";
-
-  if (!user && isProtected && !isDemoMode) {
+  if (!user && isProtected) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);

@@ -5,6 +5,10 @@
  *  - FREE          — no login required
  *  - PAID          — is_paid = true  (€39 one-off OR any active subscription)
  *  - ARCHITECT     — is_architect = true (architect subscription only)
+ *
+ * Demo mode (NEXT_PUBLIC_IS_DEMO=true):
+ *  - resolveUserTier() returns a fully-unlocked demo tier — no Supabase call needed.
+ *  - All API routes that check tier.isPaid or tier.isArchitect will pass automatically.
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -26,11 +30,23 @@ interface UserTier {
   isArchitect: boolean;
 }
 
+// Demo tier — fully unlocked, no database dependency.
+const DEMO_TIER: UserTier = {
+  userId: "demo-user-murphy-architecture",
+  email: "demo@murphy-architecture.ie",
+  isPaid: true,
+  isArchitect: true,
+};
+
 /**
  * Resolves the authenticated user + their subscription tier from the request cookies.
  * Returns null if the user is not authenticated.
+ * In demo mode, returns a fully-unlocked tier without any Supabase call.
  */
 export async function resolveUserTier(): Promise<UserTier | null> {
+  // Demo mode: bypass all auth and return fully-unlocked tier.
+  if (process.env.NEXT_PUBLIC_IS_DEMO === "true") return DEMO_TIER;
+
   const cookieStore = cookies();
 
   const supabase = createServerClient(
