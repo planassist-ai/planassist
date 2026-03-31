@@ -111,6 +111,73 @@ export const DEMO_APPLICATIONS: DemoPlanningApplication[] = [
   },
 ];
 
+// ── Demo Scenario Results ──────────────────────────────────────────────────────
+// Pre-canned checker results used by homepage scenario cards in demo mode.
+// flowType must match FlowType in check/page.tsx.
+
+export interface DemoScenario {
+  flowType: string;
+  county: string;
+  result: {
+    outcome: "EXEMPT" | "LIKELY_NEEDS_PERMISSION" | "DEFINITELY_NEEDS_PERMISSION";
+    headline: string;
+    explanation: string;
+    keyPoints: string[];
+    caveat: string;
+  };
+}
+
+export const DEMO_SCENARIO_RESULTS: Record<string, DemoScenario> = {
+  "rear-extension": {
+    flowType: "extension",
+    county: "Dublin",
+    result: {
+      outcome: "EXEMPT",
+      headline: "Your rear extension is likely exempt from planning permission.",
+      explanation: "A single-storey rear extension of 28 sqm to a semi-detached house in Dublin falls comfortably within the exempted development thresholds under the Planning and Development Regulations 2001, as updated by the Planning and Development Act 2024 regulations effective March 2026.\n\nFor semi-detached and terraced houses, rear extensions up to 40 sqm are exempt development, provided the extension does not reduce the rear garden to less than 25 sqm and the height does not exceed the eaves of the existing house. Based on the details provided, all three conditions are met.\n\nNote that if the property is a protected structure or within an Architectural Conservation Area (ACA), the standard exemptions do not apply and planning permission would be required regardless of size.",
+      keyPoints: [
+        "Extension size (28 sqm) is within the 40 sqm exempt threshold for semi-detached houses",
+        "Single-storey design — roof height restriction does not apply",
+        "Rear garden remains above the 25 sqm minimum required",
+        "No protected structure designation — standard national exemptions apply",
+      ],
+      caveat: "Confirm the total of all previous extensions does not bring the cumulative rear extension area above 40 sqm before commencing works.",
+    },
+  },
+  "rural-new-build": {
+    flowType: "new-build",
+    county: "Kerry",
+    result: {
+      outcome: "LIKELY_NEEDS_PERMISSION",
+      headline: "Planning permission is required — your case has good prospects with the right evidence.",
+      explanation: "A new dwelling in rural Kerry always requires planning permission — there is no exemption for new builds anywhere in Ireland. However, your situation presents a reasonable case under Kerry County Council's rural housing policy.\n\nKerry applies a moderate rural housing policy. The key test is demonstrating genuine local need — the strongest basis being a family landholding connection that has been in the family for a sustained period. Kerry's County Development Plan recognises both 'active rural areas' and 'structurally weak rural areas', with slightly different criteria applying in each.\n\nWith a family landholding and a demonstrable local connection, applications in rural Kerry are regularly approved. A well-prepared planning report from an experienced architect or planning consultant significantly improves approval prospects.",
+      keyPoints: [
+        "Planning permission is always required for new rural dwellings — no exemption exists",
+        "Kerry is a moderate rural county — genuine local needs applicants regularly succeed",
+        "Family landholding connection is the strongest possible basis for an application",
+        "Percolation test and site suitability assessment will be required by the planning authority",
+      ],
+      caveat: "Engage an architect or planning consultant with Kerry County Council experience before lodging — a properly prepared planning report is essential.",
+    },
+  },
+  "retention": {
+    flowType: "retention",
+    county: "Cork",
+    result: {
+      outcome: "LIKELY_NEEDS_PERMISSION",
+      headline: "A retention application is possible — act promptly before enforcement becomes an issue.",
+      explanation: "Works carried out without planning permission can be regularised through a retention application under section 34(12) of the Planning and Development Act 2000. In your case, the works appear to be within a size range that Cork City Council may be prepared to consider for retention, provided no enforcement action is already underway.\n\nRetention applications are assessed on the same merits as a standard planning application — the council will consider whether the works would have been approved had they applied in advance. For a rear extension to a semi-detached house, the key question is whether the works fall within or close to the national exempted development thresholds.\n\nThe most urgent priority is to check whether Cork City Council has issued any warning letters or enforcement notices. If enforcement proceedings are active, time limits on responses are strict and you should consult a planning consultant or solicitor immediately.",
+      keyPoints: [
+        "Retention is assessed on the same merits as a standard planning application",
+        "No active enforcement action noted — act promptly before this changes",
+        "Works appear to be within a size range Cork City Council may accept for retention",
+        "A planning report from an architect or consultant will substantially strengthen the application",
+      ],
+      caveat: "Check the Cork City Council enforcement register immediately to confirm no warning letter or enforcement notice has been issued against the property.",
+    },
+  },
+};
+
 export interface DemoActivityLog {
   id: string;
   timestamp: string; // ISO 8601

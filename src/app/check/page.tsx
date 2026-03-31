@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppShell } from "@/app/components/AppShell";
 import { CountyIntelPanel } from "@/app/components/CountyIntelPanel";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
 import { GrantsAlert } from "@/app/components/GrantsAlert";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
+import { isDemoMode } from "@/lib/demo-mode";
+import { DEMO_SCENARIO_RESULTS } from "@/lib/demo-data";
 import type { GrantFlowType } from "@/lib/grants";
 import type { ProfessionType } from "@/lib/professionals";
 
@@ -133,6 +135,19 @@ const OUTCOME_LABELS: Record<FlowType, Record<string, string>> = {
   "protected-structure": { EXEMPT: "Works Likely Acceptable — Permission Required", LIKELY_NEEDS_PERMISSION: "Significant Conservation Assessment Required", DEFINITELY_NEEDS_PERMISSION: "Works Very Unlikely to Be Permitted" },
 };
 
+const FLOW_REGULATION_REFS: Partial<Record<FlowType, { ref: string; detail: string }>> = {
+  "extension":           { ref: "Planning & Development Regulations 2001, Schedule 2, Part 1, Class 1 (as updated March 2026)", detail: "Rear extensions up to 40 sqm (semi-detached/terraced) or 50 sqm (detached) are exempt development, subject to garden area and height limits." },
+  "new-build":           { ref: "Planning & Development Act 2000, s.32 + Sustainable Rural Housing Guidelines 2005 (DoEHLG)", detail: "All new dwellings require planning permission. Rural applications are assessed under local needs criteria set out in each County Development Plan." },
+  "outbuildings":        { ref: "Planning & Development Regulations 2001, Schedule 2, Part 1, Classes 3 & 5", detail: "Class 3 covers domestic outbuildings (garages, sheds, garden rooms) up to 25–40 sqm. Class 5 covers boundary walls and fences up to 1.2m (road) or 2m (other)." },
+  "appearance":          { ref: "Planning & Development Regulations 2001, Schedule 2, Part 1, Class 2", detail: "Works of maintenance and improvement that do not materially affect external appearance are exempt. Solar panel exemptions were updated March 2026." },
+  "replacement":         { ref: "Planning & Development Act 2000, s.32 + County Development Plan rural housing policies", detail: "Replacement dwellings always require planning permission. Assessment focuses on whether the existing structure is genuinely being replaced and whether local needs criteria are satisfied." },
+  "agricultural":        { ref: "Planning & Development Regulations 2001, Schedule 2, Part 3", detail: "Agricultural exemptions cover a range of farm buildings and structures, subject to floor area limits and conditions set out in Part 3 of Schedule 2." },
+  "change-of-use":       { ref: "Planning & Development Act 2000, s.3 + Schedule 2, Part 1, Class 14", detail: "Changes between materially different uses require planning permission. Some changes between similar use classes may be exempt under Class 14." },
+  "retention":           { ref: "Planning & Development Act 2000, s.34(12)", detail: "Section 34(12) allows a planning authority to grant retention permission for development carried out without prior permission, assessed on the same merits as a standard application." },
+  "protected-structure": { ref: "Planning & Development Act 2000, Part IV (ss.51–80)", detail: "Works to a protected structure or within its curtilage that affect the character of the structure require planning permission. Standard exemptions generally do not apply." },
+  "other-works":         { ref: "Planning & Development Act 2000, s.4 + Schedule 2, Part 1", detail: "The exempted development schedule in Part 1 of Schedule 2 covers many minor works. Works not covered by a class in the schedule require planning permission." },
+};
+
 const labelClass = "block text-sm font-medium text-gray-700 mb-2";
 const inputClass = "w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors";
 
@@ -169,7 +184,7 @@ function YesNoToggle({ value, onChange }: { value: string; onChange: (v: string)
 
 // ─── Flow Selector ─────────────────────────────────────────────────────────────
 
-function FlowSelector({ onSelect }: { onSelect: (f: FlowType) => void }) {
+function FlowSelector({ onSelect, county, onCountyChange }: { onSelect: (f: FlowType) => void; county: string; onCountyChange: (c: string) => void }) {
   const flows: { type: FlowType; title: string; desc: string; icon: React.ReactNode }[] = [
     {
       type: "new-build",
@@ -239,6 +254,31 @@ function FlowSelector({ onSelect }: { onSelect: (f: FlowType) => void }) {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 tracking-tight">Permission Checker</h1>
         <p className="text-gray-500 text-sm sm:text-base leading-relaxed">Tell us what type of project you have in mind and we&apos;ll guide you through the relevant planning questions under current Irish planning law.</p>
       </div>
+
+      {/* County selector — shown first, prominent */}
+      <div className="mb-8 bg-green-50 border border-green-200 rounded-2xl p-5 sm:p-6">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center shrink-0 mt-0.5">
+            <svg className="w-4 h-4 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Which county is the property in?</p>
+            <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">Planning rules vary significantly by county in Ireland — your county affects the assessment and determines which local rules apply.</p>
+          </div>
+        </div>
+        <select
+          value={county}
+          onChange={(e) => onCountyChange(e.target.value)}
+          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none cursor-pointer"
+        >
+          <option value="" disabled>Select a county…</option>
+          {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+
       <p className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">What are you planning to do?</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {flows.map(({ type, title, desc, icon }) => (
@@ -1094,6 +1134,36 @@ function ResultPanel({ result, flowType, county, onReset }: { result: CheckPermi
           Check another project
         </button>
       </div>
+
+      {/* Inline AI notice */}
+      <div className="mt-5 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
+        <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+        </svg>
+        <p className="text-sm text-amber-800 leading-relaxed">
+          <strong className="font-semibold">AI-generated guidance only.</strong>{" "}
+          This result is produced by an AI model and may not reflect your full circumstances. For complex or high-value projects, always verify with a registered architect or your local planning authority before committing to works or expenditure.
+        </p>
+      </div>
+
+      {/* Why this answer — regulation reference */}
+      {FLOW_REGULATION_REFS[flowType] && (
+        <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-5">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+              <svg className="w-4 h-4 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">Why this answer</p>
+              <p className="text-sm font-semibold text-gray-900 mb-1">{FLOW_REGULATION_REFS[flowType]!.ref}</p>
+              <p className="text-sm text-gray-600 leading-relaxed">{FLOW_REGULATION_REFS[flowType]!.detail}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {grantFlowType && (
         <GrantsAlert flowType={grantFlowType} className="mt-5" />
       )}
@@ -1104,6 +1174,8 @@ function ResultPanel({ result, flowType, county, onReset }: { result: CheckPermi
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
+const IS_DEMO = isDemoMode();
+
 export default function CheckPage() {
   const { isPaid } = useAuthStatus();
   const [step, setStep] = useState<PageStep>("select");
@@ -1112,6 +1184,22 @@ export default function CheckPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CheckPermissionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Handle scenario pre-fill from URL params (demo: instant result; live: pre-fill form)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const scenario = params.get("scenario");
+    if (!scenario || !(scenario in DEMO_SCENARIO_RESULTS)) return;
+    const { flowType: ft, county, result: scenarioResult } = DEMO_SCENARIO_RESULTS[scenario];
+    setFlowType(ft as FlowType);
+    setFormData((prev) => ({ ...prev, county }));
+    if (IS_DEMO) {
+      setResult(scenarioResult as CheckPermissionResult);
+      setStep("result");
+    } else {
+      setStep("form");
+    }
+  }, []);
 
   function handleFlowSelect(flow: FlowType) {
     setFlowType(flow);
@@ -1206,7 +1294,7 @@ export default function CheckPage() {
           </div>
         )}
 
-        {step === "select" && <FlowSelector onSelect={handleFlowSelect} />}
+        {step === "select" && <FlowSelector onSelect={handleFlowSelect} county={formData.county} onCountyChange={(c) => handleFieldChange("county", c)} />}
 
         {step === "form" && flowType === "new-build" && (
           <NewBuildForm data={formData} onChange={handleFieldChange} onBack={handleBack} onSubmit={handleSubmit} loading={loading} />
