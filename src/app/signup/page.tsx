@@ -1,18 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/browser";
 
-export default function SignupPage() {
-  const router = useRouter();
-  const [email, setEmail]                     = useState("");
-  const [password, setPassword]               = useState("");
+function SignupForm() {
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+  const isArchitect  = searchParams.get("type") === "architect";
+
+  const [email,           setEmail]           = useState("");
+  const [password,        setPassword]        = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading]                 = useState(false);
-  const [error, setError]                     = useState<string | null>(null);
-  const [sent, setSent]                       = useState(false);
+  const [loading,         setLoading]         = useState(false);
+  const [error,           setError]           = useState<string | null>(null);
+  const [sent,            setSent]            = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -30,11 +33,15 @@ export default function SignupPage() {
     setLoading(true);
 
     const supabase = createClient();
+    const callbackUrl = isArchitect
+      ? `${window.location.origin}/auth/callback?next=/planning-tools&type=architect`
+      : `${window.location.origin}/auth/callback?next=/planning-tools`;
+
     const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/planning-tools`,
+        emailRedirectTo: callbackUrl,
       },
     });
 
@@ -91,11 +98,27 @@ export default function SignupPage() {
           ) : (
             /* ── Signup form ── */
             <>
+              {/* Architect context banner */}
+              {isArchitect && (
+                <div className="bg-blue-50 border-b border-blue-100 px-7 py-4">
+                  <p className="text-sm font-semibold text-blue-800 mb-0.5">
+                    Architect &amp; Planning Professional account
+                  </p>
+                  <p className="text-xs text-blue-700 leading-relaxed">
+                    30-day free trial · Pipeline dashboard, RFI assistant, client updates, deadline alerts, and more.
+                  </p>
+                </div>
+              )}
+
               <div className="p-7 sm:p-8">
                 <div className="mb-6">
-                  <h1 className="text-xl font-bold text-gray-900 mb-1">Join Granted</h1>
+                  <h1 className="text-xl font-bold text-gray-900 mb-1">
+                    {isArchitect ? "Create your architect account" : "Join Granted"}
+                  </h1>
                   <p className="text-sm text-gray-500">
-                    Your Irish planning companion — from first question to final decision.
+                    {isArchitect
+                      ? "We'll be in touch to set up your practice and import your applications."
+                      : "Your Irish planning companion — from first question to final decision."}
                   </p>
                 </div>
 
@@ -169,7 +192,7 @@ export default function SignupPage() {
                         Creating account…
                       </>
                     ) : (
-                      "Create free account"
+                      isArchitect ? "Create architect account" : "Create free account"
                     )}
                   </button>
                 </form>
@@ -194,5 +217,13 @@ export default function SignupPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
   );
 }

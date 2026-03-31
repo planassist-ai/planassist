@@ -6,15 +6,15 @@ import { SiteFooter } from "@/app/components/SiteFooter";
 
 function RequestAccessButton({ className = "" }: { className?: string }) {
   return (
-    <a
-      href="mailto:hello@granted.ie"
+    <Link
+      href="/signup?type=architect"
       className={`inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold px-7 py-3.5 rounded-xl transition-colors text-sm sm:text-base ${className}`}
     >
       Request Access
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
       </svg>
-    </a>
+    </Link>
   );
 }
 
@@ -43,12 +43,12 @@ export default function ForArchitectsPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start">
             <RequestAccessButton />
-            <Link
-              href="/planning-tools"
+            <a
+              href="#tools"
               className="inline-flex items-center justify-center border border-gray-600 hover:border-gray-400 text-gray-300 hover:text-white px-7 py-3.5 rounded-xl text-sm sm:text-base font-medium transition-colors"
             >
               See all tools
-            </Link>
+            </a>
           </div>
           <p className="mt-5 text-sm text-gray-500">
             30-day free trial available for early practices · No credit card required
@@ -193,7 +193,7 @@ export default function ForArchitectsPage() {
       </section>
 
       {/* ── Features ─────────────────────────────────────────────────────────── */}
-      <section className="bg-white border-t border-gray-100 py-14 sm:py-20 lg:py-24">
+      <section id="tools" className="bg-white border-t border-gray-100 py-14 sm:py-20 lg:py-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-3">What&apos;s included</p>
           <h2 className="text-2xl sm:text-3xl font-bold mb-3 text-gray-900">Every tool your practice needs</h2>
