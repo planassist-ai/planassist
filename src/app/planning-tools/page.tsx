@@ -491,15 +491,15 @@ export default function PlanningToolsPage() {
                 <h2 className="text-base font-bold text-gray-900 mb-1.5">{title}</h2>
                 <p className="text-sm text-gray-500 leading-relaxed flex-1">{desc}</p>
                 <div className="mt-4">
-                  <a
-                    href="mailto:hello@granted.ie"
+                  <Link
+                    href="/for-architects"
                     className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
                   >
-                    Request Access — Talk To Us
+                    Learn more
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
-                  </a>
+                  </Link>
                 </div>
               </div>
             ))}
@@ -513,12 +513,12 @@ export default function PlanningToolsPage() {
                 We onboard practices individually — usually a 20-minute call and same-day access. Works for sole practitioners through to multi-county studios.
               </p>
             </div>
-            <a
-              href="mailto:hello@granted.ie"
+            <Link
+              href="/for-architects"
               className="shrink-0 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors text-center"
             >
-              Request Access
-            </a>
+              Find out more
+            </Link>
           </div>
 
         </section>
