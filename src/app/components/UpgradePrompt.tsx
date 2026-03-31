@@ -97,7 +97,7 @@ export function UpgradePrompt({ feature, description, tier = "paid" }: UpgradePr
         <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
           {isArchitectTier
             ? "Everything included with Architect subscription"
-            : "Everything included for €39"}
+            : "Everything included — €39 per application, one-off"}
         </p>
         <ul className="space-y-3">
           {features.map((item, i) => (
@@ -161,9 +161,13 @@ export function UpgradePrompt({ feature, description, tier = "paid" }: UpgradePr
                   Redirecting to checkout…
                 </>
               ) : (
-                "Get access — €39 one-off"
+                "Get access — €39 per application"
               )}
             </button>
+
+            <p className="text-xs text-gray-500">
+              One-off payment — covers this application from submission to final decision. Not a subscription.
+            </p>
 
             <p className="text-xs text-gray-400">
               Or{" "}

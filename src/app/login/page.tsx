@@ -68,7 +68,7 @@ function LoginForm() {
             </p>
             <p className="text-xs text-green-700 leading-relaxed">
               Permission Checker, Document Interpreter, Planning Statement Generator and more.
-              Homeowners — €39 one-off. Architects — €99/month.
+              Homeowners — €39 per application, one-off payment. Architects — €99/month.
             </p>
           </div>
 

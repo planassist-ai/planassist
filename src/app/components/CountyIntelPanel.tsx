@@ -1518,13 +1518,13 @@ export function CountyIntelPanel({ county, className = "", isPaid = false }: Cou
                         {data.policies.length - 1} more {data.policies.length - 1 === 1 ? "policy" : "policies"}, {data.warnings.length} critical {data.warnings.length === 1 ? "warning" : "warnings"} &amp; all document links
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                        Full Co. {data.countyName} planning intelligence included with Granted access — €39 one-off.
+                        Full Co. {data.countyName} planning intelligence included with Granted — €39 per application, one-off payment.
                       </p>
                       <Link
                         href="/interpreter"
                         className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors"
                       >
-                        Get full access — €39
+                        Get full access — €39 per application
                       </Link>
                     </div>
                   </div>
