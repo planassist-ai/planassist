@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         );
 
         const now      = new Date().toISOString();
-        const trialEnd = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+        const trialEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
         // ignoreDuplicates: true — only create; never overwrite an existing profile.
         await adminClient.from("profiles").upsert(

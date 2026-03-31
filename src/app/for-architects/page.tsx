@@ -51,7 +51,7 @@ export default function ForArchitectsPage() {
             </Link>
           </div>
           <p className="mt-5 text-sm text-gray-500">
-            60-day free trial available for early practices · No credit card required
+            30-day free trial available for early practices · No credit card required
           </p>
         </div>
       </section>
@@ -334,7 +334,7 @@ export default function ForArchitectsPage() {
               },
               {
                 step: "03",
-                title: "60-day free trial",
+                title: "30-day free trial",
                 desc: "Run your practice on Granted for two months before committing. If it doesn't save you time every week, it's not right for you.",
               },
             ].map((item) => (
@@ -363,7 +363,7 @@ export default function ForArchitectsPage() {
             We work with sole practitioners and multi-county studios alike. Get in touch and we&apos;ll find the right setup for your team.
           </p>
           <p className="text-gray-500 text-sm mb-8">
-            hello@granted.ie · 60-day free trial available for early practices
+            hello@granted.ie · 30-day free trial available for early practices
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <RequestAccessButton className="text-base" />

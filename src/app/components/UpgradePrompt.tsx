@@ -135,7 +135,7 @@ export function UpgradePrompt({ feature, description, tier = "paid" }: UpgradePr
                   Redirecting to checkout…
                 </>
               ) : (
-                "Subscribe as Architect — 60-day free trial"
+                "Subscribe as Architect — 30-day free trial"
               )}
             </button>
             <p className="text-xs text-gray-400 pt-1">
@@ -178,7 +178,7 @@ export function UpgradePrompt({ feature, description, tier = "paid" }: UpgradePr
               >
                 {loading === PRICE_SUBSCRIPTION ? "Redirecting…" : "subscribe as an Architect"}
               </button>
-              {" "}(60-day free trial)
+              {" "}(30-day free trial)
             </p>
 
             <p className="text-xs text-gray-400 pt-1">
