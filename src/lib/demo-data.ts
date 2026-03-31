@@ -178,6 +178,33 @@ export const DEMO_SCENARIO_RESULTS: Record<string, DemoScenario> = {
   },
 };
 
+// ── Demo Document Interpreter Result ──────────────────────────────────────────
+// Pre-built sample RFI result used in demo mode — bypasses the Anthropic API.
+
+export const DEMO_INTERPRETER_RESULT = {
+  verdictType: "neutral" as const,
+  verdict: "Dublin City Council has requested three items of further information — the application is not in trouble, but you must respond within six months or it will be automatically withdrawn.",
+  summary: "Dublin City Council has issued a Request for Further Information (RFI) under Section 132 of the Planning and Development Act 2000 (as amended) in relation to planning application DCC/2025/04821 for a single-storey rear extension at 14 Beechwood Avenue, Ranelagh, Dublin 6.\n\nAn RFI means the planning authority needs some additional information before it can make a decision. It is not a refusal, and it is not unusual — many straightforward applications receive an RFI. The important thing is to respond promptly and fully. Once your response is received, Dublin City Council has 4 weeks to issue a decision.\n\nThere are three items to address: a revised site layout plan showing the exact boundary between the proposed extension and the neighbouring property, an updated drainage layout showing how surface water runoff from the new roof will be managed, and a shadow study confirming that the extension will not cause undue overshadowing of the neighbouring rear garden during the winter months. All three are standard requests for this type of extension in Dublin.",
+  actions: [
+    {
+      action: "Commission a revised site layout plan from your architect showing the precise boundary distance between the proposed extension and the shared boundary with No. 16 Beechwood Avenue. The plan must be to scale (1:200 or 1:500) and reference the Ordnance Survey Ireland datum.",
+      priority: "urgent" as const,
+    },
+    {
+      action: "Prepare and submit an updated drainage layout drawing showing how surface water from the new extension roof will be discharged — typically to an existing soakpit, rainwater harvesting tank, or existing surface water drain. Your architect or engineer can prepare this.",
+      priority: "urgent" as const,
+    },
+    {
+      action: "Commission a basic shadow study (sun path diagram or shadow projection drawing) confirming that the proposed extension will not cause material overshadowing of the rear garden at 16 Beechwood Avenue during the winter solstice (21 December) between 9am and 3pm.",
+      priority: "normal" as const,
+    },
+  ],
+  deadlines: [
+    "Respond to the RFI within 6 months of the date of the request letter (issued 15 March 2026) — deadline: 15 September 2026. Failure to respond by this date will result in the planning application being automatically withdrawn.",
+    "Once Dublin City Council receives your complete response, they have 4 weeks to issue a decision on the application.",
+  ],
+};
+
 export interface DemoActivityLog {
   id: string;
   timestamp: string; // ISO 8601

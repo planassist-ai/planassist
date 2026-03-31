@@ -6,6 +6,10 @@ import { AppShell } from "@/app/components/AppShell";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
 import { UpgradePrompt } from "@/app/components/UpgradePrompt";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
+import { isDemoMode } from "@/lib/demo-mode";
+import { DEMO_INTERPRETER_RESULT } from "@/lib/demo-data";
+
+const IS_DEMO = isDemoMode();
 
 const DOCUMENT_TYPES = [
   "RFI (Request for Further Information)",
@@ -122,12 +126,22 @@ export default function InterpreterPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<InterpretDocumentResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDemoResult, setIsDemoResult] = useState(false);
 
   const extractFile = useCallback(async (file: File) => {
     setExtracting(true);
     setExtractError(null);
     setDocumentText("");
     setUploadedFileName(null);
+
+    // Demo mode: skip real extraction — fake a short delay and mark the file ready.
+    if (IS_DEMO) {
+      await new Promise((r) => setTimeout(r, 800));
+      setDocumentText("demo-document-placeholder");
+      setUploadedFileName(file.name);
+      setExtracting(false);
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", file);
@@ -191,6 +205,19 @@ export default function InterpreterPage() {
     setLoading(true);
     setResult(null);
     setError(null);
+    setIsDemoResult(false);
+
+    // Demo mode: return pre-built result after a fake 2-second delay.
+    if (IS_DEMO) {
+      await new Promise((r) => setTimeout(r, 2000));
+      setResult(DEMO_INTERPRETER_RESULT as InterpretDocumentResult);
+      setIsDemoResult(true);
+      setLoading(false);
+      setTimeout(() => {
+        document.getElementById("result")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+      return;
+    }
 
     try {
       const res = await fetch("/api/interpret-document", {
@@ -445,6 +472,19 @@ export default function InterpreterPage() {
         {result && verdictConfig && (
           <div id="result" className="mt-6 sm:mt-8 space-y-4 sm:space-y-5">
 
+            {/* Sample output badge — demo mode only */}
+            {isDemoResult && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-800 border border-yellow-300 text-xs font-semibold px-3 py-1.5 rounded-full">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1 .03 2.798-1.315 2.798H4.113c-1.345 0-2.315-1.798-1.315-2.798L4.2 15.3" />
+                  </svg>
+                  Sample Output
+                </span>
+                <span className="text-xs text-gray-400">Pre-built demo result — DCC/2025/04821, Ranelagh</span>
+              </div>
+            )}
+
             {/* Verdict */}
             <div className={`rounded-2xl border ${verdictConfig.card} p-5 sm:p-6`}>
               <div className="mb-3">
@@ -515,6 +555,7 @@ export default function InterpreterPage() {
               onClick={() => {
                 setResult(null);
                 setError(null);
+                setIsDemoResult(false);
                 setDocumentText("");
                 clearUpload();
                 window.scrollTo({ top: 0, behavior: "smooth" });
