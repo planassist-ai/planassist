@@ -338,9 +338,18 @@ export default function PlanningToolsPage() {
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 leading-snug">
               Built for professionals managing multiple applications — not just your own.
             </h2>
-            <p className="text-sm sm:text-base text-gray-500 leading-relaxed max-w-2xl">
+            <p className="text-sm sm:text-base text-gray-500 leading-relaxed max-w-2xl mb-3">
               The homeowner tier helps someone navigate one application. The architect tier runs your entire practice — pipeline, clients, documents, and deadlines — from a single dashboard.
             </p>
+            <Link
+              href="/for-architects"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              See the full picture — what Granted does for your practice
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
           </div>
 
           {/* Homeowner vs Architect comparison */}
