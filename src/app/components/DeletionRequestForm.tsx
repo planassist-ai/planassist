@@ -161,10 +161,10 @@ export function DeletionRequestForm() {
           Requests are processed within 30 days as required by GDPR Article 17.
           You can also email us directly at{" "}
           <a
-            href="mailto:hello@planassist.ie"
+            href="mailto:hello@granted.ie"
             className="text-green-600 underline underline-offset-2 hover:text-green-700"
           >
-            hello@planassist.ie
+            hello@granted.ie
           </a>
           .
         </p>

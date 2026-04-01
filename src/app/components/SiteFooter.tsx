@@ -32,10 +32,10 @@ export function SiteFooter() {
             Terms of Service
           </Link>
           <a
-            href="mailto:hello@planassist.ie"
+            href="mailto:hello@granted.ie"
             className="text-sm text-gray-500 hover:text-green-600 transition-colors"
           >
-            hello@planassist.ie
+            hello@granted.ie
           </a>
         </nav>
       </div>

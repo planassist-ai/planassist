@@ -130,10 +130,10 @@ export default function PrivacyPage() {
               <p className="mt-2">
                 <strong>Data controller contact:</strong>{" "}
                 <a
-                  href="mailto:hello@planassist.ie"
+                  href="mailto:hello@granted.ie"
                   className="text-green-600 underline underline-offset-2 hover:text-green-700"
                 >
-                  hello@planassist.ie
+                  hello@granted.ie
                 </a>
               </p>
             </section>
@@ -540,10 +540,10 @@ export default function PrivacyPage() {
               <p className="mb-3">
                 To make a data subject request, email us at{" "}
                 <a
-                  href="mailto:hello@planassist.ie"
+                  href="mailto:hello@granted.ie"
                   className="text-green-600 underline underline-offset-2 hover:text-green-700"
                 >
-                  hello@planassist.ie
+                  hello@granted.ie
                 </a>{" "}
                 with the subject line <strong>&ldquo;Data Request&rdquo;</strong>. Please include
                 your registered email address so we can verify your identity.

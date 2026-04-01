@@ -530,7 +530,7 @@ export default function DashboardPage() {
   // ── Copy portal link ──
   const copyPortalLink = useCallback(async (app: PlanningApplication) => {
     const token = app.portalToken ?? app.referenceNumber.toLowerCase().replace(/\//g, "-");
-    const url = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://planassist.ie"}/portal/${token}`;
+    const url = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://granted.ie"}/portal/${token}`;
     try {
       await navigator.clipboard.writeText(url);
     } catch {

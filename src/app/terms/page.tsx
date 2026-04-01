@@ -299,10 +299,10 @@ export default function TermsPage() {
               <p className="mb-3">
                 You must notify us immediately at{" "}
                 <a
-                  href="mailto:hello@planassist.ie"
+                  href="mailto:hello@granted.ie"
                   className="text-green-600 underline underline-offset-2 hover:text-green-700"
                 >
-                  hello@planassist.ie
+                  hello@granted.ie
                 </a>{" "}
                 if you suspect unauthorised access to your account.
               </p>
@@ -340,10 +340,10 @@ export default function TermsPage() {
                 You may stop using Granted at any time. To delete your account and request
                 erasure of your data, email{" "}
                 <a
-                  href="mailto:hello@planassist.ie"
+                  href="mailto:hello@granted.ie"
                   className="text-green-600 underline underline-offset-2 hover:text-green-700"
                 >
-                  hello@planassist.ie
+                  hello@granted.ie
                 </a>
                 .
               </p>
@@ -394,10 +394,10 @@ export default function TermsPage() {
               <p>
                 Questions about these Terms? Email us at{" "}
                 <a
-                  href="mailto:hello@planassist.ie"
+                  href="mailto:hello@granted.ie"
                   className="text-green-600 underline underline-offset-2 hover:text-green-700"
                 >
-                  hello@planassist.ie
+                  hello@granted.ie
                 </a>
                 .
               </p>
