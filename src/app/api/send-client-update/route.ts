@@ -134,7 +134,7 @@ ${context}`,
     const subject   = `Update on your planning application — ${referenceNumber}`;
 
     const { error: sendError } = await resend.emails.send({
-      from:    process.env.RESEND_FROM_EMAIL ?? "Granted <onboarding@resend.dev>",
+      from:    process.env.RESEND_FROM_EMAIL ?? "Granted <hello@granted.ie>",
       to:      clientEmail.trim(),
       subject,
       text:    emailBody,

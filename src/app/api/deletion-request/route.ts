@@ -77,14 +77,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "We could not record your request. Please try again or email us directly at hello@planassist.ie.",
+            "We could not record your request. Please try again or email us directly at hello@granted.ie.",
         },
         { status: 500 }
       );
     }
 
-    const from = process.env.RESEND_FROM_EMAIL ?? "Granted <onboarding@resend.dev>";
-    const adminEmail = process.env.ADMIN_EMAIL ?? "hello@planassist.ie";
+    const from = process.env.RESEND_FROM_EMAIL ?? "Granted <hello@granted.ie>";
+    const adminEmail = process.env.ADMIN_EMAIL ?? "hello@granted.ie";
     const submittedOn = new Date().toLocaleDateString("en-IE", {
       day: "numeric",
       month: "long",
@@ -107,12 +107,12 @@ export async function POST(request: NextRequest) {
         "",
         "You will receive a follow-up email once your data has been deleted.",
         "",
-        "If you have any questions, please reply to this email or contact us at hello@planassist.ie.",
+        "If you have any questions, please reply to this email or contact us at hello@granted.ie.",
         "",
         `Request reference: ${email} — submitted ${submittedOn}`,
         "",
         "Granted",
-        "hello@planassist.ie",
+        "hello@granted.ie",
       ].join("\n"),
     });
 

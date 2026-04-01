@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
     };
 
     await resend.emails.send({
-      from:    process.env.RESEND_FROM_EMAIL ?? "Granted <onboarding@resend.dev>",
+      from:    process.env.RESEND_FROM_EMAIL ?? "Granted <hello@granted.ie>",
       to:      email.trim().toLowerCase(),
       subject: "Your Granted directory listing has been received",
       text: `Hi ${name.trim().split(" ")[0]},
