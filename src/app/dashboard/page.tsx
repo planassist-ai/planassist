@@ -343,7 +343,7 @@ export default function DashboardPage() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // ── Auth state ──
-  const { userEmail, isArchitect, loading: authLoading } = useAuthStatus();
+  const { isArchitect, loading: authLoading } = useAuthStatus();
   // In demo mode, useAuthStatus already returns isArchitect: true — isDemoMode drives
   // in-memory mutations and UI overrides (header label, skipping API calls).
   const isDemoMode = IS_DEMO;
