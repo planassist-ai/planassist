@@ -8,18 +8,12 @@ import {
   Bell, ChevronDown, Plus, LogOut, ExternalLink,
   // User dropdown
   LayoutDashboard, User, CreditCard, Users, MessageSquare, Star,
-  // PLANNING
-  CheckCircle2, ClipboardList, FileQuestion, Calculator, Map, Newspaper,
-  // APPLICATIONS
-  FileSearch, FileText, Ruler, ShieldCheck, MessageSquarePlus, ListChecks, Activity,
-  // CLIENTS
-  Globe, Upload, Mail, Clock,
-  // GRANTS & FINANCE
-  Zap, Landmark,
-  // SELF BUILD
-  Home, Circle,
-  // DIRECTORIES
-  HardHat,
+  // Planning group
+  CheckCircle2, ClipboardList, Calculator, Map, Newspaper,
+  // Applications group
+  FileSearch, FileText, Ruler, Activity, Home,
+  // Resources group
+  Zap,
   // Settings
   Settings,
   type LucideIcon,
@@ -48,8 +42,6 @@ type NavItem = {
   icon: LucideIcon;
   href?: string;
   modal?: "fee" | "notice";
-  comingSoon?: boolean;
-  sub?: boolean; // indented sub-item (self-build stages)
 };
 
 type NavGroup = {
@@ -57,65 +49,33 @@ type NavGroup = {
   items: NavItem[];
 };
 
+// Only live, fully-built tools. No coming-soon items.
 const NAV_GROUPS: NavGroup[] = [
   {
     title: "Planning",
     items: [
-      { label: "Permission Checker",         icon: CheckCircle2,     href: "/check"              },
-      { label: "Document Checklist",          icon: ClipboardList,    href: "/checklist"          },
-      { label: "Local Needs Questionnaire",   icon: FileQuestion,                  comingSoon: true },
-      { label: "Fee Calculator",              icon: Calculator,       modal: "fee"                },
-      { label: "County Intelligence",         icon: Map,              href: "/check"              },
-      { label: "Newspaper Finder",            icon: Newspaper,        modal: "notice"             },
+      { label: "Permission Checker",   icon: CheckCircle2, href: "/check"              },
+      { label: "Document Checklist",   icon: ClipboardList, href: "/checklist"         },
+      { label: "County Intelligence",  icon: Map,           href: "/check"             },
+      { label: "Fee Calculator",       icon: Calculator,    modal: "fee"               },
+      { label: "Notice Generator",     icon: Newspaper,     modal: "notice"            },
     ],
   },
   {
     title: "Applications",
     items: [
-      { label: "Document Interpreter",        icon: FileSearch,       href: "/interpreter"        },
-      { label: "Planning Statement",          icon: FileText,         href: "/planning-statement" },
-      { label: "Design Guide Checker",        icon: Ruler,            href: "/design-check"       },
-      { label: "Pre-Submission Validator",    icon: ShieldCheck,                   comingSoon: true },
-      { label: "RFI Drafting Assistant",      icon: MessageSquarePlus,             comingSoon: true },
-      { label: "Conditions Tracker",          icon: ListChecks,                    comingSoon: true },
-      { label: "Application Monitoring",      icon: Activity,         href: "/status"             },
+      { label: "Document Interpreter", icon: FileSearch,    href: "/interpreter"       },
+      { label: "Planning Statement",   icon: FileText,      href: "/planning-statement" },
+      { label: "Design Checker",       icon: Ruler,         href: "/design-check"      },
+      { label: "Status Tracker",       icon: Activity,      href: "/status"            },
+      { label: "Self-Build Guide",     icon: Home,          href: "/self-build"        },
     ],
   },
   {
-    title: "Clients",
+    title: "Resources",
     items: [
-      { label: "Client Portal",               icon: Globe,            href: "/dashboard"          },
-      { label: "Client Document Upload",      icon: Upload,                        comingSoon: true },
-      { label: "One-Click Client Email",      icon: Mail,             href: "/dashboard"          },
-      { label: "Activity Log",                icon: Clock,            href: "/dashboard"          },
-    ],
-  },
-  {
-    title: "Grants & Finance",
-    items: [
-      { label: "SEAI Grants Checker",         icon: Zap,              href: "/grants"             },
-      { label: "Bank Drawdown Checklist",     icon: Landmark,                      comingSoon: true },
-    ],
-  },
-  {
-    title: "Self Build",
-    items: [
-      { label: "Self-Build Tracker",          icon: Home,             href: "/self-build"         },
-      { label: "1 · Site Assessment",         icon: Circle, sub: true,             comingSoon: true },
-      { label: "2 · Planning Permission",     icon: Circle, sub: true,             comingSoon: true },
-      { label: "3 · Design & Engineering",    icon: Circle, sub: true,             comingSoon: true },
-      { label: "4 · Foundations",             icon: Circle, sub: true,             comingSoon: true },
-      { label: "5 · Structure & Roof",        icon: Circle, sub: true,             comingSoon: true },
-      { label: "6 · Services & Insulation",   icon: Circle, sub: true,             comingSoon: true },
-      { label: "7 · Internal Fit-Out",        icon: Circle, sub: true,             comingSoon: true },
-      { label: "8 · Snagging & Handover",     icon: Circle, sub: true,             comingSoon: true },
-    ],
-  },
-  {
-    title: "Directories",
-    items: [
-      { label: "Find a Professional",         icon: Users,            href: "/find-a-professional" },
-      { label: "Find a Builder",              icon: HardHat,          href: "/find-a-professional" },
+      { label: "SEAI Grants",          icon: Zap,           href: "/grants"            },
+      { label: "Find a Professional",  icon: Users,         href: "/find-a-professional" },
     ],
   },
 ];
@@ -144,84 +104,50 @@ function SidebarItem({
 }) {
   const Icon = item.icon;
 
-  const baseItemCls = `
-    group relative flex items-center rounded-md transition-colors w-full text-left
-    ${iconOnly ? "justify-center px-0 py-2.5 mx-auto w-9 h-9" : item.sub ? "pl-7 pr-2 py-1.5" : "px-2.5 py-1.5"}
-    ${active
+  const cls = [
+    "group relative flex items-center rounded-md transition-colors w-full text-left",
+    iconOnly ? "justify-center w-9 h-9 mx-auto" : "px-2.5 py-[7px]",
+    active
       ? "bg-blue-600 text-white"
-      : item.comingSoon
-      ? "text-slate-600 cursor-default"
-      : "text-slate-400 hover:text-slate-100 hover:bg-slate-800 cursor-pointer"}
-  `;
-
-  const iconCls = iconOnly
-    ? "w-4 h-4 shrink-0"
-    : item.sub
-    ? "w-3 h-3 shrink-0 opacity-40"
-    : "w-[15px] h-[15px] shrink-0";
+      : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/70",
+  ].join(" ");
 
   const content = (
     <>
       <Icon
-        className={`${iconCls} ${active ? "text-white" : item.comingSoon ? "text-slate-600" : ""}`}
-        strokeWidth={active ? 2.5 : 1.75}
+        className={iconOnly ? "w-[15px] h-[15px] shrink-0" : "w-[14px] h-[14px] shrink-0"}
+        strokeWidth={active ? 2.5 : 1.5}
       />
+
       {!iconOnly && (
-        <>
-          <span className={`flex-1 min-w-0 truncate text-[13px] leading-tight ml-2 ${
-            active ? "font-semibold text-white" : item.comingSoon ? "text-slate-600" : "font-medium"
-          }`}>
-            {item.label}
-          </span>
-          {item.comingSoon && (
-            <span className="ml-1.5 text-[9px] font-bold uppercase tracking-wider bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded shrink-0">
-              Soon
-            </span>
-          )}
-        </>
+        <span className={`ml-2 flex-1 min-w-0 truncate text-[13px] leading-tight ${
+          active ? "font-semibold text-white" : "font-normal text-slate-300"
+        }`}>
+          {item.label}
+        </span>
       )}
 
-      {/* Tooltip — only visible in icon-only mode on hover */}
+      {/* Fly-out tooltip in icon-only mode */}
       {iconOnly && (
         <span
+          role="tooltip"
           className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-[60]
                      whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs text-white shadow-lg
                      opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-          role="tooltip"
         >
           {item.label}
-          {item.comingSoon && <span className="ml-1.5 text-gray-400">· soon</span>}
         </span>
       )}
     </>
   );
 
-  // Coming-soon items are non-interactive
-  if (item.comingSoon && !iconOnly) {
-    return <div className={baseItemCls}>{content}</div>;
-  }
-
-  if (item.comingSoon && iconOnly) {
-    return <div className={`${baseItemCls} opacity-50`}>{content}</div>;
-  }
-
   if (onClickCallback && !item.href) {
-    return (
-      <button className={baseItemCls} onClick={onClickCallback}>
-        {content}
-      </button>
-    );
+    return <button className={cls} onClick={onClickCallback}>{content}</button>;
   }
-
   if (item.href) {
-    return (
-      <Link href={item.href} className={baseItemCls} onClick={onClickCallback}>
-        {content}
-      </Link>
-    );
+    return <Link href={item.href} className={cls} onClick={onClickCallback}>{content}</Link>;
   }
-
-  return <div className={baseItemCls}>{content}</div>;
+  return null;
 }
 
 // ─── Sidebar content (shared desktop + mobile) ──────────────────────────────────
@@ -349,8 +275,7 @@ function SidebarContent({
       {/* Grouped nav sections */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-700">
         {NAV_GROUPS.map((group) => {
-          // In icon-only mode, filter out sub-items (self-build stages)
-          const items = iconOnly ? group.items.filter(i => !i.sub) : group.items;
+          const items = group.items;
 
           return (
             <div key={group.title} className={iconOnly ? "py-1" : "py-2"}>
@@ -371,7 +296,7 @@ function SidebarContent({
                   <SidebarItem
                     key={item.label}
                     item={item}
-                    active={!item.modal && !item.comingSoon && isActive(item.href)}
+                    active={!item.modal && isActive(item.href)}
                     iconOnly={iconOnly}
                     onClickCallback={resolveClick(item)}
                   />
