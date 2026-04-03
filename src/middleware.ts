@@ -42,7 +42,8 @@ export async function middleware(request: NextRequest) {
   // /self-build) handle their own upgrade prompt — no middleware redirect needed there.
   const isProtected =
     pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/onboarding");
+    pathname.startsWith("/onboarding") ||
+    pathname.startsWith("/my-planning");
 
   if (!user && isProtected) {
     const loginUrl = new URL("/login", request.url);
@@ -50,9 +51,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Already logged in → skip the login and signup pages.
+  // Already logged in → send to /my-planning, which redirects architects onward to
+  // /dashboard. This handles both homeowners and architects landing on the login page.
   if (user && (pathname === "/login" || pathname === "/signup")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/my-planning", request.url));
   }
 
   return supabaseResponse;
