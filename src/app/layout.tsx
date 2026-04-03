@@ -6,13 +6,13 @@ import { CookieConsentBanner } from "./components/CookieConsentBanner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Granted — AI Planning Permission for Ireland",
+  title: "Granted — Your Planning Permission Companion",
   description:
-    "Understand your planning permission requirements in Ireland with AI-powered guidance.",
+    "Everything you need to navigate the Irish planning process — from permission checker to planning permission granted.",
   openGraph: {
-    title: "Granted — AI Planning Permission for Ireland",
+    title: "Granted — Your Planning Permission Companion",
     description:
-      "Understand your planning permission requirements in Ireland with AI-powered guidance.",
+      "Everything you need to navigate the Irish planning process — from permission checker to planning permission granted.",
     siteName: "Granted",
   },
 };
