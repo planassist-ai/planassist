@@ -9,11 +9,11 @@ import { UpgradePrompt } from "@/app/components/UpgradePrompt";
 import { calculatePlanningFee, DEV_TYPES, euro, type DevTypeKey, type FeeResult } from "@/lib/planningFee";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 import { isDemoMode as checkDemoMode } from "@/lib/demo-mode";
+import { DashboardShell } from "@/app/components/DashboardShell";
 import {
   DEMO_APPLICATIONS,
   DEMO_ACTIVITY_LOGS,
   DEMO_PRACTICE_NAME,
-  DEMO_USER_LABEL,
 } from "@/lib/demo-data";
 
 const IS_DEMO = checkDemoMode();
@@ -712,46 +712,16 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-
-      {/* ── Header ────────────────────────────────────────────────────── */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <Link href="/" className="text-xl font-bold text-green-600 tracking-tight shrink-0">
-              Granted
-            </Link>
-            <span className="hidden sm:block w-px h-5 bg-gray-200" />
-            <span className="hidden sm:block text-sm text-gray-400">
-              {practiceName || "Welcome to Granted"}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            {isDemoMode ? (
-              <>
-                <span className="hidden sm:block text-xs text-amber-600 font-semibold max-w-[220px] truncate">
-                  {DEMO_USER_LABEL}
-                </span>
-                <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                  M
-                </div>
-              </>
-            ) : (
-              <>
-                {userEmail && (
-                  <span className="hidden sm:block text-xs text-gray-400 max-w-[200px] truncate" title={userEmail}>
-                    {userEmail}
-                  </span>
-                )}
-                <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                  {userEmail ? userEmail[0].toUpperCase() : "A"}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
-
+    <DashboardShell
+      applicationCount={applications.length}
+      urgentCount={urgentApps.length + applications.filter(a => a.hasRFI === true).length}
+      practiceName={practiceName}
+      isDemoMode={isDemoMode}
+      onAddApplication={() => setShowModal(true)}
+      onOpenFeeModal={() => { setFeeResult(null); setFeeCouncil(""); setFeeDevType(""); setFeeArea(""); setShowFeeModal(true); }}
+      onOpenNoticeModal={() => { setNoticeCouncil(""); setNoticeDevType(""); setNoticeApplicant(""); setNoticeAddress(""); setNoticeDesc(""); setNoticeCopied(null); setShowNoticeModal(true); }}
+      breadcrumb={[{ label: "Active Applications" }]}
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:py-10">
 
         {/* ── Loading skeleton ───────────────────────────────────────── */}
@@ -1445,7 +1415,9 @@ export default function DashboardPage() {
 
       </div>
 
-      {/* ── Add Application Modal ──────────────────────────────────────── */}
+      {/* ── Modals ────────────────────────────────────────────────────────── */}
+
+      {/* Add Application Modal */}
       {showModal && (
         <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
@@ -1909,6 +1881,6 @@ export default function DashboardPage() {
         );
       })()}
 
-    </div>
+    </DashboardShell>
   );
 }
