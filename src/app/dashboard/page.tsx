@@ -134,30 +134,6 @@ interface ActivityLogEntry {
   description: string;
 }
 
-const SEED_ACTIVITY_LOGS: Record<string, ActivityLogEntry[]> = {
-  "1": [
-    { id: "a3", timestamp: "2026-02-19T10:41:00.000Z", type: "status_change", description: "Status changed to Under Assessment" },
-    { id: "a2", timestamp: "2026-02-12T14:23:00.000Z", type: "status_change", description: "Status changed to Validated" },
-    { id: "a1", timestamp: "2026-02-05T09:00:00.000Z", type: "status_change", description: "Application added — status: Received" },
-  ],
-  "2": [
-    { id: "b4", timestamp: "2026-03-12T09:15:00.000Z", type: "status_change", description: "Status changed to Further Information Requested" },
-    { id: "b3", timestamp: "2026-02-04T16:30:00.000Z", type: "status_change", description: "Status changed to Under Assessment" },
-    { id: "b2", timestamp: "2026-01-21T11:00:00.000Z", type: "status_change", description: "Status changed to Validated" },
-    { id: "b1", timestamp: "2026-01-14T09:00:00.000Z", type: "status_change", description: "Application added — status: Received" },
-  ],
-  "3": [
-    { id: "c3", timestamp: "2026-02-02T11:20:00.000Z", type: "status_change", description: "Status changed to Under Assessment" },
-    { id: "c2", timestamp: "2026-01-16T15:00:00.000Z", type: "status_change", description: "Status changed to Validated" },
-    { id: "c1", timestamp: "2026-01-09T09:00:00.000Z", type: "status_change", description: "Application added — status: Received" },
-  ],
-  "4": [
-    { id: "d4", timestamp: "2026-03-17T14:00:00.000Z", type: "status_change", description: "Status changed to Decision Made" },
-    { id: "d3", timestamp: "2026-01-26T10:00:00.000Z", type: "status_change", description: "Status changed to Under Assessment" },
-    { id: "d2", timestamp: "2026-01-05T13:00:00.000Z", type: "status_change", description: "Status changed to Validated" },
-    { id: "d1", timestamp: "2025-12-22T09:00:00.000Z", type: "status_change", description: "Application added — status: Received" },
-  ],
-};
 
 // ─── Planning tools — fee types/calculator imported from @/lib/planningFee ───
 
@@ -219,65 +195,6 @@ function generateNotices(
   return { siteNotice, newspaperNotice };
 }
 
-// ─── Seeded demo data ──────────────────────────────────────────────────────────
-// Dates are relative to 2026-03-22 (current demo date) so stats look live.
-
-const SEED_APPLICATIONS: PlanningApplication[] = [
-  {
-    id: "1",
-    referenceNumber: "DCC/2026/000421",
-    clientName: "Sarah & James O'Brien",
-    clientEmail: "sarah.obrien@gmail.com",
-    propertyAddress: "23 Maple Drive, Ranelagh, Dublin 6",
-    projectDescription: "Rear extension and attic conversion to existing dwelling",
-    status: "under_assessment",
-    submissionDate: "2026-02-05",
-    statutoryDeadline: "2026-04-06",
-    hasRFI: false,
-    portalToken: "pa_live_421obrien",
-  },
-  {
-    id: "2",
-    referenceNumber: "DLRCC/2026/000276",
-    clientName: "Patrick Connolly",
-    clientEmail: "pconnolly@icloud.com",
-    propertyAddress: "7 The Oaks, Stillorgan, Co. Dublin",
-    projectDescription: "New two-storey detached dwelling with detached garage",
-    status: "further_info",
-    submissionDate: "2026-01-14",
-    statutoryDeadline: "2026-03-30",
-    hasRFI: true,
-    rfiIssuedDate: "2026-03-12",
-    portalToken: "pa_live_276connolly",
-  },
-  {
-    id: "3",
-    referenceNumber: "SDCC/2026/000134",
-    clientName: "Murphy Family Trust",
-    clientEmail: "dermot.murphy@murphyfamilytrust.ie",
-    propertyAddress: "14 Ashfield Park, Templeogue, Dublin 12",
-    projectDescription: "Single storey side extension to existing semi-detached dwelling",
-    status: "under_assessment",
-    submissionDate: "2026-01-09",
-    statutoryDeadline: "2026-03-24",
-    hasRFI: false,
-    portalToken: "pa_live_134murphy",
-  },
-  {
-    id: "4",
-    referenceNumber: "DCC/2025/002891",
-    clientName: "Aoife Brennan",
-    clientEmail: "aoife.brennan@hotmail.com",
-    propertyAddress: "Apt 4B Kilmainham Court, South Circular Road, Dublin 8",
-    projectDescription: "Change of use from retail unit to café/restaurant at ground floor level",
-    status: "decision_made",
-    submissionDate: "2025-12-22",
-    statutoryDeadline: "2026-02-16",
-    hasRFI: false,
-    decisionDate: "2026-03-17",
-    portalToken: "pa_live_2891brennan",
-  },
-];
 
 // ─── Date helpers ──────────────────────────────────────────────────────────────
 
@@ -418,7 +335,7 @@ const labelCls = "block text-sm font-medium text-gray-700 mb-1.5";
 export default function DashboardPage() {
   // ── Core state ──
   const [applications, setApplications] = useState<PlanningApplication[]>(
-    IS_DEMO ? (DEMO_APPLICATIONS as unknown as PlanningApplication[]) : SEED_APPLICATIONS
+    IS_DEMO ? (DEMO_APPLICATIONS as unknown as PlanningApplication[]) : []
   );
   const [filter, setFilter] = useState<FilterKey>("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -462,7 +379,7 @@ export default function DashboardPage() {
 
   // ── Activity log state ──
   const [activityLogs, setActivityLogs] = useState<Record<string, ActivityLogEntry[]>>(
-    IS_DEMO ? (DEMO_ACTIVITY_LOGS as unknown as Record<string, ActivityLogEntry[]>) : SEED_ACTIVITY_LOGS
+    IS_DEMO ? (DEMO_ACTIVITY_LOGS as unknown as Record<string, ActivityLogEntry[]>) : {}
   );
   const [logOpen, setLogOpen] = useState<Record<string, boolean>>({});
 
@@ -481,6 +398,9 @@ export default function DashboardPage() {
   const [noticeAddress,    setNoticeAddress]    = useState("");
   const [noticeDesc,       setNoticeDesc]       = useState("");
   const [noticeCopied,     setNoticeCopied]     = useState<"site" | "newspaper" | null>(null);
+
+  // ── Welcome empty state flag (real architect, no applications yet) ──
+  const showWelcomeState = !isInitialLoad && !isDemoMode && applications.length === 0;
 
   // ── Derived stats ──
   const total          = applications.length;
@@ -626,9 +546,9 @@ export default function DashboardPage() {
           });
           setNotesText(notesMap);
         }
-        // If no real apps, SEED_APPLICATIONS stays in state as demo data
+        // No apps yet — empty array stays in state; welcome empty state is shown
       } catch {
-        // Supabase not configured — keep in-memory demo data already in state
+        // Supabase not configured — applications remain empty for new users
       } finally {
         if (!cancelled) setIsInitialLoad(false);
       }
@@ -921,8 +841,8 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ── Title + Add button ─────────────────────────────────────── */}
-        <div className="flex items-start justify-between gap-4 mb-7 sm:mb-8">
+        {/* ── Title + Add button (hidden when welcome state is shown) ─── */}
+        <div className={`flex items-start justify-between gap-4 mb-7 sm:mb-8${showWelcomeState ? " hidden" : ""}`}>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
               Active Applications
@@ -942,7 +862,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Stats grid ─────────────────────────────────────────────── */}
-        <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-7 sm:mb-8${isInitialLoad ? " hidden" : ""}`}>
+        <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-7 sm:mb-8${isInitialLoad || showWelcomeState ? " hidden" : ""}`}>
           {[
             {
               key: "all" as FilterKey,
@@ -998,7 +918,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Filter tabs ─────────────────────────────────────────────── */}
-        <div className={`flex items-center gap-2 mb-5 sm:mb-6 overflow-x-auto pb-0.5 scrollbar-hide${isInitialLoad ? " hidden" : ""}`}>
+        <div className={`flex items-center gap-2 mb-5 sm:mb-6 overflow-x-auto pb-0.5 scrollbar-hide${isInitialLoad || showWelcomeState ? " hidden" : ""}`}>
           {FILTERS.map(({ key, label, count }) => (
             <button
               key={key}
@@ -1018,13 +938,130 @@ export default function DashboardPage() {
         </div>
 
         {/* ── SEAI Grants widget ─────────────────────────────────────── */}
-        {!isInitialLoad && (
+        {!isInitialLoad && !showWelcomeState && (
           <GrantsDashboardWidget className="mb-6 sm:mb-7" />
         )}
 
         {/* ── Application cards ───────────────────────────────────────── */}
         <div className={isInitialLoad ? "hidden" : ""}>
-        {filtered.length === 0 ? (
+
+        {/* Welcome empty state for new architects */}
+        {showWelcomeState && (
+          <div className="space-y-6 sm:space-y-8 pb-10">
+
+            {/* Hero welcome banner */}
+            <div className="bg-gradient-to-br from-blue-700 to-blue-900 rounded-2xl px-7 sm:px-10 py-8 sm:py-10 text-white shadow-lg">
+              <div className="max-w-2xl">
+                <p className="text-blue-300 text-xs font-semibold uppercase tracking-widest mb-2">Your planning dashboard</p>
+                <h1 className="text-2xl sm:text-3xl font-bold mb-3 leading-tight">
+                  {practiceName ? `Welcome to ${practiceName}` : "Welcome to your dashboard"}
+                </h1>
+                <p className="text-blue-100 text-sm sm:text-base leading-relaxed max-w-xl">
+                  Everything you need to manage planning applications in one place — deadlines, client updates, RFI alerts, and county intelligence. Let&apos;s get you set up.
+                </p>
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="mt-6 inline-flex items-center gap-2 bg-white text-blue-800 font-semibold text-sm px-5 py-2.5 rounded-xl shadow-sm hover:bg-blue-50 transition-colors"
+                >
+                  <IconPlus className="w-4 h-4" />
+                  Add Your First Application
+                </button>
+              </div>
+            </div>
+
+            {/* Getting started checklist */}
+            <div>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">Get started in three steps</h2>
+              <p className="text-sm text-gray-500 mb-4">Each of these tools is ready to use right now.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+                {/* Step 1 */}
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="group text-left bg-white border border-blue-200 hover:border-blue-400 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shrink-0 group-hover:bg-blue-700 group-hover:text-white transition-colors">
+                      1
+                    </div>
+                    <span className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Start here</span>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 text-[15px] mb-1.5 leading-snug">Add your first application</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">Track reference numbers, deadlines, RFI flags, client contacts, and status — all in one card.</p>
+                  <span className="mt-4 inline-flex items-center text-xs font-semibold text-blue-700 group-hover:gap-1.5 transition-all gap-1">
+                    Open form
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                  </span>
+                </button>
+
+                {/* Step 2 */}
+                <Link
+                  href="/check"
+                  className="group text-left bg-white border border-gray-200 hover:border-blue-400 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-sm shrink-0 group-hover:bg-blue-700 group-hover:text-white transition-colors">
+                      2
+                    </div>
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Explore</span>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 text-[15px] mb-1.5 leading-snug">Explore county intelligence</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">Run planning permission scenarios against local policies to sense-check applications before you submit.</p>
+                  <span className="mt-4 inline-flex items-center text-xs font-semibold text-blue-700 group-hover:gap-1.5 transition-all gap-1">
+                    Go to county checker
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                  </span>
+                </Link>
+
+                {/* Step 3 */}
+                <Link
+                  href="/interpreter"
+                  className="group text-left bg-white border border-gray-200 hover:border-blue-400 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-sm shrink-0 group-hover:bg-blue-700 group-hover:text-white transition-colors">
+                      3
+                    </div>
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Try it</span>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 text-[15px] mb-1.5 leading-snug">Try the document interpreter</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">Upload a planning notice or RFI letter and get a plain-English breakdown of what it means and what you need to do.</p>
+                  <span className="mt-4 inline-flex items-center text-xs font-semibold text-blue-700 group-hover:gap-1.5 transition-all gap-1">
+                    Open interpreter
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                  </span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Dashboard preview explanation */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-7">
+              <h3 className="font-semibold text-gray-900 mb-1">What your dashboard will look like</h3>
+              <p className="text-sm text-gray-500 leading-relaxed mb-4">
+                Once you add applications, each one gets its own card showing real-time status, days until the statutory deadline, RFI flags, and quick actions for client updates and internal notes.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { icon: "📋", label: "Deadline tracking", desc: "Colour-coded urgency with days remaining" },
+                  { icon: "⚠️", label: "RFI alerts",        desc: "Flagged automatically when further info is requested" },
+                  { icon: "✉️", label: "Client updates",    desc: "One-click AI-generated status emails" },
+                ].map(({ icon, label, desc }) => (
+                  <div key={label} className="flex items-start gap-3 bg-gray-50 rounded-xl px-4 py-3.5">
+                    <span className="text-base shrink-0 mt-0.5">{icon}</span>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">{label}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* Applications list (filtered, shown when there are real applications) */}
+        {!showWelcomeState && (filtered.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center shadow-sm">
             <p className="text-gray-400 text-sm">No applications in this category.</p>
           </div>
@@ -1341,7 +1378,7 @@ export default function DashboardPage() {
               );
             })}
           </div>
-        )}
+        ))}
         </div>
         {/* ── Tools ──────────────────────────────────────────────────── */}
         <section className={`mt-12 sm:mt-14${isInitialLoad ? " hidden" : ""}`}>
