@@ -183,6 +183,20 @@ function YesNoToggle({ value, onChange }: { value: string; onChange: (v: string)
   );
 }
 
+function CountyBadge({ county }: { county: string }) {
+  return (
+    <div className="mb-5">
+      <span className="inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 rounded-full px-3 py-1 text-xs font-medium">
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+        </svg>
+        Co. {county}
+      </span>
+    </div>
+  );
+}
+
 // ─── Flow Selector ─────────────────────────────────────────────────────────────
 
 function FlowSelector({ onSelect, county, onCountyChange }: { onSelect: (f: FlowType) => void; county: string; onCountyChange: (c: string) => void }) {
@@ -271,6 +285,7 @@ function FlowSelector({ onSelect, county, onCountyChange }: { onSelect: (f: Flow
           </div>
         </div>
         <select
+          id="county-select"
           value={county}
           onChange={(e) => onCountyChange(e.target.value)}
           className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none cursor-pointer"
@@ -283,7 +298,7 @@ function FlowSelector({ onSelect, county, onCountyChange }: { onSelect: (f: Flow
       <p className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">What are you planning to do?</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {flows.map(({ type, title, desc, icon }) => (
-          <button key={type} onClick={() => onSelect(type)} className="group text-left bg-white border border-gray-200 rounded-2xl p-5 hover:border-green-400 hover:shadow-md active:scale-[0.98] transition-all">
+          <button key={type} onClick={() => { if (!county) { document.getElementById("county-select")?.focus(); return; } onSelect(type); }} className="group text-left bg-white border border-gray-200 rounded-2xl p-5 hover:border-green-400 hover:shadow-md active:scale-[0.98] transition-all">
             <div className="w-12 h-12 rounded-xl bg-green-50 group-hover:bg-green-100 flex items-center justify-center text-green-600 mb-4 transition-colors">{icon}</div>
             <h2 className="text-base font-bold text-gray-900 mb-1.5">{title}</h2>
             <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
@@ -351,6 +366,7 @@ function NewBuildForm({ data, onChange, onBack, onSubmit, loading }: { data: For
   return (
     <div>
       <BackButton onClick={onBack} />
+      <CountyBadge county={data.county} />
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
@@ -363,15 +379,7 @@ function NewBuildForm({ data, onChange, onBack, onSubmit, loading }: { data: For
 
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
 
-        {/* County */}
-        <div>
-          <label className={labelClass} htmlFor="nb-county">County <span className="text-red-500">*</span></label>
-          <select id="nb-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-            <option value="" disabled>Select a county…</option>
-            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-          {data.county && <CountyIntelligencePanel county={data.county} />}
-        </div>
+        <CountyIntelligencePanel county={data.county} />
 
         {/* Settlement boundary question — gate for the rest of the form */}
         {data.county && (
@@ -505,6 +513,7 @@ function ExtensionForm({ data, onChange, onBack, onSubmit, loading }: { data: Fo
   return (
     <div>
       <BackButton onClick={onBack} />
+      <CountyBadge county={data.county} />
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
@@ -516,21 +525,12 @@ function ExtensionForm({ data, onChange, onBack, onSubmit, loading }: { data: Fo
       </div>
 
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div>
-            <label className={labelClass} htmlFor="ext-county">County <span className="text-red-500">*</span></label>
-            <select id="ext-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-              <option value="" disabled>Select a county…</option>
-              {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={labelClass} htmlFor="ext-type">Type of extension <span className="text-red-500">*</span></label>
-            <select id="ext-type" value={data.extensionType} onChange={(e) => onChange("extensionType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-              <option value="" disabled>Select…</option>
-              {EXTENSION_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
+        <div>
+          <label className={labelClass} htmlFor="ext-type">Type of extension <span className="text-red-500">*</span></label>
+          <select id="ext-type" value={data.extensionType} onChange={(e) => onChange("extensionType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select…</option>
+            {EXTENSION_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -580,6 +580,7 @@ function ReplacementForm({ data, onChange, onBack, onSubmit, loading }: { data: 
   return (
     <div>
       <BackButton onClick={onBack} />
+      <CountyBadge county={data.county} />
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
@@ -591,13 +592,6 @@ function ReplacementForm({ data, onChange, onBack, onSubmit, loading }: { data: 
       </div>
 
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
-        <div>
-          <label className={labelClass} htmlFor="rep-county">County <span className="text-red-500">*</span></label>
-          <select id="rep-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-            <option value="" disabled>Select a county…</option>
-            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
 
         <div>
           <label className={labelClass} htmlFor="rep-reason">Reason for replacement <span className="text-red-500">*</span></label>
@@ -638,6 +632,7 @@ function OutbuildingsForm({ data, onChange, onBack, onSubmit, loading }: { data:
   return (
     <div>
       <BackButton onClick={onBack} />
+      <CountyBadge county={data.county} />
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
@@ -648,21 +643,12 @@ function OutbuildingsForm({ data, onChange, onBack, onSubmit, loading }: { data:
         <p className="text-sm text-gray-500">Many small structures are exempt from planning permission under Irish planning regulations. This tool checks whether your proposed structure requires permission.</p>
       </div>
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div>
-            <label className={labelClass} htmlFor="ob-county">County <span className="text-red-500">*</span></label>
-            <select id="ob-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-              <option value="" disabled>Select a county…</option>
-              {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={labelClass} htmlFor="ob-type">Type of structure <span className="text-red-500">*</span></label>
-            <select id="ob-type" value={data.structureType} onChange={(e) => onChange("structureType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-              <option value="" disabled>Select…</option>
-              {STRUCTURE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
+        <div>
+          <label className={labelClass} htmlFor="ob-type">Type of structure <span className="text-red-500">*</span></label>
+          <select id="ob-type" value={data.structureType} onChange={(e) => onChange("structureType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select…</option>
+            {STRUCTURE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
         </div>
         <div>
           <label className={labelClass}>Is the structure within the curtilage of your house? <span className="text-red-500">*</span></label>
@@ -710,6 +696,7 @@ function AppearanceForm({ data, onChange, onBack, onSubmit, loading }: { data: F
   return (
     <div>
       <BackButton onClick={onBack} />
+      <CountyBadge county={data.county} />
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
@@ -720,21 +707,12 @@ function AppearanceForm({ data, onChange, onBack, onSubmit, loading }: { data: F
         <p className="text-sm text-gray-500">Changes to the external appearance of your home may or may not require planning permission. This tool checks whether your proposed works need consent.</p>
       </div>
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div>
-            <label className={labelClass} htmlFor="ap-county">County <span className="text-red-500">*</span></label>
-            <select id="ap-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-              <option value="" disabled>Select a county…</option>
-              {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={labelClass} htmlFor="ap-type">Type of works <span className="text-red-500">*</span></label>
-            <select id="ap-type" value={data.appearanceType} onChange={(e) => onChange("appearanceType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-              <option value="" disabled>Select…</option>
-              {APPEARANCE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
+        <div>
+          <label className={labelClass} htmlFor="ap-type">Type of works <span className="text-red-500">*</span></label>
+          <select id="ap-type" value={data.appearanceType} onChange={(e) => onChange("appearanceType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select…</option>
+            {APPEARANCE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
         </div>
         <div>
           <label className={labelClass} htmlFor="ap-protected">Is the house a protected structure or in an Architectural Conservation Area (ACA)? <span className="text-red-500">*</span></label>
@@ -767,6 +745,7 @@ function AgriculturalForm({ data, onChange, onBack, onSubmit, loading }: { data:
   return (
     <div>
       <BackButton onClick={onBack} />
+      <CountyBadge county={data.county} />
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
@@ -777,21 +756,12 @@ function AgriculturalForm({ data, onChange, onBack, onSubmit, loading }: { data:
         <p className="text-sm text-gray-500">Agricultural development has specific exempted development provisions under Irish planning law. This tool assesses whether your proposed works require planning permission.</p>
       </div>
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div>
-            <label className={labelClass} htmlFor="ag-county">County <span className="text-red-500">*</span></label>
-            <select id="ag-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-              <option value="" disabled>Select a county…</option>
-              {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={labelClass} htmlFor="ag-type">Type of works <span className="text-red-500">*</span></label>
-            <select id="ag-type" value={data.agriculturalType} onChange={(e) => onChange("agriculturalType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-              <option value="" disabled>Select…</option>
-              {AGRICULTURAL_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
+        <div>
+          <label className={labelClass} htmlFor="ag-type">Type of works <span className="text-red-500">*</span></label>
+          <select id="ag-type" value={data.agriculturalType} onChange={(e) => onChange("agriculturalType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select…</option>
+            {AGRICULTURAL_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
         </div>
         <div>
           <label className={labelClass}>Is this on a working farm? <span className="text-red-500">*</span></label>
@@ -820,6 +790,7 @@ function ChangeOfUseForm({ data, onChange, onBack, onSubmit, loading }: { data: 
   return (
     <div>
       <BackButton onClick={onBack} />
+      <CountyBadge county={data.county} />
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
@@ -830,13 +801,6 @@ function ChangeOfUseForm({ data, onChange, onBack, onSubmit, loading }: { data: 
         <p className="text-sm text-gray-500">Changing how a building is used often requires planning permission. This tool assesses whether your proposed change of use requires formal planning consent under Irish law.</p>
       </div>
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
-        <div>
-          <label className={labelClass} htmlFor="cu-county">County <span className="text-red-500">*</span></label>
-          <select id="cu-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-            <option value="" disabled>Select a county…</option>
-            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <label className={labelClass} htmlFor="cu-current">Current use of building <span className="text-red-500">*</span></label>
@@ -881,6 +845,7 @@ function OtherWorksForm({ data, onChange, onBack, onSubmit, loading }: { data: F
   return (
     <div>
       <BackButton onClick={onBack} />
+      <CountyBadge county={data.county} />
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
@@ -891,13 +856,6 @@ function OtherWorksForm({ data, onChange, onBack, onSubmit, loading }: { data: F
         <p className="text-sm text-gray-500">If your works don&apos;t fit the other categories, describe what you plan to do and we&apos;ll assess whether planning permission may be required under Irish law.</p>
       </div>
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
-        <div>
-          <label className={labelClass} htmlFor="ow-county">County <span className="text-red-500">*</span></label>
-          <select id="ow-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-            <option value="" disabled>Select a county…</option>
-            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
         <div>
           <label className={labelClass} htmlFor="ow-desc">Describe the works you are proposing <span className="text-red-500">*</span></label>
           <textarea id="ow-desc" value={data.worksDescription} onChange={(e) => onChange("worksDescription", e.target.value)} rows={4} required placeholder="e.g. I want to create a new vehicular entrance from my rear garden onto a public road. The entrance would be gated and approximately 3m wide." className={inputClass + " resize-none leading-relaxed"} />
@@ -934,6 +892,7 @@ function RetentionForm({ data, onChange, onBack, onSubmit, loading }: { data: Fo
   return (
     <div>
       <BackButton onClick={onBack} />
+      <CountyBadge county={data.county} />
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-100 text-amber-700">
@@ -953,14 +912,6 @@ function RetentionForm({ data, onChange, onBack, onSubmit, loading }: { data: Fo
       </div>
 
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
-        <div>
-          <label className={labelClass} htmlFor="ret-county">County <span className="text-red-500">*</span></label>
-          <select id="ret-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-            <option value="" disabled>Select a county…</option>
-            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <label className={labelClass} htmlFor="ret-type">Type of works carried out <span className="text-red-500">*</span></label>
@@ -1034,6 +985,7 @@ function ProtectedStructureForm({ data, onChange, onBack, onSubmit, loading }: {
   return (
     <div>
       <BackButton onClick={onBack} />
+      <CountyBadge county={data.county} />
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-700">
@@ -1053,14 +1005,6 @@ function ProtectedStructureForm({ data, onChange, onBack, onSubmit, loading }: {
       </div>
 
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
-        <div>
-          <label className={labelClass} htmlFor="ps-county">County <span className="text-red-500">*</span></label>
-          <select id="ps-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-            <option value="" disabled>Select a county…</option>
-            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <label className={labelClass} htmlFor="ps-works">Type of proposed works <span className="text-red-500">*</span></label>
