@@ -39,12 +39,19 @@ const FindProIcon = ({ active }: { active: boolean }) => (
   </svg>
 );
 
+const AskIcon = ({ active }: { active: boolean }) => (
+  <svg className={`w-6 h-6 ${active ? "text-green-600" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+  </svg>
+);
+
 // ── Nav definitions ─────────────────────────────────────────────────────────────
 
 // Desktop top nav — always visible items
 const DESKTOP_NAV = [
   { href: "/check",               label: "Permission Checker" },
-  { href: "/planning-tools",      label: "Planning Tools" },
+  { href: "/ask",                 label: "Ask a Question"     },
+  { href: "/planning-tools",      label: "Planning Tools"     },
   { href: "/find-a-professional", label: "Find a Professional" },
 ];
 
@@ -52,6 +59,7 @@ const DESKTOP_NAV = [
 const ALL_SIDEBAR_NAV = [
   { href: "/",                    label: "Home",                Icon: HomeIcon,      architectOnly: false },
   { href: "/check",               label: "Permission Checker",  Icon: CheckIcon,     architectOnly: false },
+  { href: "/ask",                 label: "Ask a Question",      Icon: AskIcon,       architectOnly: false },
   { href: "/planning-tools",      label: "Planning Tools",      Icon: ToolsIcon,     architectOnly: false },
   { href: "/find-a-professional", label: "Find a Professional", Icon: FindProIcon,   architectOnly: false },
   { href: "/dashboard",           label: "Dashboard",           Icon: DashboardIcon, architectOnly: true  },
@@ -78,7 +86,7 @@ export function AppShell({
 }) {
   const pathname                                    = usePathname();
   const router                                      = useRouter();
-  const { isLoggedIn, isArchitect, userEmail }      = useAuthStatus();
+  const { isLoggedIn, isArchitect, isPaid, userEmail } = useAuthStatus();
   const [drawerOpen, setDrawerOpen]                 = useState(false);
 
   const handleSignOut = useCallback(async () => {
@@ -161,7 +169,12 @@ export function AppShell({
           <div className="flex items-center gap-3">
             {isLoggedIn ? (
               <>
-                <span className="text-sm text-gray-500 max-w-[180px] truncate" title={userEmail ?? ""}>
+                {isPaid && !isArchitect && (
+                  <Link href="/my-planning" className="text-sm font-medium text-green-700 hover:text-green-800 transition-colors">
+                    My Portal
+                  </Link>
+                )}
+                <span className="text-sm text-gray-500 max-w-[160px] truncate" title={userEmail ?? ""}>
                   {userEmail}
                 </span>
                 <button

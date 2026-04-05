@@ -4,8 +4,6 @@ import { useState } from "react";
 import type { CheckStatusResult } from "@/app/api/check-status/route";
 import { AppShell } from "@/app/components/AppShell";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
-import { UpgradePrompt } from "@/app/components/UpgradePrompt";
-import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 
 const COUNTIES = [
   "Carlow", "Cavan", "Clare", "Cork City", "Cork County", "Donegal",
@@ -77,8 +75,6 @@ export default function StatusPage() {
   const [result, setResult] = useState<CheckStatusResult | null>(null);
   const [resultMeta, setResultMeta] = useState<{ ref: string; county: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const { isPaid, loading: authLoading } = useAuthStatus();
 
   // Monitor state
   const [showMonitor, setShowMonitor] = useState(false);
@@ -157,18 +153,6 @@ export default function StatusPage() {
     } finally {
       setMonitorLoading(false);
     }
-  }
-
-  // Gate: require paid subscription
-  if (!authLoading && !isPaid) {
-    return (
-      <AppShell>
-        <UpgradePrompt
-          feature="Application Status & Monitoring"
-          description="Enter your planning reference number and get a plain-English breakdown of exactly where you are in the process — plus email alerts when your status changes."
-        />
-      </AppShell>
-    );
   }
 
   return (

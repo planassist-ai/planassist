@@ -9,34 +9,75 @@ export default function Home() {
       <HomeNav />
 
       {/* ── Hero ──────────────────────────────────────────── */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24 lg:py-32 text-center">
-        <span className="inline-block bg-green-50 text-green-700 text-xs sm:text-sm font-medium px-3 sm:px-4 py-1.5 rounded-full border border-green-200 mb-6 sm:mb-8">
-          Built for the Irish planning system
-        </span>
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-5 sm:mb-6 tracking-tight text-gray-900">
-          Know if your project needs{" "}
-          <span className="text-green-600">planning permission</span>{" "}
-          in minutes
-        </h1>
-        <p className="text-base sm:text-lg lg:text-xl text-gray-500 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
-          Answer a few questions about your project and get a clear answer under Irish planning law —
-          extensions, new builds, retention, outbuildings, and more.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-          <Link
-            href="/check"
-            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3.5 rounded-xl text-base sm:text-lg font-semibold transition-colors"
-          >
-            Check If I Need Permission
-          </Link>
-          <Link
-            href="/planning-tools"
-            className="border border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-900 px-8 py-3.5 rounded-xl text-base sm:text-lg font-medium transition-colors"
-          >
-            See All Tools
-          </Link>
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-20 lg:py-24">
+        <div className="text-center mb-10 sm:mb-14">
+          <span className="inline-block bg-green-50 text-green-700 text-xs sm:text-sm font-medium px-3 sm:px-4 py-1.5 rounded-full border border-green-200 mb-4">
+            Built for the Irish planning system
+          </span>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-gray-900">
+            Your planning questions, answered.
+          </h1>
         </div>
-        <p className="mt-8 sm:mt-10 text-xs sm:text-sm text-gray-400">
+
+        {/* Two entry cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+
+          {/* Homeowner card — green */}
+          <div className="relative bg-green-600 rounded-2xl p-7 sm:p-8 flex flex-col overflow-hidden">
+            <div className="absolute inset-0 opacity-10 pointer-events-none">
+              <svg className="w-full h-full" viewBox="0 0 400 300" fill="none">
+                <circle cx="350" cy="-30" r="180" fill="white" />
+              </svg>
+            </div>
+            <div className="relative">
+              <p className="text-xs font-semibold text-green-200 uppercase tracking-widest mb-3">For homeowners</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 leading-snug">
+                Planning a project?
+              </h2>
+              <p className="text-green-100 text-sm sm:text-base leading-relaxed mb-7">
+                Check if you need permission, track your application, and understand every planning document in plain English.
+              </p>
+              <Link
+                href="/check"
+                className="inline-flex items-center gap-2 bg-white text-green-700 hover:bg-green-50 font-semibold px-5 py-3 rounded-xl text-sm sm:text-base transition-colors"
+              >
+                Get Started — it&apos;s free
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+
+          {/* Professional card — blue */}
+          <div className="relative bg-blue-700 rounded-2xl p-7 sm:p-8 flex flex-col overflow-hidden">
+            <div className="absolute inset-0 opacity-10 pointer-events-none">
+              <svg className="w-full h-full" viewBox="0 0 400 300" fill="none">
+                <circle cx="50" cy="330" r="200" fill="white" />
+              </svg>
+            </div>
+            <div className="relative">
+              <p className="text-xs font-semibold text-blue-200 uppercase tracking-widest mb-3">For professionals</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 leading-snug">
+                Managing planning applications?
+              </h2>
+              <p className="text-blue-100 text-sm sm:text-base leading-relaxed mb-7">
+                Pipeline dashboard, client portal, county intelligence and deadline alerts for Irish planning professionals.
+              </p>
+              <Link
+                href="/for-architects"
+                className="inline-flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50 font-semibold px-5 py-3 rounded-xl text-sm sm:text-base transition-colors"
+              >
+                See How It Works
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-6 text-center text-xs text-gray-400">
           Based on the Planning &amp; Development Acts 2000 &amp; 2024 · Updated for March 2026 exemptions
         </p>
       </section>

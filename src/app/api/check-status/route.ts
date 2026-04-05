@@ -1,7 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/rateLimit";
-import { resolveUserTier, unauthorized, paymentRequired } from "@/lib/authGuard";
 import {
   validatePlanningRef,
   validateAuthority,
@@ -66,10 +65,6 @@ export interface CheckStatusResult {
 export async function POST(request: NextRequest) {
   const rateLimitResponse = checkRateLimit(request);
   if (rateLimitResponse) return rateLimitResponse;
-
-  const tier = await resolveUserTier();
-  if (!tier) return unauthorized();
-  if (!tier.isPaid) return paymentRequired();
 
   try {
     const body: CheckStatusRequest = await request.json();
