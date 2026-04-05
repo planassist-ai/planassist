@@ -2,8 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 import { HomeNav } from "@/app/components/HomeNav";
 import { SiteFooter } from "@/app/components/SiteFooter";
+import { createClient } from "@/lib/supabase/browser";
 
 // ─── Suggested questions ──────────────────────────────────────────────────────
 
@@ -18,19 +20,137 @@ const SUGGESTED_QUESTIONS = [
   "Can I appeal a planning decision and how long do I have?",
 ];
 
+// ─── Markdown renderer ────────────────────────────────────────────────────────
+
+function PlanningAnswer({ content }: { content: string }) {
+  return (
+    <div className="planning-answer">
+      <ReactMarkdown
+        components={{
+          h1: ({ children }) => (
+            <h1 className="text-lg font-semibold text-gray-900 mt-5 mb-2 first:mt-0">{children}</h1>
+          ),
+          h2: ({ children }) => (
+            <h2 className="text-base font-semibold text-gray-900 mt-5 mb-2 first:mt-0">{children}</h2>
+          ),
+          h3: ({ children }) => (
+            <h3 className="text-sm font-semibold text-gray-800 mt-4 mb-1.5 first:mt-0">{children}</h3>
+          ),
+          p: ({ children }) => (
+            <p className="text-sm text-gray-700 leading-relaxed mb-3 last:mb-0">{children}</p>
+          ),
+          strong: ({ children }) => (
+            <strong className="font-semibold text-gray-900">{children}</strong>
+          ),
+          em: ({ children }) => (
+            <em className="italic text-gray-700">{children}</em>
+          ),
+          ul: ({ children }) => (
+            <ul className="mb-3 space-y-1.5 last:mb-0">{children}</ul>
+          ),
+          ol: ({ children }) => (
+            <ol className="mb-3 space-y-1.5 list-decimal list-inside last:mb-0">{children}</ol>
+          ),
+          li: ({ children }) => (
+            <li className="flex items-start gap-2.5 text-sm text-gray-700 leading-relaxed">
+              <span className="mt-2 w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+              <span>{children}</span>
+            </li>
+          ),
+          blockquote: ({ children }) => (
+            <blockquote className="border-l-2 border-green-300 pl-4 my-3 text-sm text-gray-600 italic">
+              {children}
+            </blockquote>
+          ),
+          hr: () => <hr className="border-gray-100 my-4" />,
+          a: ({ href, children }) => (
+            <a href={href} className="text-green-700 underline underline-offset-2 hover:text-green-800 transition-colors" target="_blank" rel="noopener noreferrer">
+              {children}
+            </a>
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
+}
+
+// ─── Feedback buttons ─────────────────────────────────────────────────────────
+
+function FeedbackButtons({ question, answer }: { question: string; answer: string }) {
+  const [voted, setVoted]     = useState<"up" | "down" | null>(null);
+  const [saving, setSaving]   = useState(false);
+
+  async function handleVote(vote: "up" | "down") {
+    if (voted || saving) return;
+    setSaving(true);
+    try {
+      const supabase = createClient();
+      await supabase.from("ask_feedback").insert({
+        question,
+        answer,
+        helpful: vote === "up",
+      });
+      setVoted(vote);
+    } catch {
+      // Fail silently — feedback is best-effort
+      setVoted(vote);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (voted) {
+    return (
+      <p className="text-xs text-gray-400">
+        {voted === "up" ? "Thanks — glad that was helpful." : "Thanks for the feedback. We'll use it to improve."}
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <span className="text-xs text-gray-400 mr-1">Was this helpful?</span>
+      <button
+        onClick={() => handleVote("up")}
+        disabled={saving}
+        className="flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 px-2 py-1 rounded-lg hover:bg-green-50 transition-colors disabled:opacity-50"
+        aria-label="Yes, helpful"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 10.203 4.167 9.75 5 9.75h1.053c.472 0 .745.556.5.96a8.958 8.958 0 00-1.302 4.665c0 1.194.232 2.333.654 3.375z" />
+        </svg>
+        Yes
+      </button>
+      <button
+        onClick={() => handleVote("down")}
+        disabled={saving}
+        className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+        aria-label="No, not helpful"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398C20.613 14.547 19.833 15 19 15h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 00.303-.54m.023-8.25H16.48a4.5 4.5 0 01-1.423-.23l-3.114-1.04a4.5 4.5 0 00-1.423-.23H6.504c-.618 0-1.217.247-1.605.729A11.95 11.95 0 002.25 12c0 .434.023.863.068 1.285C2.427 14.306 3.346 15 4.372 15h3.126c.618 0 .991.724.725 1.282A7.471 7.471 0 007.5 19.5a2.25 2.25 0 002.25 2.25.75.75 0 00.75-.75v-.633c0-.573.11-1.14.322-1.672.304-.76.93-1.33 1.653-1.715a9.04 9.04 0 002.86-2.4c.498-.634 1.226-1.08 2.032-1.08h.384" />
+        </svg>
+        No
+      </button>
+    </div>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AskPage() {
-  const [question, setQuestion]   = useState("");
-  const [answer,   setAnswer]     = useState("");
-  const [loading,  setLoading]    = useState(false);
-  const [error,    setError]      = useState<string | null>(null);
-  const [asked,    setAsked]      = useState(false);
+  const [question, setQuestion] = useState("");
+  const [answer,   setAnswer]   = useState("");
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState<string | null>(null);
+  const [asked,    setAsked]    = useState(false);
+  const [askedQuestion, setAskedQuestion] = useState("");
 
-  const answerRef  = useRef<HTMLDivElement>(null);
+  const answerRef   = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll to answer when it arrives
   useEffect(() => {
     if (answer && answerRef.current) {
       answerRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -45,6 +165,7 @@ export default function AskPage() {
     setLoading(true);
     setError(null);
     setAnswer("");
+    setAskedQuestion(q);
 
     try {
       const res = await fetch("/api/ask-planning", {
@@ -82,7 +203,7 @@ export default function AskPage() {
     setAnswer("");
     setError(null);
     setAsked(false);
-    textareaRef.current?.focus();
+    setTimeout(() => textareaRef.current?.focus(), 50);
   }
 
   return (
@@ -169,6 +290,7 @@ export default function AskPage() {
           {answer && (
             <div ref={answerRef} className="mb-8">
               <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+
                 {/* Answer header */}
                 <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-2.5">
                   <div className="w-6 h-6 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
@@ -179,18 +301,32 @@ export default function AskPage() {
                   <span className="text-sm font-semibold text-gray-700">Planning guidance</span>
                 </div>
 
-                {/* Answer body */}
+                {/* Answer body — rendered markdown */}
                 <div className="px-5 py-5">
-                  <div className="prose prose-sm prose-gray max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap">
-                    {answer}
-                  </div>
+                  <PlanningAnswer content={answer} />
                 </div>
 
                 {/* Disclaimer */}
-                <div className="px-5 py-3.5 bg-amber-50 border-t border-amber-100">
-                  <p className="text-xs text-amber-800 leading-relaxed">
-                    <strong>Guidance only.</strong> This is general planning information based on Irish planning law and policy. It is not legal advice and does not take the place of professional advice from a planning consultant or solicitor. Planning decisions depend on specific site circumstances, the current county development plan, and the judgement of the relevant planning authority.
-                    {" "}<Link href="/find-a-professional" className="underline underline-offset-2 hover:text-amber-900">Find a planning professional</Link> if you need detailed advice for your situation.
+                <div className="mx-5 mb-5 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3">
+                  <div className="flex items-start gap-2.5">
+                    <svg className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                      <strong>This is AI-generated guidance.</strong> Always verify with a registered architect or your local planning authority for complex or high-value projects.{" "}
+                      <Link href="/find-a-professional" className="underline underline-offset-2 hover:text-amber-900 transition-colors">
+                        Find a planning professional
+                      </Link>{" "}
+                      if your situation is complex.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Footer row — feedback + branding */}
+                <div className="px-5 pb-4 flex items-center justify-between gap-4 flex-wrap">
+                  <FeedbackButtons question={askedQuestion} answer={answer} />
+                  <p className="text-xs text-gray-300 shrink-0">
+                    Powered by Granted Planning Intelligence
                   </p>
                 </div>
               </div>
@@ -199,8 +335,11 @@ export default function AskPage() {
               <div className="mt-4 flex justify-center">
                 <button
                   onClick={handleNewQuestion}
-                  className="text-sm font-medium text-green-700 hover:text-green-800 underline underline-offset-2 transition-colors"
+                  className="flex items-center gap-2 text-sm font-medium text-green-700 hover:text-green-800 bg-white border border-green-200 hover:border-green-300 px-5 py-2.5 rounded-xl transition-colors shadow-sm"
                 >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                  </svg>
                   Ask another question
                 </button>
               </div>
@@ -227,7 +366,7 @@ export default function AskPage() {
             </div>
           )}
 
-          {/* Loading state with helpful message */}
+          {/* Loading state */}
           {loading && (
             <div className="mt-2 text-center">
               <p className="text-xs text-gray-400">Checking Irish planning law… usually takes 5–10 seconds</p>
@@ -242,10 +381,10 @@ export default function AskPage() {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  { label: "Permission Checker",           href: "/check",               desc: "Step-by-step assessment for your project type" },
-                  { label: "Document Interpreter",         href: "/interpreter",          desc: "Upload a planning document for a plain-English summary" },
-                  { label: "Planning Statement Generator", href: "/planning-statement",   desc: "Generate a professional planning statement" },
-                  { label: "County Intelligence",          href: "/check",                desc: "Approval rates and policy for your local council" },
+                  { label: "Permission Checker",           href: "/check",             desc: "Step-by-step assessment for your project type" },
+                  { label: "Document Interpreter",         href: "/interpreter",        desc: "Upload a planning document for a plain-English summary" },
+                  { label: "Planning Statement Generator", href: "/planning-statement", desc: "Generate a professional planning statement" },
+                  { label: "Application Status Checker",   href: "/status",             desc: "Understand where you are in the planning process" },
                 ].map(tool => (
                   <Link
                     key={tool.href + tool.label}
