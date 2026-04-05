@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/browser";
@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/browser";
 function LoginForm() {
   const router       = useRouter();
   const searchParams = useSearchParams();
-  const next         = searchParams.get("next") ?? "/planning-tools";
+  const next         = searchParams.get("next") ?? "/my-planning";
   const hasError     = searchParams.get("error") === "auth";
 
   const [email,    setEmail]    = useState("");
@@ -17,13 +17,6 @@ function LoginForm() {
   const [error,    setError]    = useState<string | null>(
     hasError ? "The login link was invalid or has expired. Please sign in again." : null
   );
-
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) router.replace(next);
-    });
-  }, [next, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

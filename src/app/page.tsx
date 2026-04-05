@@ -38,7 +38,7 @@ export default function Home() {
                 Check if you need permission, track your application, and understand every planning document in plain English.
               </p>
               <Link
-                href="/check"
+                href="/signup?type=homeowner"
                 className="inline-flex items-center gap-2 bg-white text-green-700 hover:bg-green-50 font-semibold px-5 py-3 rounded-xl text-sm sm:text-base transition-colors"
               >
                 Get Started — it&apos;s free

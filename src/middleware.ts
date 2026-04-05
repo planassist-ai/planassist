@@ -7,6 +7,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
+  const { pathname } = request.nextUrl;
+
+  // Pages that require authentication.
+  const isProtected =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/onboarding") ||
+    pathname.startsWith("/my-planning");
+
+  // Auth pages where a logged-in user should be bounced away.
+  const isAuthPage = pathname === "/login" || pathname === "/signup";
+
+  // For all other routes, skip the auth network call entirely — instant response.
+  if (!isProtected && !isAuthPage) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -30,20 +46,10 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session if expired — must be called before any redirect checks.
+  // Only fetch the user when we actually need it.
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
-
-  // Pages that require authentication (login redirect).
-  // Note: paid-feature pages (/interpreter, /status, /design-check, /planning-statement,
-  // /self-build) handle their own upgrade prompt — no middleware redirect needed there.
-  const isProtected =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/onboarding") ||
-    pathname.startsWith("/my-planning");
 
   if (!user && isProtected) {
     const loginUrl = new URL("/login", request.url);
@@ -51,9 +57,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Already logged in → send to /my-planning, which redirects architects onward to
-  // /dashboard. This handles both homeowners and architects landing on the login page.
-  if (user && (pathname === "/login" || pathname === "/signup")) {
+  // Already logged in → send to /my-planning, which routes architects to /dashboard.
+  if (user && isAuthPage) {
     return NextResponse.redirect(new URL("/my-planning", request.url));
   }
 
