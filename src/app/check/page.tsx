@@ -184,6 +184,7 @@ function YesNoToggle({ value, onChange }: { value: string; onChange: (v: string)
 }
 
 function CountyBadge({ county }: { county: string }) {
+  if (!county) return null;
   return (
     <div className="mb-5">
       <span className="inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 rounded-full px-3 py-1 text-xs font-medium">
@@ -199,7 +200,7 @@ function CountyBadge({ county }: { county: string }) {
 
 // ─── Flow Selector ─────────────────────────────────────────────────────────────
 
-function FlowSelector({ onSelect, county, onCountyChange }: { onSelect: (f: FlowType) => void; county: string; onCountyChange: (c: string) => void }) {
+function FlowSelector({ onSelect }: { onSelect: (f: FlowType) => void }) {
   const flows: { type: FlowType; title: string; desc: string; icon: React.ReactNode }[] = [
     {
       type: "new-build",
@@ -270,35 +271,10 @@ function FlowSelector({ onSelect, county, onCountyChange }: { onSelect: (f: Flow
         <p className="text-gray-500 text-sm sm:text-base leading-relaxed">Tell us what type of project you have in mind and we&apos;ll guide you through the relevant planning questions under current Irish planning law.</p>
       </div>
 
-      {/* County selector — shown first, prominent */}
-      <div className="mb-8 bg-green-50 border border-green-200 rounded-2xl p-5 sm:p-6">
-        <div className="flex items-start gap-3 mb-4">
-          <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center shrink-0 mt-0.5">
-            <svg className="w-4 h-4 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-gray-900">Which county is the property in?</p>
-            <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">Planning rules vary significantly by county in Ireland — your county affects the assessment and determines which local rules apply.</p>
-          </div>
-        </div>
-        <select
-          id="county-select"
-          value={county}
-          onChange={(e) => onCountyChange(e.target.value)}
-          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none cursor-pointer"
-        >
-          <option value="" disabled>Select a county…</option>
-          {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-      </div>
-
       <p className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">What are you planning to do?</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {flows.map(({ type, title, desc, icon }) => (
-          <button key={type} onClick={() => { if (!county) { document.getElementById("county-select")?.focus(); return; } onSelect(type); }} className="group text-left bg-white border border-gray-200 rounded-2xl p-5 hover:border-green-400 hover:shadow-md active:scale-[0.98] transition-all">
+          <button key={type} onClick={() => onSelect(type)} className="group text-left bg-white border border-gray-200 rounded-2xl p-5 hover:border-green-400 hover:shadow-md active:scale-[0.98] transition-all">
             <div className="w-12 h-12 rounded-xl bg-green-50 group-hover:bg-green-100 flex items-center justify-center text-green-600 mb-4 transition-colors">{icon}</div>
             <h2 className="text-base font-bold text-gray-900 mb-1.5">{title}</h2>
             <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
@@ -379,7 +355,15 @@ function NewBuildForm({ data, onChange, onBack, onSubmit, loading }: { data: For
 
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
 
-        <CountyIntelligencePanel county={data.county} />
+        {/* County */}
+        <div>
+          <label className={labelClass} htmlFor="nb-county">Which county is the property in? <span className="text-red-500">*</span></label>
+          <select id="nb-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          {data.county && <CountyIntelligencePanel county={data.county} />}
+        </div>
 
         {/* Settlement boundary question — gate for the rest of the form */}
         {data.county && (
@@ -526,6 +510,13 @@ function ExtensionForm({ data, onChange, onBack, onSubmit, loading }: { data: Fo
 
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
         <div>
+          <label className={labelClass} htmlFor="ext-county">Which county is the property in? <span className="text-red-500">*</span></label>
+          <select id="ext-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
           <label className={labelClass} htmlFor="ext-type">Type of extension <span className="text-red-500">*</span></label>
           <select id="ext-type" value={data.extensionType} onChange={(e) => onChange("extensionType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
             <option value="" disabled>Select…</option>
@@ -592,6 +583,13 @@ function ReplacementForm({ data, onChange, onBack, onSubmit, loading }: { data: 
       </div>
 
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
+        <div>
+          <label className={labelClass} htmlFor="rep-county">Which county is the property in? <span className="text-red-500">*</span></label>
+          <select id="rep-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
 
         <div>
           <label className={labelClass} htmlFor="rep-reason">Reason for replacement <span className="text-red-500">*</span></label>
@@ -643,6 +641,13 @@ function OutbuildingsForm({ data, onChange, onBack, onSubmit, loading }: { data:
         <p className="text-sm text-gray-500">Many small structures are exempt from planning permission under Irish planning regulations. This tool checks whether your proposed structure requires permission.</p>
       </div>
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
+        <div>
+          <label className={labelClass} htmlFor="ob-county">Which county is the property in? <span className="text-red-500">*</span></label>
+          <select id="ob-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
         <div>
           <label className={labelClass} htmlFor="ob-type">Type of structure <span className="text-red-500">*</span></label>
           <select id="ob-type" value={data.structureType} onChange={(e) => onChange("structureType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
@@ -708,6 +713,13 @@ function AppearanceForm({ data, onChange, onBack, onSubmit, loading }: { data: F
       </div>
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
         <div>
+          <label className={labelClass} htmlFor="ap-county">Which county is the property in? <span className="text-red-500">*</span></label>
+          <select id="ap-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
           <label className={labelClass} htmlFor="ap-type">Type of works <span className="text-red-500">*</span></label>
           <select id="ap-type" value={data.appearanceType} onChange={(e) => onChange("appearanceType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
             <option value="" disabled>Select…</option>
@@ -757,6 +769,13 @@ function AgriculturalForm({ data, onChange, onBack, onSubmit, loading }: { data:
       </div>
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
         <div>
+          <label className={labelClass} htmlFor="ag-county">Which county is the property in? <span className="text-red-500">*</span></label>
+          <select id="ag-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
           <label className={labelClass} htmlFor="ag-type">Type of works <span className="text-red-500">*</span></label>
           <select id="ag-type" value={data.agriculturalType} onChange={(e) => onChange("agriculturalType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
             <option value="" disabled>Select…</option>
@@ -801,6 +820,13 @@ function ChangeOfUseForm({ data, onChange, onBack, onSubmit, loading }: { data: 
         <p className="text-sm text-gray-500">Changing how a building is used often requires planning permission. This tool assesses whether your proposed change of use requires formal planning consent under Irish law.</p>
       </div>
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
+        <div>
+          <label className={labelClass} htmlFor="cu-county">Which county is the property in? <span className="text-red-500">*</span></label>
+          <select id="cu-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <label className={labelClass} htmlFor="cu-current">Current use of building <span className="text-red-500">*</span></label>
@@ -857,6 +883,13 @@ function OtherWorksForm({ data, onChange, onBack, onSubmit, loading }: { data: F
       </div>
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
         <div>
+          <label className={labelClass} htmlFor="ow-county">Which county is the property in? <span className="text-red-500">*</span></label>
+          <select id="ow-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
           <label className={labelClass} htmlFor="ow-desc">Describe the works you are proposing <span className="text-red-500">*</span></label>
           <textarea id="ow-desc" value={data.worksDescription} onChange={(e) => onChange("worksDescription", e.target.value)} rows={4} required placeholder="e.g. I want to create a new vehicular entrance from my rear garden onto a public road. The entrance would be gated and approximately 3m wide." className={inputClass + " resize-none leading-relaxed"} />
           <p className="mt-1.5 text-xs text-gray-400">Be as specific as possible — include the type of works, materials, dimensions, and location on your property.</p>
@@ -912,6 +945,13 @@ function RetentionForm({ data, onChange, onBack, onSubmit, loading }: { data: Fo
       </div>
 
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
+        <div>
+          <label className={labelClass} htmlFor="ret-county">Which county is the property in? <span className="text-red-500">*</span></label>
+          <select id="ret-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <label className={labelClass} htmlFor="ret-type">Type of works carried out <span className="text-red-500">*</span></label>
@@ -1005,6 +1045,13 @@ function ProtectedStructureForm({ data, onChange, onBack, onSubmit, loading }: {
       </div>
 
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
+        <div>
+          <label className={labelClass} htmlFor="ps-county">Which county is the property in? <span className="text-red-500">*</span></label>
+          <select id="ps-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+            <option value="" disabled>Select a county…</option>
+            {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <label className={labelClass} htmlFor="ps-works">Type of proposed works <span className="text-red-500">*</span></label>
@@ -1106,11 +1153,20 @@ function ResultPanel({ result, flowType, county, onReset }: { result: CheckPermi
         Start over
       </button>
       <div id="result" className={`rounded-2xl border ${config.card} p-5 sm:p-6 lg:p-8`}>
-        <div className="mb-4 sm:mb-5">
+        <div className="mb-4 sm:mb-5 flex items-center gap-2 flex-wrap">
           <span className={`inline-flex items-center gap-2 text-sm font-semibold px-3 py-1.5 rounded-full ${config.badge}`}>
             <span className={`w-2 h-2 rounded-full flex-shrink-0 ${config.dot}`} />
             {label}
           </span>
+          {county && (
+            <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 rounded-full px-3 py-1.5 text-sm font-medium">
+              <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+              Co. {county}
+            </span>
+          )}
         </div>
         <h2 className={`text-lg sm:text-xl font-bold mb-4 sm:mb-5 ${config.heading}`}>{result.headline}</h2>
         <div className={`text-sm leading-relaxed space-y-3 mb-6 sm:mb-7 ${config.bodyText}`}>
@@ -1298,7 +1354,7 @@ export default function CheckPage() {
           </div>
         )}
 
-        {step === "select" && <FlowSelector onSelect={handleFlowSelect} county={formData.county} onCountyChange={(c) => handleFieldChange("county", c)} />}
+        {step === "select" && <FlowSelector onSelect={handleFlowSelect} />}
 
         {step === "form" && flowType === "new-build" && (
           <NewBuildForm data={formData} onChange={handleFieldChange} onBack={handleBack} onSubmit={handleSubmit} loading={loading} />
