@@ -854,6 +854,7 @@ export default function SelfBuildPage() {
         <UpgradePrompt
           feature="Self-Build Tracker"
           description="Track your entire self-build journey from planning grant to completion — milestones, checklists, bank drawdown documents, and portal links in one place."
+          redirectTo="/self-build"
         />
       </AppShell>
     );

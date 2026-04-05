@@ -706,6 +706,7 @@ export default function DashboardPage() {
           feature="Architect Dashboard"
           description="The full pipeline management dashboard is available on the Architect subscription — manage applications, client updates, deadlines, and notice generation in one place."
           tier="architect"
+          redirectTo="/dashboard"
         />
       </div>
     );

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useAuthStatus } from "@/app/hooks/useAuthStatus";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1435,7 +1437,39 @@ interface CountyIntelPanelProps {
 }
 
 export function CountyIntelPanel({ county, className = "", isPaid = false }: CountyIntelPanelProps) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen]           = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError]     = useState<string | null>(null);
+  const { isLoggedIn }            = useAuthStatus();
+  const pathname                  = usePathname();
+  const searchParams              = useSearchParams();
+  const currentPath               = searchParams.toString()
+    ? `${pathname}?${searchParams.toString()}`
+    : pathname;
+
+  async function handleUpgradeCheckout() {
+    setCheckoutLoading(true);
+    setCheckoutError(null);
+    try {
+      const res = await fetch("/api/create-checkout", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          priceId:    "price_1TG5pE1P7njYP3N2t0xrbpR4",
+          redirectTo: currentPath,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error((data as { error?: string }).error ?? "Failed to start checkout.");
+      }
+      const { url } = await res.json() as { url: string };
+      window.location.href = url;
+    } catch (err) {
+      setCheckoutError(err instanceof Error ? err.message : "Something went wrong.");
+      setCheckoutLoading(false);
+    }
+  }
 
   if (!county) return null;
 
@@ -1520,12 +1554,32 @@ export function CountyIntelPanel({ county, className = "", isPaid = false }: Cou
                       <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
                         Full Co. {data.countyName} planning intelligence included with Granted — €39 per application, one-off payment.
                       </p>
-                      <Link
-                        href="/interpreter"
-                        className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors"
-                      >
-                        Get full access — €39 per application
-                      </Link>
+                      {checkoutError && (
+                        <p className="mt-1.5 text-xs text-red-600">{checkoutError}</p>
+                      )}
+                      {!isLoggedIn ? (
+                        <Link
+                          href={`/signup?next=${encodeURIComponent(currentPath)}`}
+                          className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                          Get full access — €39 per application
+                        </Link>
+                      ) : (
+                        <button
+                          onClick={handleUpgradeCheckout}
+                          disabled={checkoutLoading}
+                          className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          {checkoutLoading ? (
+                            <>
+                              <span className="w-3 h-3 border border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                              Redirecting…
+                            </>
+                          ) : (
+                            "Get full access — €39 per application"
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

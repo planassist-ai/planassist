@@ -12,6 +12,8 @@ interface UpgradePromptProps {
   description: string;
   /** "paid" (default) = homeowner/any subscription. "architect" = architect subscription only. */
   tier?: "paid" | "architect";
+  /** Relative path to redirect to after successful payment. Defaults to /planning-tools. */
+  redirectTo?: string;
 }
 
 const PAID_FEATURES = [
@@ -36,11 +38,11 @@ const ARCHITECT_FEATURES = [
   "Client update notifications and communication tools",
 ];
 
-async function startCheckout(priceId: string): Promise<void> {
+async function startCheckout(priceId: string, redirectTo?: string): Promise<void> {
   const res = await fetch("/api/create-checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ priceId }),
+    body: JSON.stringify({ priceId, ...(redirectTo ? { redirectTo } : {}) }),
   });
 
   if (!res.ok) {
@@ -52,7 +54,7 @@ async function startCheckout(priceId: string): Promise<void> {
   window.location.href = url;
 }
 
-export function UpgradePrompt({ feature, description, tier = "paid" }: UpgradePromptProps) {
+export function UpgradePrompt({ feature, description, tier = "paid", redirectTo }: UpgradePromptProps) {
   const [loading, setLoading] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
@@ -60,7 +62,7 @@ export function UpgradePrompt({ feature, description, tier = "paid" }: UpgradePr
     setLoading(priceId);
     setCheckoutError(null);
     try {
-      await startCheckout(priceId);
+      await startCheckout(priceId, redirectTo);
     } catch (err) {
       setCheckoutError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setLoading(null);

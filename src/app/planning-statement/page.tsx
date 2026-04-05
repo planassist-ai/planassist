@@ -228,6 +228,7 @@ export default function PlanningStatementPage() {
         <UpgradePrompt
           feature="Planning Statement Generator"
           description="Generate a professionally worded planning statement draft in minutes — then refine with your planning consultant before submission."
+          redirectTo="/planning-statement"
         />
       </AppShell>
     );

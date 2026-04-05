@@ -149,6 +149,7 @@ export default function DesignCheckPage() {
         <UpgradePrompt
           feature="Design Guide Checker"
           description="Upload a photo, sketch, or elevation and get instant AI analysis of your design against your county's published planning design guidelines — before you submit."
+          redirectTo="/design-check"
         />
       </AppShell>
     );

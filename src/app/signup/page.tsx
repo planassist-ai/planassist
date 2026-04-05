@@ -9,6 +9,11 @@ function SignupForm() {
   const router       = useRouter();
   const searchParams = useSearchParams();
   const isArchitect  = searchParams.get("type") === "architect";
+  // Optional post-signup redirect — validated to relative paths only.
+  const nextRaw      = searchParams.get("next") ?? "";
+  const nextPath     = nextRaw.startsWith("/") && !nextRaw.startsWith("//") && nextRaw.length <= 300
+    ? nextRaw
+    : "/planning-tools";
 
   const [email,           setEmail]           = useState("");
   const [password,        setPassword]        = useState("");
@@ -35,7 +40,7 @@ function SignupForm() {
     const supabase = createClient();
     const callbackUrl = isArchitect
       ? `${window.location.origin}/auth/callback?next=/planning-tools&type=architect`
-      : `${window.location.origin}/auth/callback?next=/planning-tools`;
+      : `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
     const { data, error: authError } = await supabase.auth.signUp({
       email,
@@ -53,7 +58,7 @@ function SignupForm() {
     }
 
     if (data.session) {
-      router.push("/planning-tools");
+      router.push(nextPath);
       return;
     }
 

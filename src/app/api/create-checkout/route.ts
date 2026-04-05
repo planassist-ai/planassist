@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const priceId: unknown = body?.priceId;
     const email: string = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+    const redirectToRaw: unknown = body?.redirectTo;
 
     if (typeof priceId !== "string" || !PRICE_CONFIG[priceId]) {
       return badRequest("Invalid or missing price ID.");
@@ -31,6 +32,16 @@ export async function POST(request: NextRequest) {
       return badRequest("Please provide a valid email address.");
     }
 
+    // Validate redirectTo: must be a relative path (starts with / but not //)
+    // to prevent open-redirect attacks.
+    const redirectTo =
+      typeof redirectToRaw === "string" &&
+      redirectToRaw.startsWith("/") &&
+      !redirectToRaw.startsWith("//") &&
+      redirectToRaw.length <= 300
+        ? redirectToRaw
+        : null;
+
     const { mode } = PRICE_CONFIG[priceId];
 
     // Use the request origin so the redirect works in both dev and production.
@@ -38,6 +49,11 @@ export async function POST(request: NextRequest) {
       request.headers.get("origin") ??
       process.env.NEXT_PUBLIC_SITE_URL ??
       "http://localhost:3000";
+
+    // Build the success URL — include the post-payment redirect if provided.
+    const successUrl = redirectTo
+      ? `${origin}/success?session_id={CHECKOUT_SESSION_ID}&redirect=${encodeURIComponent(redirectTo)}`
+      : `${origin}/success?session_id={CHECKOUT_SESSION_ID}`;
 
     const session = await stripe.checkout.sessions.create({
       mode,
@@ -49,7 +65,7 @@ export async function POST(request: NextRequest) {
       metadata: { email },
       // Subscriptions: create a customer record in Stripe for future billing.
       ...(mode === "subscription" ? { customer_creation: "always" } : {}),
-      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: successUrl,
       cancel_url: `${origin}/`,
     });
 

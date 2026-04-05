@@ -256,6 +256,7 @@ export default function InterpreterPage() {
         <UpgradePrompt
           feature="Document Interpreter"
           description="Upload or paste any Irish planning document — an RFI, planning conditions, third party observation, or appeal decision — and get a plain-English breakdown with prioritised actions and deadlines."
+          redirectTo="/interpreter"
         />
       </AppShell>
     );

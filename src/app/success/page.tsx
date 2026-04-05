@@ -44,7 +44,26 @@ async function confirmPayment(sessionId: string): Promise<{ email: string | null
   return { email };
 }
 
-async function SuccessContent({ sessionId }: { sessionId: string }) {
+/** Validate a post-payment redirect: must be a relative path, not an open redirect. */
+function safeRedirect(raw: string | undefined): string {
+  if (
+    typeof raw === "string" &&
+    raw.startsWith("/") &&
+    !raw.startsWith("//") &&
+    raw.length <= 300
+  ) {
+    return raw;
+  }
+  return "/planning-tools";
+}
+
+async function SuccessContent({
+  sessionId,
+  redirectTo,
+}: {
+  sessionId: string;
+  redirectTo: string;
+}) {
   const { email, error } = await confirmPayment(sessionId);
 
   if (error) {
@@ -60,10 +79,10 @@ async function SuccessContent({ sessionId }: { sessionId: string }) {
           {error} Your access will be activated automatically. If it doesn&apos;t appear within a few minutes, please contact us.
         </p>
         <Link
-          href="/dashboard"
+          href={redirectTo}
           className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl text-sm transition-colors"
         >
-          Go to dashboard
+          Continue
         </Link>
       </div>
     );
@@ -89,7 +108,7 @@ async function SuccessContent({ sessionId }: { sessionId: string }) {
       )}
 
       <p className="text-sm text-gray-500 mb-8 max-w-sm mx-auto">
-        Your account has full access to all Granted features. Sign in to get started.
+        Your account now has full access to all Granted features.
       </p>
 
       {/* Feature highlights */}
@@ -115,10 +134,10 @@ async function SuccessContent({ sessionId }: { sessionId: string }) {
       </div>
 
       <Link
-        href="/dashboard"
+        href={redirectTo}
         className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-3.5 px-8 rounded-xl text-sm transition-colors"
       >
-        Go to dashboard
+        Continue
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
         </svg>
@@ -130,9 +149,10 @@ async function SuccessContent({ sessionId }: { sessionId: string }) {
 export default async function SuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ session_id?: string }>;
+  searchParams: Promise<{ session_id?: string; redirect?: string }>;
 }) {
-  const { session_id: sessionId } = await searchParams;
+  const { session_id: sessionId, redirect } = await searchParams;
+  const redirectTo = safeRedirect(redirect);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
@@ -144,7 +164,7 @@ export default async function SuccessPage({
               <p className="text-sm text-gray-500">Confirming your payment…</p>
             </div>
           }>
-            <SuccessContent sessionId={sessionId} />
+            <SuccessContent sessionId={sessionId} redirectTo={redirectTo} />
           </Suspense>
         ) : (
           <div className="text-center">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/app/components/AppShell";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
@@ -145,6 +146,23 @@ const HOMEOWNER_TOOLS: Tool[] = [
 // ── CTAs ───────────────────────────────────────────────────────────────────────
 
 function HomeownerToolCTA({ href, isPaid, isLoggedIn }: { href: string; isPaid: boolean; isLoggedIn: boolean }) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleCheckout() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/create-checkout", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ priceId: "price_1TG5pE1P7njYP3N2t0xrbpR4", redirectTo: href }),
+      });
+      const data = await res.json() as { url?: string; error?: string };
+      if (data.url) window.location.href = data.url;
+    } catch {
+      setLoading(false);
+    }
+  }
+
   if (isPaid) {
     return (
       <Link
@@ -158,13 +176,76 @@ function HomeownerToolCTA({ href, isPaid, isLoggedIn }: { href: string; isPaid: 
       </Link>
     );
   }
+
+  if (!isLoggedIn) {
+    return (
+      <Link
+        href={`/signup?next=${encodeURIComponent(href)}`}
+        className="mt-4 inline-flex items-center justify-center gap-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+      >
+        Sign up — €39 per application
+      </Link>
+    );
+  }
+
   return (
-    <Link
-      href="/signup"
-      className="mt-4 inline-flex items-center justify-center gap-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+    <button
+      onClick={handleCheckout}
+      disabled={loading}
+      className="mt-4 inline-flex items-center justify-center gap-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
     >
-      {isLoggedIn ? "Upgrade — €39 per application" : "Sign Up — €39 per application"}
-    </Link>
+      {loading ? (
+        <>
+          <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          Redirecting…
+        </>
+      ) : (
+        "Upgrade — €39 per application"
+      )}
+    </button>
+  );
+}
+
+function UpgradeBanner({ isLoggedIn }: { isLoggedIn: boolean }) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleCheckout() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/create-checkout", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ priceId: "price_1TG5pE1P7njYP3N2t0xrbpR4", redirectTo: "/planning-tools" }),
+      });
+      const data = await res.json() as { url?: string };
+      if (data.url) window.location.href = data.url;
+    } catch {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="bg-green-50 border border-green-200 rounded-2xl px-5 py-4 mb-6 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
+      <p className="text-sm text-green-800 flex-1 leading-relaxed">
+        <strong>€39 per application — one-off payment.</strong> Covers your full planning journey for this project, from permission check to final decision. Not a subscription.
+      </p>
+      {isLoggedIn ? (
+        <button
+          onClick={handleCheckout}
+          disabled={loading}
+          className="shrink-0 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors text-center disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {loading ? "Redirecting…" : "Upgrade now — €39 per application"}
+        </button>
+      ) : (
+        <Link
+          href="/signup?next=/planning-tools"
+          className="shrink-0 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors text-center"
+        >
+          Get started — €39 per application
+        </Link>
+      )}
+    </div>
   );
 }
 
@@ -231,17 +312,7 @@ export default function PlanningToolsPage() {
           </div>
 
           {!isPaid && !loading && (
-            <div className="bg-green-50 border border-green-200 rounded-2xl px-5 py-4 mb-6 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
-              <p className="text-sm text-green-800 flex-1 leading-relaxed">
-                <strong>€39 per application — one-off payment.</strong> Covers your full planning journey for this project, from permission check to final decision. Not a subscription.
-              </p>
-              <Link
-                href="/signup"
-                className="shrink-0 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors text-center"
-              >
-                {isLoggedIn ? "Upgrade now — €39 per application" : "Get started — €39 per application"}
-              </Link>
-            </div>
+            <UpgradeBanner isLoggedIn={isLoggedIn} />
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

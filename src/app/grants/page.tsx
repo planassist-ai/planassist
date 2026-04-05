@@ -526,6 +526,7 @@ export default function GrantsPage() {
               <UpgradePrompt
                 feature="Full SEAI Grants Checker"
                 description="See key conditions for each grant, Warmer Homes eligibility details, and direct application links at seai.ie."
+                redirectTo="/grants"
               />
             )}
 
