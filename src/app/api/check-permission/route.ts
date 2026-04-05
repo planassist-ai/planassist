@@ -57,9 +57,18 @@ Regardless of local needs, planners also assess:
 - Water supply
 - Flood risk
 
+SETTLEMENT BOUNDARY APPLICATIONS:
+If the applicant has confirmed the site is WITHIN a defined town or village settlement boundary (as per the county development plan), local needs criteria do NOT apply. The application is assessed purely on standard planning merits:
+- Consistency with the county/local area development plan zoning
+- Urban design quality and visual impact
+- Access, road safety, and services
+- Plot size relative to context and density
+- Protected structure / ACA status if relevant
+In settlement boundary cases, omit all local needs commentary. Most dwellings within defined settlements have a reasonable prospect of permission if the design and siting are appropriate. Use EXEMPT to indicate a strong case, LIKELY_NEEDS_PERMISSION for cases with some design or siting challenges, and DEFINITELY_NEEDS_PERMISSION only where planning merits are very poor.
+
 Since planning permission is always required for new builds, your task is to assess the LIKELIHOOD OF SUCCESS and key conditions:
-- Use EXEMPT if the applicant appears to strongly meet local needs criteria (family land + strong local connection)
-- Use LIKELY_NEEDS_PERMISSION if there is a possible case but challenges exist (only one local needs criterion met, moderate county, purchased site with some connection)
+- Use EXEMPT if the applicant appears to strongly meet local needs criteria (family land + strong local connection) OR for settlement boundary cases with a strong standard planning case
+- Use LIKELY_NEEDS_PERMISSION if there is a possible case but challenges exist (only one local needs criterion met, moderate county, purchased site with some connection, or settlement case with design/siting issues)
 - Use DEFINITELY_NEEDS_PERMISSION if the case appears very difficult (no local needs met, strict county, purchased site, etc.)
 
 Note: EXEMPT here means "strong case for obtaining permission" not "permission is not needed" — permission is always needed. Frame your response accordingly.
@@ -516,6 +525,7 @@ interface CheckPermissionRequest {
   flowType: "new-build" | "extension" | "replacement" | "outbuildings" | "appearance" | "agricultural" | "change-of-use" | "other-works" | "retention" | "protected-structure";
   county: string;
   // New Build
+  withinSettlementBoundary?: string;
   siteType?: string;
   fromLocalArea?: string;
   livedWithin5km?: string;
@@ -591,11 +601,30 @@ Galway has varied policy. Gaeltacht areas (Connemara, South Galway) have special
 // ─── Message builders ──────────────────────────────────────────────────────────
 
 function buildNewBuildMessage(body: CheckPermissionRequest): string {
-  const localNeedsYesNo = (v?: string) => v === "yes" ? "Yes" : v === "no" ? "No" : "Not answered";
   const countyNote = COUNTY_SPECIAL_NOTES[body.county] ?? "";
-  return `Please assess the following rural housing planning application in Ireland:
+
+  // Settlement boundary path — no local needs assessment required
+  if (body.withinSettlementBoundary === "yes") {
+    return `Please assess the following new dwelling planning application in Ireland.
+
+IMPORTANT: The site is WITHIN a defined town or village settlement boundary. Local needs criteria do NOT apply. Assess on standard planning merits only.
 
 County: ${body.county}
+Site location: Within a defined town/village settlement boundary
+Approximate site size: ${body.siteSize ? body.siteSize + " sqm" : "Not specified"}
+Additional details: ${body.additionalDetails || "None provided"}
+${countyNote ? `\n${countyNote}\n` : ""}
+Assess this application for a new dwelling within a defined settlement boundary in ${body.county} County. Focus on standard planning merits (zoning, design, access, services) — do not apply or discuss local needs criteria.`;
+  }
+
+  // Rural path — full local needs assessment
+  const localNeedsYesNo = (v?: string) => v === "yes" ? "Yes" : v === "no" ? "No" : "Not answered";
+  return `Please assess the following rural housing planning application in Ireland.
+
+IMPORTANT: The site is OUTSIDE any defined settlement boundary — a full local needs assessment applies.
+
+County: ${body.county}
+Site location: Outside any defined town/village settlement boundary (rural site)
 Site type: ${body.siteType === "family-land" ? "Family landholding (land has been in family)" : body.siteType === "purchased" ? "Purchased site" : "Not specified"}
 Approximate site size: ${body.siteSize ? body.siteSize + " sqm" : "Not specified"}
 

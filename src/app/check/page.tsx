@@ -26,6 +26,7 @@ interface CheckPermissionResult {
 
 interface FormData {
   county: string;
+  withinSettlementBoundary: string;
   siteType: string;
   fromLocalArea: string;
   livedWithin5km: string;
@@ -65,7 +66,7 @@ interface FormData {
 }
 
 const EMPTY_FORM: FormData = {
-  county: "", siteType: "", fromLocalArea: "", livedWithin5km: "",
+  county: "", withinSettlementBoundary: "", siteType: "", fromLocalArea: "", livedWithin5km: "",
   canProveConnection: "", withinFamilyLandholding: "", siteSize: "",
   extensionType: "", currentHouseSize: "", extensionSize: "",
   protectedStructure: "", replacementReason: "", currentCondition: "",
@@ -338,10 +339,14 @@ function CountyIntelligencePanel({ county }: { county: string }) {
 // ─── New Build Form ────────────────────────────────────────────────────────────
 
 function NewBuildForm({ data, onChange, onBack, onSubmit, loading }: { data: FormData; onChange: (f: keyof FormData, v: string) => void; onBack: () => void; onSubmit: (e: React.FormEvent) => void; loading: boolean }) {
-  const anyAnswered = data.fromLocalArea !== "" || data.livedWithin5km !== "";
-  const criticalFail = data.fromLocalArea === "no" && data.livedWithin5km === "no";
+  const inSettlement   = data.withinSettlementBoundary === "yes";
+  const inRural        = data.withinSettlementBoundary === "no";
+  const boundarySet    = data.withinSettlementBoundary !== "";
+
+  const anyAnswered    = data.fromLocalArea !== "" || data.livedWithin5km !== "";
+  const criticalFail   = data.fromLocalArea === "no" && data.livedWithin5km === "no";
   const purchasedNotFamily = data.siteType === "purchased" && data.withinFamilyLandholding === "no";
-  const showWarning = anyAnswered && (criticalFail || purchasedNotFamily);
+  const showWarning    = inRural && anyAnswered && (criticalFail || purchasedNotFamily);
 
   return (
     <div>
@@ -353,10 +358,12 @@ function NewBuildForm({ data, onChange, onBack, onSubmit, loading }: { data: For
           </span>
           <h2 className="text-xl font-bold text-gray-900">New Build</h2>
         </div>
-        <p className="text-sm text-gray-500">Planning permission is always required for a new dwelling in Ireland. This tool assesses your likely eligibility under rural housing guidelines and your county&apos;s development plan.</p>
+        <p className="text-sm text-gray-500">Planning permission is always required for a new dwelling in Ireland. This tool assesses your likely eligibility based on your county&apos;s development plan and, where applicable, rural housing guidelines.</p>
       </div>
 
       <form onSubmit={onSubmit} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 space-y-6 shadow-sm">
+
+        {/* County */}
         <div>
           <label className={labelClass} htmlFor="nb-county">County <span className="text-red-500">*</span></label>
           <select id="nb-county" value={data.county} onChange={(e) => onChange("county", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
@@ -366,42 +373,81 @@ function NewBuildForm({ data, onChange, onBack, onSubmit, loading }: { data: For
           {data.county && <CountyIntelligencePanel county={data.county} />}
         </div>
 
-        <div>
-          <label className={labelClass} htmlFor="nb-site-type">Site type <span className="text-red-500">*</span></label>
-          <select id="nb-site-type" value={data.siteType} onChange={(e) => onChange("siteType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
-            <option value="" disabled>Select…</option>
-            <option value="family-land">Family landholding — land has been in my family</option>
-            <option value="purchased">Purchased site — I bought or intend to buy this land</option>
-          </select>
-        </div>
+        {/* Settlement boundary question — gate for the rest of the form */}
+        {data.county && (
+          <div>
+            <label className={labelClass}>Is your site within a defined town or village boundary? <span className="text-red-500">*</span></label>
+            <p className="text-xs text-gray-400 mb-2">
+              Local needs requirements only apply to one-off rural houses <strong>outside</strong> defined settlement boundaries. If your site is within a town or village as set out in the county development plan, standard planning criteria apply and a local needs assessment is not required.
+            </p>
+            <YesNoToggle value={data.withinSettlementBoundary} onChange={(v) => onChange("withinSettlementBoundary", v)} />
 
-        <div className="space-y-5 pt-1">
-          <div className="border-b border-gray-100 pb-3">
-            <h3 className="text-sm font-semibold text-gray-700">Local Needs Assessment</h3>
-            <p className="text-xs text-gray-400 mt-1">Most counties apply a local needs test to rural housing applications. Answer honestly — this helps assess your likely eligibility.</p>
-          </div>
-          <div>
-            <label className={labelClass}>Are you from the local area? <span className="text-red-500">*</span></label>
-            <p className="text-xs text-gray-400 mb-1">Born, raised, or with strong family roots in the townland or surrounding area.</p>
-            <YesNoToggle value={data.fromLocalArea} onChange={(v) => onChange("fromLocalArea", v)} />
-          </div>
-          <div>
-            <label className={labelClass}>Have you lived within 5 km of the site for the required period? <span className="text-red-500">*</span></label>
-            <p className="text-xs text-gray-400 mb-1">Most county development plans require at least 5 of the last 10 years.</p>
-            <YesNoToggle value={data.livedWithin5km} onChange={(v) => onChange("livedWithin5km", v)} />
-          </div>
-          <div>
-            <label className={labelClass}>Can you prove your local connection? <span className="text-red-500">*</span></label>
-            <p className="text-xs text-gray-400 mb-1">e.g. employment locally, family dependents nearby, utility bills, school enrolment.</p>
-            <YesNoToggle value={data.canProveConnection} onChange={(v) => onChange("canProveConnection", v)} />
-          </div>
-          <div>
-            <label className={labelClass}>Is the proposed site within your family&apos;s landholding? <span className="text-red-500">*</span></label>
-            <p className="text-xs text-gray-400 mb-1">Land owned by you or a close family member for a sustained period.</p>
-            <YesNoToggle value={data.withinFamilyLandholding} onChange={(v) => onChange("withinFamilyLandholding", v)} />
-          </div>
-        </div>
+            {/* Meath-specific note */}
+            {data.county === "Meath" && boundarySet && (
+              <div className="mt-3 rounded-lg bg-blue-50 border border-blue-100 p-3">
+                <p className="text-xs text-blue-800 leading-relaxed">
+                  <strong>Note for Meath:</strong> Town centres including Ratoath, Trim, Kells, and Dunshaughlin are within defined settlement boundaries and do not require a local needs assessment. Check the Meath County Development Plan settlement hierarchy to confirm the classification of your site.
+                </p>
+              </div>
+            )}
 
+            {/* General settlement note */}
+            {inSettlement && (
+              <div className="mt-3 rounded-lg bg-green-50 border border-green-200 p-3">
+                <p className="text-xs text-green-800 leading-relaxed">
+                  <strong>Good news:</strong> Sites within defined settlement boundaries are assessed on standard planning merits — design, access, services, and consistency with zoning — not on local needs. Planning permission is still required, but the local needs test does not apply.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Rural-only: site type */}
+        {inRural && (
+          <div>
+            <label className={labelClass} htmlFor="nb-site-type">Site type <span className="text-red-500">*</span></label>
+            <select id="nb-site-type" value={data.siteType} onChange={(e) => onChange("siteType", e.target.value)} required className={inputClass + " appearance-none cursor-pointer"}>
+              <option value="" disabled>Select…</option>
+              <option value="family-land">Family landholding — land has been in my family</option>
+              <option value="purchased">Purchased site — I bought or intend to buy this land</option>
+            </select>
+          </div>
+        )}
+
+        {/* Rural-only: local needs section */}
+        {inRural && (
+          <div className="space-y-5 pt-1">
+            <div className="border-b border-gray-100 pb-3">
+              <h3 className="text-sm font-semibold text-gray-700">Local Needs Assessment</h3>
+              <p className="text-xs text-gray-400 mt-1">Most counties apply a local needs test to rural one-off housing applications. Answer honestly — this helps assess your likely eligibility.</p>
+              <p className="text-xs text-gray-400 mt-1">
+                <strong>Note:</strong> Local needs requirements vary by county development plan and apply specifically to one-off rural houses outside defined settlement boundaries. They are intended to restrict urban-generated housing demand in the countryside while supporting genuine rural communities.
+              </p>
+            </div>
+            <div>
+              <label className={labelClass}>Are you from the local area? <span className="text-red-500">*</span></label>
+              <p className="text-xs text-gray-400 mb-1">Born, raised, or with strong family roots in the townland or surrounding area.</p>
+              <YesNoToggle value={data.fromLocalArea} onChange={(v) => onChange("fromLocalArea", v)} />
+            </div>
+            <div>
+              <label className={labelClass}>Have you lived within 5 km of the site for the required period? <span className="text-red-500">*</span></label>
+              <p className="text-xs text-gray-400 mb-1">Most county development plans require at least 5 of the last 10 years.</p>
+              <YesNoToggle value={data.livedWithin5km} onChange={(v) => onChange("livedWithin5km", v)} />
+            </div>
+            <div>
+              <label className={labelClass}>Can you prove your local connection? <span className="text-red-500">*</span></label>
+              <p className="text-xs text-gray-400 mb-1">e.g. employment locally, family dependents nearby, utility bills, school enrolment.</p>
+              <YesNoToggle value={data.canProveConnection} onChange={(v) => onChange("canProveConnection", v)} />
+            </div>
+            <div>
+              <label className={labelClass}>Is the proposed site within your family&apos;s landholding? <span className="text-red-500">*</span></label>
+              <p className="text-xs text-gray-400 mb-1">Land owned by you or a close family member for a sustained period.</p>
+              <YesNoToggle value={data.withinFamilyLandholding} onChange={(v) => onChange("withinFamilyLandholding", v)} />
+            </div>
+          </div>
+        )}
+
+        {/* Rural-only: local needs warning */}
         {showWarning && (
           <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 flex gap-3">
             <svg className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -418,20 +464,34 @@ function NewBuildForm({ data, onChange, onBack, onSubmit, loading }: { data: For
           </div>
         )}
 
-        <div>
-          <label className={labelClass} htmlFor="nb-size">Approximate site size (square metres) <span className="text-red-500">*</span></label>
-          <input id="nb-size" type="number" min="100" max="500000" step="1" value={data.siteSize} onChange={(e) => onChange("siteSize", e.target.value)} required placeholder="e.g. 2000" className={inputClass} />
-          <p className="mt-1.5 text-xs text-gray-400">Typical rural sites are 0.2–1 acre (800–4,000 sqm). Larger sites may raise concerns about land subdivision.</p>
-        </div>
+        {/* Site size — shown once boundary question is answered */}
+        {boundarySet && (
+          <div>
+            <label className={labelClass} htmlFor="nb-size">Approximate site size (square metres) <span className="text-red-500">*</span></label>
+            <input id="nb-size" type="number" min="100" max="500000" step="1" value={data.siteSize} onChange={(e) => onChange("siteSize", e.target.value)} required placeholder="e.g. 2000" className={inputClass} />
+            <p className="mt-1.5 text-xs text-gray-400">
+              {inRural
+                ? "Typical rural sites are 0.2–1 acre (800–4,000 sqm). Larger sites may raise concerns about land subdivision."
+                : "Typical urban sites are 200–600 sqm. Planning authorities will consider plot size in relation to the proposed dwelling."}
+            </p>
+          </div>
+        )}
 
-        <div>
-          <label className={labelClass} htmlFor="nb-details">Additional details <span className="text-gray-400 font-normal">(optional)</span></label>
-          <textarea id="nb-details" value={data.additionalDetails} onChange={(e) => onChange("additionalDetails", e.target.value)} rows={3} placeholder="e.g. Planning for a family of four. Site has road frontage and access to mains water. Close to the nearest village." className={inputClass + " resize-none leading-relaxed"} />
-        </div>
+        {/* Additional details — shown once boundary question is answered */}
+        {boundarySet && (
+          <div>
+            <label className={labelClass} htmlFor="nb-details">Additional details <span className="text-gray-400 font-normal">(optional)</span></label>
+            <textarea id="nb-details" value={data.additionalDetails} onChange={(e) => onChange("additionalDetails", e.target.value)} rows={3} placeholder={inSettlement ? "e.g. Infill site on Main Street. Two-storey detached house proposed. Existing dwelling to be demolished." : "e.g. Planning for a family of four. Site has road frontage and access to mains water. Close to the nearest village."} className={inputClass + " resize-none leading-relaxed"} />
+          </div>
+        )}
 
-        <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 sm:py-3.5 px-6 rounded-xl transition-colors text-sm">
-          {loading ? <><Spinner />Analysing your project…</> : "Check planning eligibility"}
-        </button>
+        {/* Submit — only once boundary question is answered */}
+        {boundarySet && (
+          <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 sm:py-3.5 px-6 rounded-xl transition-colors text-sm">
+            {loading ? <><Spinner />Analysing your project…</> : "Check planning eligibility"}
+          </button>
+        )}
+
       </form>
     </div>
   );

@@ -4,9 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 
 const NAV_ITEMS = [
-  { label: "Permission Checker", href: "/check" },
-  { label: "Planning Tools",     href: "/planning-tools" },
-  { label: "Find a Professional",href: "/find-a-professional" },
+  { label: "Permission Checker",   href: "/check"               },
+  { label: "Ask a Question",       href: "/ask"                 },
+  { label: "Planning Tools",       href: "/planning-tools"      },
+  { label: "Find a Professional",  href: "/find-a-professional" },
 ];
 
 export function HomeNav() {
