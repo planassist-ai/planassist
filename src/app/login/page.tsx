@@ -54,22 +54,11 @@ function LoginForm() {
 
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
 
-          {/* Value prop banner */}
-          <div className="bg-green-50 border-b border-green-100 px-7 py-4">
-            <p className="text-sm font-semibold text-green-800 mb-0.5">
-              Access all planning tools
-            </p>
-            <p className="text-xs text-green-700 leading-relaxed">
-              Permission Checker, Document Interpreter, Planning Statement Generator and more.
-              Homeowners — €39 per application, one-off payment. Architects — €99/month.
-            </p>
-          </div>
-
           <div className="p-7 sm:p-8">
             <div className="mb-6">
-              <h1 className="text-xl font-bold text-gray-900 mb-1">Sign in to Granted</h1>
+              <h1 className="text-xl font-bold text-gray-900 mb-1">Welcome back</h1>
               <p className="text-sm text-gray-500">
-                Enter your email and password to continue.
+                Sign in to your Granted account.
               </p>
             </div>
 
@@ -132,7 +121,13 @@ function LoginForm() {
               </button>
             </form>
 
-            <p className="mt-5 text-xs text-gray-400 text-center leading-relaxed">
+            <p className="mt-4 text-center">
+              <Link href="/forgot-password" className="text-sm text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors">
+                Forgot your password?
+              </Link>
+            </p>
+
+            <p className="mt-4 text-xs text-gray-400 text-center leading-relaxed">
               By signing in you agree to our{" "}
               <Link href="/terms" className="underline underline-offset-2 hover:text-gray-600 transition-colors">Terms of Service</Link>
               {" "}and{" "}

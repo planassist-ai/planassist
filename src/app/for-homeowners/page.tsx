@@ -13,11 +13,11 @@ export default function ForHomeownersPage() {
           <span className="inline-flex items-center gap-1.5 bg-green-500/40 text-green-100 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-400/50 mb-6 sm:mb-8">
             Built for Irish homeowners
           </span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-4 tracking-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6 tracking-tight">
             Planning permission made simple.
           </h1>
           <p className="text-lg sm:text-xl text-green-100 max-w-2xl mb-8 sm:mb-10 leading-relaxed">
-            Plain English answers for Irish homeowners.
+            Because planning permission is stressful enough without confusing letters, endless waiting, and not knowing what happens next.
           </p>
           <Link
             href="/signup?type=homeowner"
@@ -36,10 +36,10 @@ export default function ForHomeownersPage() {
       <section className="border-t border-gray-100 py-14 sm:py-20 lg:py-24 bg-gray-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-3 text-gray-900">
-            Everything you need in one place
+            Stop guessing. Start knowing.
           </h2>
-          <p className="text-gray-500 text-center mb-10 sm:mb-14 text-sm sm:text-base">
-            From checking if you need permission to understanding every document you receive.
+          <p className="text-gray-500 text-center mb-10 sm:mb-14 text-sm sm:text-base max-w-xl mx-auto">
+            You shouldn&apos;t need an architect to understand your own planning application. Granted gives you the answers — in plain English, right now.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
 
@@ -52,7 +52,7 @@ export default function ForHomeownersPage() {
               </div>
               <h3 className="text-base font-bold text-gray-900 mb-2">Permission Checker</h3>
               <p className="text-sm text-gray-500 leading-relaxed flex-1">
-                Find out instantly whether your project — an extension, shed, attic conversion or new build — needs planning permission or qualifies as exempt development under Irish law.
+                Do I need planning permission? It&apos;s the first question everyone asks and the hardest one to get a straight answer on. Tell us about your project and we&apos;ll tell you — clearly, without jargon, in under a minute.
               </p>
               <Link href="/check" className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
                 Check my project
@@ -71,7 +71,7 @@ export default function ForHomeownersPage() {
               </div>
               <h3 className="text-base font-bold text-gray-900 mb-2">Document Interpreter</h3>
               <p className="text-sm text-gray-500 leading-relaxed flex-1">
-                Received a letter from the council? Upload a Further Information Request, planning conditions, or decision notice and get a plain-English breakdown of exactly what it means and what to do next.
+                Got a letter from the council and no idea what it actually means? Upload it. We&apos;ll translate the planning-speak into plain English and tell you exactly what you need to do, and by when.
               </p>
               <Link href="/interpreter" className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
                 Interpret a document
@@ -90,7 +90,7 @@ export default function ForHomeownersPage() {
               </div>
               <h3 className="text-base font-bold text-gray-900 mb-2">Application Monitoring</h3>
               <p className="text-sm text-gray-500 leading-relaxed flex-1">
-                Already submitted? Track your planning application through every stage of the Irish process — validation, assessment, decision — with plain-English status updates and alerts when anything changes.
+                The waiting is the worst part. Weeks go by and you have no idea if anything is actually happening. Track your application stage by stage and get a plain-English explanation of what each step actually means for your project.
               </p>
               <Link href="/status" className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
                 Track my application
@@ -108,10 +108,10 @@ export default function ForHomeownersPage() {
       <section className="border-t border-gray-100 py-14 sm:py-20 bg-white">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-3 text-gray-900">
-            Ready to get started?
+            You deserve a straight answer.
           </h2>
           <p className="text-gray-500 text-sm sm:text-base mb-8 leading-relaxed">
-            Create a free account to save your results, track your application, and get notified when your status changes.
+            Create a free account to save your results, track your application, and stop wondering what happens next.
           </p>
           <Link
             href="/signup?type=homeowner"

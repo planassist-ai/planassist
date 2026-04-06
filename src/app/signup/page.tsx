@@ -5,15 +5,110 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/browser";
 
+// ── Role selector ──────────────────────────────────────────────────────────────
+
+function RoleSelector() {
+  const router = useRouter();
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12">
+      <div className="w-full max-w-2xl">
+
+        <div className="text-center mb-10">
+          <Link href="/" className="text-2xl font-bold text-green-600 tracking-tight">
+            Granted
+          </Link>
+          <h1 className="mt-6 text-2xl sm:text-3xl font-bold text-gray-900">
+            Welcome to Granted — who are you?
+          </h1>
+          <p className="mt-2 text-sm text-gray-500">We&apos;ll set up the right account for you.</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          {/* Homeowner card */}
+          <button
+            onClick={() => router.push("/signup?type=homeowner")}
+            className="group text-left bg-white border-2 border-gray-200 hover:border-green-400 rounded-2xl p-7 transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          >
+            <div className="w-12 h-12 rounded-xl bg-green-50 group-hover:bg-green-100 flex items-center justify-center mb-5 transition-colors">
+              <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-green-700 transition-colors">
+              I am a homeowner planning a project
+            </h2>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              Check if you need permission, track your application, and understand every planning document in plain English.
+            </p>
+            <div className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-green-600">
+              Get started free
+              <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </div>
+          </button>
+
+          {/* Architect card */}
+          <button
+            onClick={() => router.push("/signup?type=architect")}
+            className="group text-left bg-white border-2 border-gray-200 hover:border-blue-400 rounded-2xl p-7 transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            <div className="w-12 h-12 rounded-xl bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center mb-5 transition-colors">
+              <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">
+              I am an architect or planning professional
+            </h2>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              Pipeline dashboard, RFI assistant, client updates, and deadline alerts across your entire practice.
+            </p>
+            <div className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600">
+              Request access
+              <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </div>
+          </button>
+
+        </div>
+
+        <p className="mt-6 text-center text-sm text-gray-500">
+          Already have an account?{" "}
+          <Link href="/login" className="text-green-600 hover:text-green-700 font-medium underline underline-offset-2 transition-colors">
+            Sign in
+          </Link>
+        </p>
+
+      </div>
+    </div>
+  );
+}
+
+// ── Signup form ────────────────────────────────────────────────────────────────
+
 function SignupForm() {
   const router       = useRouter();
   const searchParams = useSearchParams();
-  const isArchitect  = searchParams.get("type") === "architect";
+  const typeParam    = searchParams.get("type");
+  const isArchitect  = typeParam === "architect";
+  const isHomeowner  = typeParam === "homeowner";
+  const hasRole      = isArchitect || isHomeowner;
+
+  // Show role selector if no type param is present
+  if (!hasRole) {
+    return <RoleSelector />;
+  }
+
+  const defaultNext  = isArchitect ? "/dashboard" : "/my-planning";
   // Optional post-signup redirect — validated to relative paths only.
   const nextRaw      = searchParams.get("next") ?? "";
   const nextPath     = nextRaw.startsWith("/") && !nextRaw.startsWith("//") && nextRaw.length <= 300
     ? nextRaw
-    : "/planning-tools";
+    : defaultNext;
 
   const [email,           setEmail]           = useState("");
   const [password,        setPassword]        = useState("");
@@ -39,7 +134,7 @@ function SignupForm() {
 
     const supabase = createClient();
     const callbackUrl = isArchitect
-      ? `${window.location.origin}/auth/callback?next=/planning-tools&type=architect`
+      ? `${window.location.origin}/auth/callback?next=/dashboard&type=architect`
       : `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
     const { data, error: authError } = await supabase.auth.signUp({
@@ -103,17 +198,17 @@ function SignupForm() {
           ) : (
             /* ── Signup form ── */
             <>
-              {/* Architect context banner */}
-              {isArchitect && (
-                <div className="bg-blue-50 border-b border-blue-100 px-7 py-4">
-                  <p className="text-sm font-semibold text-blue-800 mb-0.5">
-                    Architect &amp; Planning Professional account
-                  </p>
-                  <p className="text-xs text-blue-700 leading-relaxed">
-                    30-day free trial · Pipeline dashboard, RFI assistant, client updates, deadline alerts, and more.
-                  </p>
-                </div>
-              )}
+              {/* Role context banner */}
+              <div className={`border-b px-7 py-4 ${isArchitect ? "bg-blue-50 border-blue-100" : "bg-green-50 border-green-100"}`}>
+                <p className={`text-sm font-semibold mb-0.5 ${isArchitect ? "text-blue-800" : "text-green-800"}`}>
+                  {isArchitect ? "Architect & Planning Professional account" : "Homeowner account"}
+                </p>
+                <p className={`text-xs leading-relaxed ${isArchitect ? "text-blue-700" : "text-green-700"}`}>
+                  {isArchitect
+                    ? "30-day free trial · Pipeline dashboard, RFI assistant, client updates, deadline alerts, and more."
+                    : "Free to get started · Check permissions, track your application, and understand every document."}
+                </p>
+              </div>
 
               <div className="p-7 sm:p-8">
                 <div className="mb-6">
@@ -202,7 +297,16 @@ function SignupForm() {
                   </button>
                 </form>
 
-                <p className="mt-5 text-xs text-gray-400 text-center leading-relaxed">
+                <p className="mt-4 text-center">
+                  <button
+                    onClick={() => router.push("/signup")}
+                    className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+                  >
+                    ← Change role
+                  </button>
+                </p>
+
+                <p className="mt-4 text-xs text-gray-400 text-center leading-relaxed">
                   By signing up you agree to our{" "}
                   <Link href="/terms" className="underline underline-offset-2 hover:text-gray-600 transition-colors">Terms of Service</Link>
                   {" "}and{" "}
