@@ -93,29 +93,32 @@ function RoleSelector() {
 function SignupForm() {
   const router       = useRouter();
   const searchParams = useSearchParams();
-  const typeParam    = searchParams.get("type");
-  const isArchitect  = typeParam === "architect";
-  const isHomeowner  = typeParam === "homeowner";
-  const hasRole      = isArchitect || isHomeowner;
 
-  // Show role selector if no type param is present
-  if (!hasRole) {
-    return <RoleSelector />;
-  }
-
-  const defaultNext  = isArchitect ? "/dashboard" : "/my-planning";
-  // Optional post-signup redirect — validated to relative paths only.
-  const nextRaw      = searchParams.get("next") ?? "";
-  const nextPath     = nextRaw.startsWith("/") && !nextRaw.startsWith("//") && nextRaw.length <= 300
-    ? nextRaw
-    : defaultNext;
-
+  // All hooks must be declared before any conditional returns.
   const [email,           setEmail]           = useState("");
   const [password,        setPassword]        = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading,         setLoading]         = useState(false);
   const [error,           setError]           = useState<string | null>(null);
   const [sent,            setSent]            = useState(false);
+
+  // Derived values (not hooks — safe to compute anywhere).
+  const typeParam   = searchParams.get("type");
+  const isArchitect = typeParam === "architect";
+  const isHomeowner = typeParam === "homeowner";
+  const hasRole     = isArchitect || isHomeowner;
+
+  // Early return after all hooks.
+  if (!hasRole) {
+    return <RoleSelector />;
+  }
+
+  const defaultNext = isArchitect ? "/dashboard" : "/my-planning";
+  // Optional post-signup redirect — validated to relative paths only.
+  const nextRaw     = searchParams.get("next") ?? "";
+  const nextPath    = nextRaw.startsWith("/") && !nextRaw.startsWith("//") && nextRaw.length <= 300
+    ? nextRaw
+    : defaultNext;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
