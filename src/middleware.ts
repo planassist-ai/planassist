@@ -12,8 +12,7 @@ export async function middleware(request: NextRequest) {
   // Pages that require authentication.
   const isProtected =
     pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/onboarding") ||
-    pathname.startsWith("/my-planning");
+    pathname.startsWith("/onboarding");
 
   // Auth pages where a logged-in user should be bounced away.
   const isAuthPage = pathname === "/login" || pathname === "/signup";
@@ -57,9 +56,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Already logged in → send to /my-planning, which routes architects to /dashboard.
+  // Already logged in → send to homepage.
   if (user && isAuthPage) {
-    return NextResponse.redirect(new URL("/my-planning", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return supabaseResponse;

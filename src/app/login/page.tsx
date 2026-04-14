@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/browser";
 function LoginForm() {
   const router       = useRouter();
   const searchParams = useSearchParams();
-  const next         = searchParams.get("next") ?? "/my-planning";
+  const next         = searchParams.get("next") ?? "/";
   const hasError     = searchParams.get("error") === "auth";
 
   const [email,    setEmail]    = useState("");

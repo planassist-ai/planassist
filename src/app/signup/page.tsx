@@ -113,7 +113,7 @@ function SignupForm() {
     return <RoleSelector />;
   }
 
-  const defaultNext = isArchitect ? "/dashboard" : "/my-planning";
+  const defaultNext = isArchitect ? "/dashboard" : "/";
   // Optional post-signup redirect — validated to relative paths only.
   const nextRaw     = searchParams.get("next") ?? "";
   const nextPath    = nextRaw.startsWith("/") && !nextRaw.startsWith("//") && nextRaw.length <= 300

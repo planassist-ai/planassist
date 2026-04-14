@@ -84,7 +84,7 @@ export function AppShell({
   onBack?: () => void;
 }) {
   const pathname                                    = usePathname();
-  const { isLoggedIn, isArchitect, isPaid, userEmail } = useAuthStatus();
+  const { isLoggedIn, isArchitect, userEmail } = useAuthStatus();
   const [drawerOpen, setDrawerOpen]                 = useState(false);
 
   const avatarLetter = userEmail ? userEmail[0].toUpperCase() : null;
@@ -160,11 +160,6 @@ export function AppShell({
           <div className="flex items-center gap-3">
             {isLoggedIn ? (
               <>
-                {isPaid && !isArchitect && (
-                  <Link href="/my-planning" className="text-sm font-medium text-green-700 hover:text-green-800 transition-colors">
-                    My Portal
-                  </Link>
-                )}
                 <span className="text-sm text-gray-500 max-w-[160px] truncate" title={userEmail ?? ""}>
                   {userEmail}
                 </span>
