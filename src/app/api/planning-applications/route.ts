@@ -1,4 +1,3 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import {
   validatePlanningRef,
@@ -13,17 +12,8 @@ import { resolveUserTier, unauthorized, architectOnly } from "@/lib/authGuard";
 //          council (text), status (text), submission_date (date), deadline_date (date),
 //          notes (text), last_updated (timestamptz), practice_id (uuid), user_id (uuid)
 
-// Use service role key to bypass RLS — auth is already verified via resolveUserTier()
-function supabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapRow(row: Record<string, any>) {
-  // Generate a stable portal token from the reference since there is no portal_token column
   const portalToken = row.reference
     ? (row.reference as string).toLowerCase().replace(/\//g, "-")
     : row.id;
@@ -40,7 +30,6 @@ function mapRow(row: Record<string, any>) {
     notes:            row.notes         as string | undefined,
     updatedAt:        row.last_updated  as string | undefined,
     portalToken,
-    // Fields not stored in DB — set safe defaults
     hasRFI:           false,
     projectDescription: "",
   };
@@ -59,7 +48,7 @@ export async function GET() {
   if (!tier.isArchitect) return architectOnly();
 
   try {
-    const { data, error } = await supabase()
+    const { data, error } = await tier.db
       .from("applications")
       .select("*")
       .eq("user_id", tier.userId)
@@ -89,12 +78,12 @@ export async function POST(request: NextRequest) {
       referenceNumber,
       clientName,
       address,
-      propertyAddress, // accept either key
+      propertyAddress,
       council,
       status,
       submissionDate,
       statutoryDeadline,
-      deadlineDate,     // accept either key
+      deadlineDate,
       practiceId,
     } = body;
 
@@ -130,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     const deadline = (deadlineDate ?? statutoryDeadline)?.trim() || addDays(subDate, 56);
 
-    const { data, error } = await supabase()
+    const { data, error } = await tier.db
       .from("applications")
       .insert({
         reference:       ref,

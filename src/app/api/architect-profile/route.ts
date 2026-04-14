@@ -1,17 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { resolveUserTier, unauthorized, architectOnly } from "@/lib/authGuard";
-
-// Supabase table: practices
-// Columns: id (uuid), name (text), architect_email (text), created_at (timestamptz)
-
-// Use service role key to bypass RLS — auth is already verified via resolveUserTier()
-function supabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapRow(row: Record<string, any>) {
@@ -23,16 +11,17 @@ function mapRow(row: Record<string, any>) {
   };
 }
 
-// GET /api/architect-profile — return the first practice (single-tenant)
+// GET /api/architect-profile — return the first practice for this architect
 export async function GET() {
   const tier = await resolveUserTier();
   if (!tier) return unauthorized();
   if (!tier.isArchitect) return architectOnly();
 
   try {
-    const { data, error } = await supabase()
+    const { data, error } = await tier.db
       .from("practices")
       .select("id, name, architect_email, created_at")
+      .eq("architect_email", tier.email)
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
@@ -62,11 +51,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "practiceName is required." }, { status: 400 });
     }
 
-    const { data, error } = await supabase()
+    const { data, error } = await tier.db
       .from("practices")
       .insert({
         name:            practiceName.trim(),
-        architect_email: architectEmail?.trim() || null,
+        architect_email: architectEmail?.trim() || tier.email,
       })
       .select("id, name, architect_email, created_at")
       .single();

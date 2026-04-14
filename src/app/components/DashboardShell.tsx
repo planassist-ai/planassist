@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   // Shell chrome
   Bell, ChevronDown, Plus, LogOut, ExternalLink, Mail,
@@ -368,19 +368,26 @@ function DropdownItem({
     </>
   );
 
-  if (onClick) {
-    return <button className={cls} onClick={onClick}>{inner}</button>;
+  // Internal nav link — use Next.js Link so it stays in the SPA without a full reload
+  if (href && !external) {
+    return (
+      <Link href={href} className={cls} onClick={onClick}>
+        {inner}
+      </Link>
+    );
   }
-  return (
-    <a
-      href={href ?? "#"}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noopener noreferrer" : undefined}
-      className={cls}
-    >
-      {inner}
-    </a>
-  );
+
+  // External link (mailto, https)
+  if (href && external) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={cls} onClick={onClick}>
+        {inner}
+      </a>
+    );
+  }
+
+  // No href — button only (e.g. Invite a Colleague opens a modal)
+  return <button className={cls} onClick={onClick}>{inner}</button>;
 }
 
 // ─── Invite Colleague Modal ──────────────────────────────────────────────────────
@@ -466,7 +473,6 @@ export function DashboardShell({
   breadcrumb,
 }: DashboardShellProps) {
   const pathname  = usePathname();
-  const router    = useRouter();
   const { userEmail } = useAuthStatus();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -487,9 +493,9 @@ export function DashboardShell({
   const handleSignOut = useCallback(async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  }, [router]);
+    // Use window.location for a hard redirect so all client state is cleared
+    window.location.href = "/";
+  }, []);
 
   const avatarInitial = isDemoMode ? "M" : userEmail ? userEmail[0].toUpperCase() : "A";
   const avatarBg      = isDemoMode ? "bg-amber-500" : "bg-blue-700";

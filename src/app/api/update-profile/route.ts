@@ -1,14 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { resolveUserTier, unauthorized, architectOnly } from "@/lib/authGuard";
-
-// Use service role key to bypass RLS — auth verified via resolveUserTier()
-function supabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
 
 // PATCH /api/update-profile — update architect profile fields
 export async function PATCH(request: NextRequest) {
@@ -28,22 +19,21 @@ export async function PATCH(request: NextRequest) {
       email_alerts,
     } = body;
 
-    // Build update payload — only include provided fields
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const profileUpdate: Record<string, any> = {};
-    if (full_name !== undefined)       profileUpdate.full_name       = full_name?.trim() ?? null;
-    if (practice_name !== undefined)   profileUpdate.practice_name   = practice_name?.trim() ?? null;
-    if (county !== undefined)          profileUpdate.county          = county?.trim() ?? null;
-    if (num_architects !== undefined)  profileUpdate.num_architects  = num_architects;
-    if (specialisms !== undefined)     profileUpdate.specialisms     = specialisms;
+    if (full_name !== undefined)        profileUpdate.full_name        = full_name?.trim()       ?? null;
+    if (practice_name !== undefined)    profileUpdate.practice_name    = practice_name?.trim()   ?? null;
+    if (county !== undefined)           profileUpdate.county           = county?.trim()          ?? null;
+    if (num_architects !== undefined)   profileUpdate.num_architects   = num_architects;
+    if (specialisms !== undefined)      profileUpdate.specialisms      = specialisms;
     if (counties_covered !== undefined) profileUpdate.counties_covered = counties_covered;
-    if (email_alerts !== undefined)    profileUpdate.email_alerts    = email_alerts;
+    if (email_alerts !== undefined)     profileUpdate.email_alerts     = email_alerts;
 
     if (Object.keys(profileUpdate).length === 0) {
       return NextResponse.json({ error: "No fields provided." }, { status: 400 });
     }
 
-    const { error: profileError } = await supabase()
+    const { error: profileError } = await tier.db
       .from("profiles")
       .update(profileUpdate)
       .eq("id", tier.userId);
@@ -55,7 +45,7 @@ export async function PATCH(request: NextRequest) {
 
     // Also update the practices table name if practice_name was provided
     if (practice_name !== undefined) {
-      await supabase()
+      await tier.db
         .from("practices")
         .update({ name: practice_name?.trim() ?? "" })
         .eq("architect_email", tier.email);
@@ -75,9 +65,9 @@ export async function GET() {
   if (!tier.isArchitect) return architectOnly();
 
   try {
-    const { data: profile, error } = await supabase()
+    const { data: profile, error } = await tier.db
       .from("profiles")
-      .select("full_name, practice_name, county, num_architects, specialisms, counties_covered, email_alerts, email")
+      .select("full_name, practice_name, county, num_architects, specialisms, counties_covered, email_alerts")
       .eq("id", tier.userId)
       .maybeSingle();
 
@@ -88,14 +78,14 @@ export async function GET() {
 
     return NextResponse.json({
       profile: {
-        full_name:        profile?.full_name        ?? "",
-        practice_name:    profile?.practice_name    ?? "",
-        county:           profile?.county           ?? "",
+        full_name:        (profile as { full_name?: string } | null)?.full_name        ?? "",
+        practice_name:    (profile as { practice_name?: string } | null)?.practice_name    ?? "",
+        county:           (profile as { county?: string } | null)?.county           ?? "",
         email:            tier.email,
-        num_architects:   profile?.num_architects   ?? 1,
-        specialisms:      profile?.specialisms       ?? [],
-        counties_covered: profile?.counties_covered ?? [],
-        email_alerts:     profile?.email_alerts     ?? true,
+        num_architects:   (profile as { num_architects?: number } | null)?.num_architects   ?? 1,
+        specialisms:      (profile as { specialisms?: string[] } | null)?.specialisms       ?? [],
+        counties_covered: (profile as { counties_covered?: string[] } | null)?.counties_covered ?? [],
+        email_alerts:     (profile as { email_alerts?: boolean } | null)?.email_alerts     ?? true,
       },
     });
   } catch (err) {

@@ -1,4 +1,3 @@
-import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -9,20 +8,7 @@ import {
 } from "@/lib/validation";
 import { resolveUserTier, unauthorized, architectOnly } from "@/lib/authGuard";
 
-// Supabase table: applications
-// Columns: id (uuid), reference (text), client_name (text), address (text),
-//          council (text), status (text), submission_date (date), deadline_date (date),
-//          notes (text), last_updated (timestamptz), practice_id (uuid)
-
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-// Use service role key to bypass RLS — auth is already verified via resolveUserTier()
-function supabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapRow(row: Record<string, any>) {
@@ -82,7 +68,7 @@ export async function PATCH(
     }
 
     // Fetch existing record — filter by user_id to enforce ownership
-    const { data: existing, error: fetchError } = await supabase()
+    const { data: existing, error: fetchError } = await tier.db
       .from("applications")
       .select("*")
       .eq("id", id)
@@ -95,7 +81,6 @@ export async function PATCH(
 
     const previousStatus = existing.status;
 
-    // Build update payload — only include provided fields
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updatePayload: Record<string, any> = {
       last_updated: new Date().toISOString(),
@@ -103,7 +88,7 @@ export async function PATCH(
     if (status !== undefined) updatePayload.status = status.trim();
     if (notes !== undefined) updatePayload.notes  = notes;
 
-    const { data, error } = await supabase()
+    const { data, error } = await tier.db
       .from("applications")
       .update(updatePayload)
       .eq("id", id)
@@ -118,10 +103,9 @@ export async function PATCH(
 
     // Send architect alert when status first moves to Further Information Requested
     if (status === "further_info" && previousStatus !== "further_info") {
-      // Prefer architect_email from practices table; fall back to env var
-      let alertEmail: string | undefined = process.env.ARCHITECT_ALERT_EMAIL;
+      let alertEmail: string | undefined = process.env.ARCHITECT_ALERT_EMAIL ?? tier.email;
       if (existing.practice_id) {
-        const { data: practice } = await supabase()
+        const { data: practice } = await tier.db
           .from("practices")
           .select("architect_email")
           .eq("id", existing.practice_id)
@@ -154,13 +138,8 @@ export async function PATCH(
             ].join("\n"),
           });
         } catch (emailErr) {
-          // Non-fatal — status was still saved
           console.error("FI alert email failed:", emailErr);
         }
-      } else {
-        console.warn(
-          "No architect email found (set ARCHITECT_ALERT_EMAIL in .env.local or add architect_email to the practices table)."
-        );
       }
     }
 
