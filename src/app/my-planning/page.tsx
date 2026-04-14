@@ -248,11 +248,8 @@ export default function MyPlanningPage() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
+  function handleLogout() {
+    window.location.href = "/api/auth/logout";
   }
 
   const displayName = userName || userEmail?.split("@")[0] || "there";

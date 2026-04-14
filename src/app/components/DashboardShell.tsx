@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -19,7 +19,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
-import { createClient } from "@/lib/supabase/browser";
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
@@ -490,18 +489,6 @@ export function DashboardShell({
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, []);
 
-  const handleSignOut = useCallback(async () => {
-    try {
-      const supabase = createClient();
-      await supabase.auth.signOut();
-    } catch {
-      // ignore signOut errors — still redirect to clear client state
-    }
-    // Hard redirect: forces a full page reload so all Supabase client state,
-    // cookies, and cached auth are cleared. Do NOT use router.push here.
-    window.location.href = "/";
-  }, []);
-
   const avatarInitial = isDemoMode ? "M" : userEmail ? userEmail[0].toUpperCase() : "A";
   const avatarBg      = isDemoMode ? "bg-amber-500" : "bg-blue-700";
 
@@ -615,7 +602,7 @@ export function DashboardShell({
 
                 <div className="border-t border-gray-100 py-1">
                   <button
-                    onClick={() => { setDropdownOpen(false); handleSignOut(); }}
+                    onClick={() => { window.location.href = "/api/auth/logout"; }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                   >
                     <LogOut className="w-[15px] h-[15px] shrink-0" strokeWidth={1.75} />

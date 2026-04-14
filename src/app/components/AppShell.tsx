@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { SiteFooter } from "./SiteFooter";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
-import { createClient } from "@/lib/supabase/browser";
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
 
@@ -85,16 +84,8 @@ export function AppShell({
   onBack?: () => void;
 }) {
   const pathname                                    = usePathname();
-  const router                                      = useRouter();
   const { isLoggedIn, isArchitect, isPaid, userEmail } = useAuthStatus();
   const [drawerOpen, setDrawerOpen]                 = useState(false);
-
-  const handleSignOut = useCallback(async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  }, [router]);
 
   const avatarLetter = userEmail ? userEmail[0].toUpperCase() : null;
 
@@ -178,7 +169,7 @@ export function AppShell({
                   {userEmail}
                 </span>
                 <button
-                  onClick={handleSignOut}
+                  onClick={() => { window.location.href = "/api/auth/logout"; }}
                   className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
                 >
                   Sign out
@@ -237,7 +228,7 @@ export function AppShell({
                   <span className="text-xs text-gray-600 truncate min-w-0" title={userEmail ?? ""}>{userEmail}</span>
                 </div>
                 <button
-                  onClick={handleSignOut}
+                  onClick={() => { window.location.href = "/api/auth/logout"; }}
                   className="w-full text-left text-xs text-gray-400 hover:text-gray-700 px-1 transition-colors"
                 >
                   Sign out
@@ -332,7 +323,7 @@ export function AppShell({
                     <span className="text-xs text-gray-600 truncate min-w-0" title={userEmail ?? ""}>{userEmail}</span>
                   </div>
                   <button
-                    onClick={() => { handleSignOut(); setDrawerOpen(false); }}
+                    onClick={() => { window.location.href = "/api/auth/logout"; }}
                     className="w-full text-left text-sm text-gray-500 hover:text-gray-800 px-1 transition-colors"
                   >
                     Sign out
