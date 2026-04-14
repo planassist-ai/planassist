@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { CountyIntelPanel } from "@/app/components/CountyIntelPanel";
 import { LegalDisclaimer } from "@/app/components/LegalDisclaimer";
-import { GrantsDashboardWidget } from "@/app/components/GrantsAlert";
 import { UpgradePrompt } from "@/app/components/UpgradePrompt";
 import { calculatePlanningFee, DEV_TYPES, euro, type DevTypeKey, type FeeResult } from "@/lib/planningFee";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
@@ -327,7 +326,7 @@ function Spinner({ className }: { className?: string }) {
 // ─── Shared form styles ────────────────────────────────────────────────────────
 
 const inputCls =
-  "w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors";
+  "w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors";
 const labelCls = "block text-sm font-medium text-gray-700 mb-1.5";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -493,7 +492,7 @@ export default function DashboardPage() {
     setNewRef(""); setNewClient(""); setNewEmail(""); setNewAddress(""); setNewDesc("");
     setNewSub(""); setNewDead(""); setNewStatus("received"); setNewCouncil("");
 
-    // Persist to Supabase (fire-and-forget — UI already updated)
+    // Persist to Supabase — update the temp ID with the real one on success
     fetch("/api/planning-applications", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -507,7 +506,24 @@ export default function DashboardPage() {
         council:         council || undefined,
         practiceId:      practiceId,
       }),
-    }).catch(() => {});
+    }).then(async res => {
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const msg = (data as { error?: string }).error ?? "Failed to save application.";
+        setApplications(prev => prev.filter(a => a.id !== tempId));
+        alert(`Save failed: ${msg}\n\nPlease check your connection and try again.`);
+        return;
+      }
+      const data = await res.json();
+      if (data.application) {
+        setApplications(prev =>
+          prev.map(a => a.id === tempId ? { ...a, id: data.application.id, portalToken: data.application.portalToken } : a)
+        );
+      }
+    }).catch(() => {
+      setApplications(prev => prev.filter(a => a.id !== tempId));
+      alert("Failed to save application — please check your connection and try again.");
+    });
   }
 
   // ── Load profile and applications on mount ──
@@ -824,7 +840,7 @@ export default function DashboardPage() {
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="shrink-0 inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold text-sm px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl transition-colors shadow-sm"
+            className="shrink-0 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-sm px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl transition-colors shadow-sm"
           >
             <IconPlus className="w-4 h-4" />
             <span className="hidden sm:inline">Add Application</span>
@@ -908,10 +924,7 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* ── SEAI Grants widget ─────────────────────────────────────── */}
-        {!isInitialLoad && !showWelcomeState && (
-          <GrantsDashboardWidget className="mb-6 sm:mb-7" />
-        )}
+        {/* SEAI grants widget moved into application detail view — use /grants directly */}
 
         {/* ── Application cards ───────────────────────────────────────── */}
         <div className={isInitialLoad ? "hidden" : ""}>
@@ -1117,7 +1130,7 @@ export default function DashboardPage() {
                         <select
                           value={app.status}
                           onChange={e => updateStatus(app, e.target.value as ApplicationStatus)}
-                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 pr-8 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none cursor-pointer transition-colors"
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 pr-8 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer transition-colors"
                         >
                           {STATUS_OPTIONS.map(opt => (
                             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -1155,7 +1168,7 @@ export default function DashboardPage() {
                         }
                         placeholder="Add notes visible only to you — call-backs, site visit dates, client queries…"
                         rows={3}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors leading-relaxed"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors leading-relaxed"
                       />
                       <div className="flex items-center justify-between mt-2">
                         <span className={`text-xs min-w-[4rem] transition-colors ${
@@ -1201,7 +1214,7 @@ export default function DashboardPage() {
                               setSendEmail(prev => ({ ...prev, [app.referenceNumber]: e.target.value }))
                             }
                             placeholder="client@example.com"
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                           />
                           {sendStatus[app.referenceNumber] === "error" && (
                             <p className="mt-1.5 text-xs text-red-600">Failed to send — check your API keys and try again.</p>
@@ -1213,7 +1226,7 @@ export default function DashboardPage() {
                                 !sendEmail[app.referenceNumber]?.trim() ||
                                 sendStatus[app.referenceNumber] === "sending"
                               }
-                              className="flex items-center gap-2 text-xs font-semibold bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3.5 py-1.5 rounded-lg transition-colors"
+                              className="flex items-center gap-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3.5 py-1.5 rounded-lg transition-colors"
                             >
                               {sendStatus[app.referenceNumber] === "sending" ? (
                                 <>
@@ -1299,7 +1312,7 @@ export default function DashboardPage() {
                         aria-label="Send client update"
                         className={`relative flex items-center justify-center w-10 h-10 rounded-xl border transition-all shrink-0 ${
                           sendOpen[app.referenceNumber]
-                            ? "bg-green-600 border-green-600 text-white"
+                            ? "bg-blue-600 border-blue-600 text-white"
                             : "bg-white border-gray-200 text-gray-400 hover:text-gray-700 hover:border-gray-300"
                         }`}
                         title="Send client update email"
@@ -1362,10 +1375,10 @@ export default function DashboardPage() {
             {/* Planning Fee Calculator card */}
             <button
               onClick={() => { setFeeResult(null); setFeeCouncil(""); setFeeDevType(""); setFeeArea(""); setShowFeeModal(true); }}
-              className="text-left bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 hover:border-green-300 hover:shadow-sm transition-all group"
+              className="text-left bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 hover:border-blue-300 hover:shadow-sm transition-all group"
             >
               <div className="flex items-start gap-4">
-                <div className="w-11 h-11 rounded-xl bg-green-50 text-green-600 flex items-center justify-center shrink-0 group-hover:bg-green-100 transition-colors">
+                <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-100 transition-colors">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008zm0 2.25h.008v.008H8.25V13.5zm0 2.25h.008v.008H8.25v-.008zm0 2.25h.008v.008H8.25V18zm2.498-6.75h.007v.008h-.007v-.008zm0 2.25h.007v.008h-.007V13.5zm0 2.25h.007v.008h-.007v-.008zm0 2.25h.007v.008h-.007V18zm2.504-6.75h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V13.5zm0 2.25h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V18zm2.498-6.75h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V13.5zM8.25 6h7.5v2.25h-7.5V6zM12 2.25c-1.892 0-3.758.11-5.593.322C5.307 2.7 4.5 3.522 4.5 4.5v15a2.25 2.25 0 002.25 2.25h10.5A2.25 2.25 0 0019.5 19.5v-15c0-.978-.807-1.8-1.907-1.928A48.507 48.507 0 0012 2.25z" />
                   </svg>
@@ -1377,7 +1390,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
               </div>
-              <div className="mt-4 flex items-center gap-1.5 text-sm font-medium text-green-600 group-hover:text-green-700">
+              <div className="mt-4 flex items-center gap-1.5 text-sm font-medium text-blue-600 group-hover:text-blue-700">
                 Open calculator
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -1388,10 +1401,10 @@ export default function DashboardPage() {
             {/* Newspaper Notice Generator card */}
             <button
               onClick={() => { setNoticeCouncil(""); setNoticeDevType(""); setNoticeApplicant(""); setNoticeAddress(""); setNoticeDesc(""); setNoticeCopied(null); setShowNoticeModal(true); }}
-              className="text-left bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 hover:border-green-300 hover:shadow-sm transition-all group"
+              className="text-left bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 hover:border-blue-300 hover:shadow-sm transition-all group"
             >
               <div className="flex items-start gap-4">
-                <div className="w-11 h-11 rounded-xl bg-green-50 text-green-600 flex items-center justify-center shrink-0 group-hover:bg-green-100 transition-colors">
+                <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-100 transition-colors">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" />
                   </svg>
@@ -1403,7 +1416,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
               </div>
-              <div className="mt-4 flex items-center gap-1.5 text-sm font-medium text-green-600 group-hover:text-green-700">
+              <div className="mt-4 flex items-center gap-1.5 text-sm font-medium text-blue-600 group-hover:text-blue-700">
                 Generate notices
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -1533,7 +1546,7 @@ export default function DashboardPage() {
               </div>
 
               {newCouncil && (
-                <CountyIntelPanel county={newCouncil} />
+                <CountyIntelPanel county={newCouncil} isPaid={true} />
               )}
 
               <div>
@@ -1583,7 +1596,7 @@ export default function DashboardPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition-colors"
+                  className="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors"
                 >
                   Add Application
                 </button>
@@ -1629,7 +1642,7 @@ export default function DashboardPage() {
               </div>
 
               {feeCouncil && (
-                <CountyIntelPanel county={feeCouncil} />
+                <CountyIntelPanel county={feeCouncil} isPaid={true} />
               )}
 
               <div>
@@ -1665,7 +1678,7 @@ export default function DashboardPage() {
                   setFeeResult(calculatePlanningFee(feeDevType, parseFloat(feeArea)));
                 }}
                 disabled={!feeDevType || !feeArea || isNaN(parseFloat(feeArea)) || parseFloat(feeArea) <= 0}
-                className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors"
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors"
               >
                 Calculate fee
               </button>
@@ -1765,7 +1778,7 @@ export default function DashboardPage() {
                 </div>
 
                 {noticeCouncil && (
-                  <CountyIntelPanel county={noticeCouncil} />
+                  <CountyIntelPanel county={noticeCouncil} isPaid={true} />
                 )}
 
                 <div>

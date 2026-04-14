@@ -129,7 +129,7 @@ export function UpgradePrompt({ feature, description, tier = "paid", redirectTo 
             <button
               onClick={() => handleCheckout(PRICE_SUBSCRIPTION)}
               disabled={loading !== null}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 px-8 rounded-xl transition-colors text-sm"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 px-8 rounded-xl transition-colors text-sm"
             >
               {loading === PRICE_SUBSCRIPTION ? (
                 <>
@@ -144,7 +144,7 @@ export function UpgradePrompt({ feature, description, tier = "paid", redirectTo 
               Already subscribed?{" "}
               <Link
                 href="/login"
-                className="text-green-600 hover:text-green-700 underline underline-offset-2 transition-colors font-medium"
+                className="text-blue-600 hover:text-blue-700 underline underline-offset-2 transition-colors font-medium"
               >
                 Sign in
               </Link>
@@ -155,7 +155,7 @@ export function UpgradePrompt({ feature, description, tier = "paid", redirectTo 
             <button
               onClick={() => handleCheckout(PRICE_ONE_OFF)}
               disabled={loading !== null}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 px-8 rounded-xl transition-colors text-sm"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 px-8 rounded-xl transition-colors text-sm"
             >
               {loading === PRICE_ONE_OFF ? (
                 <>
@@ -187,7 +187,7 @@ export function UpgradePrompt({ feature, description, tier = "paid", redirectTo 
               Already have access?{" "}
               <Link
                 href="/login"
-                className="text-green-600 hover:text-green-700 underline underline-offset-2 transition-colors font-medium"
+                className="text-blue-600 hover:text-blue-700 underline underline-offset-2 transition-colors font-medium"
               >
                 Sign in
               </Link>

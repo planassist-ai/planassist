@@ -740,7 +740,7 @@ function StageCard({ stage, index, stageState, isMortgage, county, onToggleItem,
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function SelfBuildPage() {
-  const { isPaid, loading: authLoading } = useAuthStatus();
+  const { isPaid, isArchitect, loading: authLoading } = useAuthStatus();
   const [data, setData] = useState<SelfBuildData | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<"tracker" | "drawdown" | "portals">("tracker");
@@ -847,8 +847,8 @@ export default function SelfBuildPage() {
     );
   }
 
-  // ── Render: no paid access
-  if (!isPaid) {
+  // ── Render: no paid access — architects always have access
+  if (!isPaid && !isArchitect) {
     return (
       <AppShell>
         <UpgradePrompt

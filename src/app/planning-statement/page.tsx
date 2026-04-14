@@ -150,7 +150,7 @@ function StatementRenderer({ text }: { text: string }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function PlanningStatementPage() {
-  const { isPaid, loading: authLoading } = useAuthStatus();
+  const { isPaid, isArchitect, loading: authLoading } = useAuthStatus();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [statement, setStatement] = useState<string | null>(null);
@@ -222,7 +222,7 @@ export default function PlanningStatementPage() {
     );
   }
 
-  if (!isPaid) {
+  if (!isPaid && !isArchitect) {
     return (
       <AppShell>
         <UpgradePrompt

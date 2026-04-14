@@ -247,10 +247,10 @@ export default function InterpreterPage() {
   const verdictConfig = result ? VERDICT_CONFIG[result.verdictType] : null;
   const hasText = documentText.trim().length >= 50;
 
-  const { loading: authLoading, isPaid } = useAuthStatus();
+  const { loading: authLoading, isPaid, isArchitect } = useAuthStatus();
 
-  // Gate: require paid subscription
-  if (!authLoading && !isPaid) {
+  // Gate: require paid subscription — architects always have access
+  if (!authLoading && !isPaid && !isArchitect) {
     return (
       <AppShell>
         <UpgradePrompt

@@ -5,15 +5,15 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   // Shell chrome
-  Bell, ChevronDown, Plus, LogOut, ExternalLink,
+  Bell, ChevronDown, Plus, LogOut, ExternalLink, Mail,
   // User dropdown
   LayoutDashboard, User, CreditCard, Users, MessageSquare, Star,
   // Planning group
-  CheckCircle2, ClipboardList, Calculator, Map, Newspaper,
+  CheckCircle2, Calculator, Map, Newspaper,
   // Applications group
   FileSearch, FileText, Ruler, Activity, Home,
   // Resources group
-  Zap,
+  Zap, Calendar,
   // Settings
   Settings,
   type LucideIcon,
@@ -54,28 +54,34 @@ const NAV_GROUPS: NavGroup[] = [
   {
     title: "Planning",
     items: [
-      { label: "Permission Checker",   icon: CheckCircle2, href: "/check"              },
-      { label: "Document Checklist",   icon: ClipboardList, href: "/checklist"         },
-      { label: "County Intelligence",  icon: Map,           href: "/check"             },
-      { label: "Fee Calculator",       icon: Calculator,    modal: "fee"               },
-      { label: "Notice Generator",     icon: Newspaper,     modal: "notice"            },
+      { label: "Permission Checker",   icon: CheckCircle2,  href: "/check"              },
+      { label: "County Intelligence",  icon: Map,           href: "/check"              },
+      { label: "Fee Calculator",       icon: Calculator,    modal: "fee"                },
+      { label: "Notice Generator",     icon: Newspaper,     modal: "notice"             },
     ],
   },
   {
     title: "Applications",
     items: [
-      { label: "Document Interpreter", icon: FileSearch,    href: "/interpreter"       },
+      { label: "Document Interpreter", icon: FileSearch,    href: "/interpreter"        },
       { label: "Planning Statement",   icon: FileText,      href: "/planning-statement" },
-      { label: "Design Checker",       icon: Ruler,         href: "/design-check"      },
-      { label: "Status Tracker",       icon: Activity,      href: "/status"            },
-      { label: "Self-Build Guide",     icon: Home,          href: "/self-build"        },
+      { label: "Design Checker",       icon: Ruler,         href: "/design-check"       },
+      { label: "Self-Build Guide",     icon: Home,          href: "/self-build"         },
+    ],
+  },
+  {
+    title: "Workspace",
+    items: [
+      { label: "Application Timeline", icon: Activity,      href: "/dashboard/timeline"       },
+      { label: "Deadline Calendar",    icon: Calendar,      href: "/dashboard/calendar"       },
+      { label: "Email Templates",      icon: Mail,          href: "/dashboard/email-templates" },
     ],
   },
   {
     title: "Resources",
     items: [
-      { label: "SEAI Grants",          icon: Zap,           href: "/grants"            },
       { label: "Find a Professional",  icon: Users,         href: "/find-a-professional" },
+      { label: "SEAI Grants",          icon: Zap,           href: "/grants"              },
     ],
   },
 ];
@@ -312,7 +318,7 @@ function SidebarContent({
         {iconOnly ? (
           <div className="group relative">
             <Link
-              href="/dashboard"
+              href="/dashboard/settings"
               onClick={onClose}
               className="w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-md transition-colors"
             >
@@ -324,7 +330,7 @@ function SidebarContent({
           </div>
         ) : (
           <Link
-            href="/dashboard"
+            href="/dashboard/settings"
             onClick={onClose}
             className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors"
           >
@@ -345,23 +351,104 @@ function DropdownItem({
   label,
   icon: Icon,
   external,
+  onClick,
 }: {
-  href: string;
+  href?: string;
   label: string;
   icon?: LucideIcon;
   external?: boolean;
+  onClick?: () => void;
 }) {
-  return (
-    <a
-      href={href}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noopener noreferrer" : undefined}
-      className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-    >
+  const cls = "flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors w-full text-left";
+  const inner = (
+    <>
       {Icon && <Icon className="w-[15px] h-[15px] text-gray-400 shrink-0" strokeWidth={1.75} />}
       <span className="flex-1">{label}</span>
       {external && <ExternalLink className="w-3 h-3 text-gray-300" />}
+    </>
+  );
+
+  if (onClick) {
+    return <button className={cls} onClick={onClick}>{inner}</button>;
+  }
+  return (
+    <a
+      href={href ?? "#"}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      className={cls}
+    >
+      {inner}
     </a>
+  );
+}
+
+// ─── Invite Colleague Modal ──────────────────────────────────────────────────────
+
+function InviteModal({ onClose, userEmail }: { onClose: () => void; userEmail: string | null }) {
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+
+  function send(e: React.FormEvent) {
+    e.preventDefault();
+    const subject = encodeURIComponent("Join me on Granted — planning tools for architects");
+    const body = encodeURIComponent(
+      `Hi,\n\nI've been using Granted (https://granted.ie) to manage planning applications and thought you might find it useful.\n\nIt has tools for managing the full planning pipeline — deadline tracking, document interpretation, notice generation, and client portal links.\n\nYou can sign up at https://granted.ie/signup?type=architect\n\nBest,\n${userEmail ?? "Your colleague"}`
+    );
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    setSent(true);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-bold text-gray-900">Invite a Colleague</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {sent ? (
+          <div className="text-center py-6">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            </div>
+            <p className="text-sm font-semibold text-gray-900 mb-1">Email client opened</p>
+            <p className="text-xs text-gray-500">Send the pre-filled message to invite your colleague.</p>
+            <button onClick={onClose} className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+              Done
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={send} className="space-y-4">
+            <p className="text-sm text-gray-600">We&apos;ll open your email client with a pre-written invite.</p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Colleague&apos;s email address</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="colleague@practice.ie"
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button type="button" onClick={onClose} className="flex-1 py-2.5 border border-gray-300 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-50 transition-colors">
+                Cancel
+              </button>
+              <button type="submit" className="flex-1 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors">
+                Open Email Client
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -383,6 +470,7 @@ export function DashboardShell({
   const { userEmail } = useAuthStatus();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -423,6 +511,9 @@ export function DashboardShell({
 
   return (
     <div className="min-h-screen bg-slate-50 text-gray-900 flex flex-col">
+      {showInviteModal && (
+        <InviteModal onClose={() => setShowInviteModal(false)} userEmail={userEmail} />
+      )}
 
       {/* ── Top navigation bar ─────────────────────────────────────────────── */}
       <header className="fixed top-0 left-0 right-0 z-40 h-14 bg-white border-b border-gray-200 flex items-center px-4 gap-3">
@@ -431,7 +522,7 @@ export function DashboardShell({
         <div className="w-9 lg:hidden shrink-0" /> {/* spacer matching icon rail */}
         <Link
           href="/"
-          className="text-[1.15rem] font-bold text-green-600 tracking-tight shrink-0 mr-2"
+          className="text-[1.15rem] font-bold text-blue-600 tracking-tight shrink-0 mr-2"
         >
           Granted
         </Link>
@@ -499,11 +590,11 @@ export function DashboardShell({
                 </div>
 
                 <div className="py-1">
-                  <DropdownItem href="/dashboard" label="My Applications"       icon={LayoutDashboard} />
-                  <DropdownItem href="/dashboard" label="My Profile"             icon={User} />
-                  <DropdownItem href="/dashboard" label="Account Settings"       icon={Settings} />
-                  <DropdownItem href="/dashboard" label="Billing & Subscription" icon={CreditCard} />
-                  <DropdownItem href="/dashboard" label="Invite a Colleague"     icon={Users} />
+                  <DropdownItem href="/dashboard"          label="My Applications"       icon={LayoutDashboard} onClick={() => setDropdownOpen(false)} />
+                  <DropdownItem href="/dashboard/profile"  label="My Profile"             icon={User}            onClick={() => setDropdownOpen(false)} />
+                  <DropdownItem href="/dashboard/settings" label="Account Settings"       icon={Settings}        onClick={() => setDropdownOpen(false)} />
+                  <DropdownItem href="/dashboard/billing"  label="Billing & Subscription" icon={CreditCard}      onClick={() => setDropdownOpen(false)} />
+                  <DropdownItem label="Invite a Colleague" icon={Users} onClick={() => { setDropdownOpen(false); setShowInviteModal(true); }} />
                 </div>
 
                 <div className="border-t border-gray-100 py-1">

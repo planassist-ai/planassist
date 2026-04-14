@@ -16,10 +16,11 @@ import { resolveUserTier, unauthorized, architectOnly } from "@/lib/authGuard";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Use service role key to bypass RLS — auth is already verified via resolveUserTier()
 function supabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 }
 
@@ -80,11 +81,12 @@ export async function PATCH(
       if (securityErr) return badRequest(securityErr);
     }
 
-    // Fetch existing record to detect status transition and get practice_id
+    // Fetch existing record — filter by user_id to enforce ownership
     const { data: existing, error: fetchError } = await supabase()
       .from("applications")
       .select("*")
       .eq("id", id)
+      .eq("user_id", tier.userId)
       .single();
 
     if (fetchError || !existing) {
@@ -105,6 +107,7 @@ export async function PATCH(
       .from("applications")
       .update(updatePayload)
       .eq("id", id)
+      .eq("user_id", tier.userId)
       .select("*")
       .single();
 

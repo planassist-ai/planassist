@@ -167,7 +167,7 @@ function MultiOptionCard({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function GrantsPage() {
-  const { isPaid } = useAuthStatus();
+  const { isPaid, isArchitect } = useAuthStatus();
   const [step, setStep] = useState<Step>(1);
   const [answers, setAnswers] = useState<Answers>({
     projectType: null,
@@ -423,7 +423,7 @@ export default function GrantsPage() {
             </div>
 
             {/* Warmer Homes Scheme notice — paid only */}
-            {warmerHomes && isPaid && (
+            {warmerHomes && (isPaid || isArchitect) && (
               <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 mb-5">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center shrink-0">
@@ -453,7 +453,7 @@ export default function GrantsPage() {
             )}
 
             {/* Warmer Homes teaser — free users */}
-            {warmerHomes && !isPaid && (
+            {warmerHomes && !isPaid && !isArchitect && (
               <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 mb-5">
                 <p className="text-xs font-semibold text-blue-800">
                   You may also qualify for the Warmer Homes Scheme (free upgrades).
@@ -475,8 +475,8 @@ export default function GrantsPage() {
                       </div>
                       <span className="text-lg font-bold text-green-700 shrink-0 whitespace-nowrap">{grant.amount}</span>
                     </div>
-                    {/* Conditions + apply link — paid only */}
-                    {isPaid ? (
+                    {/* Conditions + apply link — paid and architect access */}
+                    {(isPaid || isArchitect) ? (
                       <>
                         <div className="p-4 sm:p-5">
                           <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2.5">Key conditions</p>
@@ -521,8 +521,8 @@ export default function GrantsPage() {
               </div>
             )}
 
-            {/* Upgrade prompt for free users after results */}
-            {!isPaid && grants.length > 0 && (
+            {/* Upgrade prompt for free users after results — architects always have access */}
+            {!isPaid && !isArchitect && grants.length > 0 && (
               <UpgradePrompt
                 feature="Full SEAI Grants Checker"
                 description="See key conditions for each grant, Warmer Homes eligibility details, and direct application links at seai.ie."

@@ -11,12 +11,13 @@ import { resolveUserTier, unauthorized, architectOnly } from "@/lib/authGuard";
 // Supabase table: applications
 // Columns: id (uuid), reference (text), client_name (text), address (text),
 //          council (text), status (text), submission_date (date), deadline_date (date),
-//          notes (text), last_updated (timestamptz), practice_id (uuid)
+//          notes (text), last_updated (timestamptz), practice_id (uuid), user_id (uuid)
 
+// Use service role key to bypass RLS — auth is already verified via resolveUserTier()
 function supabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 }
 
@@ -51,7 +52,7 @@ function addDays(dateStr: string, days: number): string {
   return d.toISOString().split("T")[0];
 }
 
-// GET /api/planning-applications — return all applications ordered by last updated
+// GET /api/planning-applications — return all applications for this architect
 export async function GET() {
   const tier = await resolveUserTier();
   if (!tier) return unauthorized();
@@ -61,6 +62,7 @@ export async function GET() {
     const { data, error } = await supabase()
       .from("applications")
       .select("*")
+      .eq("user_id", tier.userId)
       .order("last_updated", { ascending: false });
 
     if (error) {
@@ -141,6 +143,7 @@ export async function POST(request: NextRequest) {
         notes:           "",
         last_updated:    new Date().toISOString(),
         practice_id:     practiceId ?? null,
+        user_id:         tier.userId,
       })
       .select("*")
       .single();

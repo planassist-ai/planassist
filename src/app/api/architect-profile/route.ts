@@ -5,10 +5,11 @@ import { resolveUserTier, unauthorized, architectOnly } from "@/lib/authGuard";
 // Supabase table: practices
 // Columns: id (uuid), name (text), architect_email (text), created_at (timestamptz)
 
+// Use service role key to bypass RLS — auth is already verified via resolveUserTier()
 function supabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 }
 
