@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   // Shell chrome
-  Bell, ChevronDown, Plus, LogOut, ExternalLink, Mail,
+  Bell, ChevronDown, Plus, ExternalLink, Mail,
   // User dropdown
   LayoutDashboard, User, CreditCard, Users, MessageSquare, Star,
   // Planning group
@@ -19,7 +19,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
-import { createClient } from "@/lib/supabase/browser";
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
@@ -603,17 +602,14 @@ export function DashboardShell({
 
                 <div className="border-t border-gray-100 py-1">
                   <button
-                    onClick={() => {
-                      console.log("[logout] button clicked — calling supabase.auth.signOut()");
+                    onClick={async () => {
+                      const { createClient } = await import('@/lib/supabase/client');
                       const supabase = createClient();
-                      supabase.auth.signOut().then(() => {
-                        console.log("[logout] signOut() resolved — redirecting to /");
-                        window.location.href = "/";
-                      });
+                      await supabase.auth.signOut();
+                      window.location.href = '/';
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50"
                   >
-                    <LogOut className="w-[15px] h-[15px] shrink-0" strokeWidth={1.75} />
                     Log Out
                   </button>
                 </div>
