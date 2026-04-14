@@ -24,11 +24,10 @@ function LoginForm() {
     setError(null);
 
     const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-
-    setLoading(false);
+    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (authError) {
+      setLoading(false);
       setError(
         authError.message.toLowerCase().includes("invalid")
           ? "Incorrect email or password. Please try again."
@@ -37,7 +36,24 @@ function LoginForm() {
       return;
     }
 
-    router.push(next);
+    // Determine destination based on role, not just the ?next= param.
+    // Architects go to /dashboard (or the requested ?next= path if set).
+    // Everyone else lands on the homepage.
+    let destination = "/";
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_architect")
+        .eq("id", data.user.id)
+        .maybeSingle();
+      const isArchitect = (profile as { is_architect?: boolean } | null)?.is_architect ?? false;
+      if (isArchitect) {
+        // Honour an explicit ?next= param (e.g. middleware redirected them here from /dashboard).
+        destination = next !== "/" ? next : "/dashboard";
+      }
+    }
+
+    router.push(destination);
   }
 
   return (

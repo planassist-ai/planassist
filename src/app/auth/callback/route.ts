@@ -8,7 +8,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code         = searchParams.get("code");
-  const next         = searchParams.get("next") ?? "/dashboard";
+  const nextParam    = searchParams.get("next"); // explicit override from signup email URL
   const isArchitect  = searchParams.get("type") === "architect";
 
   if (code) {
@@ -58,7 +58,20 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      return NextResponse.redirect(`${origin}${next}`);
+      // Determine redirect: use explicit next param if provided, otherwise
+      // route architects to /dashboard and everyone else to /.
+      let destination = nextParam ?? "/";
+      if (!nextParam) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_architect")
+          .eq("id", user?.id ?? "")
+          .maybeSingle();
+        const userIsArchitect = (profile as { is_architect?: boolean } | null)?.is_architect ?? isArchitect;
+        destination = userIsArchitect ? "/dashboard" : "/";
+      }
+
+      return NextResponse.redirect(`${origin}${destination}`);
     }
   }
 
