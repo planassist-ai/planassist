@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { DashboardShell } from "@/app/components/DashboardShell";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
+import { createClient } from "@/lib/supabase/browser";
 
 const IRISH_COUNTIES = [
   "Carlow", "Cavan", "Clare", "Cork", "Donegal", "Dublin", "Galway", "Kerry",
@@ -49,17 +50,41 @@ export default function SettingsPage() {
     practice: "idle",
     notifications: "idle",
   });
-  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("/api/update-profile");
-        if (!res.ok) throw new Error("Failed to load");
-        const data = await res.json();
-        if (data.profile) setProfile(prev => ({ ...prev, ...data.profile }));
+        const supabase = createClient();
+        // Use getUser() — more reliable than getSession() which can return null on refresh
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        if (profile) {
+          setProfile(prev => ({
+            ...prev,
+            full_name:        (profile as Record<string, unknown>).full_name        as string  ?? "",
+            practice_name:    (profile as Record<string, unknown>).practice_name    as string  ?? "",
+            county:           (profile as Record<string, unknown>).county           as string  ?? "",
+            email:            user.email ?? prev.email,
+            num_architects:   (profile as Record<string, unknown>).num_architects   as number  ?? 1,
+            specialisms:      (profile as Record<string, unknown>).specialisms      as string[] ?? [],
+            counties_covered: (profile as Record<string, unknown>).counties_covered as string[] ?? [],
+            email_alerts:     (profile as Record<string, unknown>).email_alerts     as boolean ?? true,
+          }));
+        } else {
+          // Profile row exists but is empty — at least set the email
+          setProfile(prev => ({ ...prev, email: user.email ?? prev.email }));
+        }
       } catch {
-        setLoadError("Could not load your profile. Please refresh.");
+        // Profile fetch failed — show empty form, user can fill in manually.
+        // Email already shown from useAuthStatus; no error banner needed.
       } finally {
         setLoading(false);
       }
@@ -147,10 +172,6 @@ export default function SettingsPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Settings</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your profile, practice details, and preferences.</p>
         </div>
-
-        {loadError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">{loadError}</div>
-        )}
 
         {/* Profile section */}
         <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">

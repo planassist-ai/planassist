@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { DashboardShell } from "@/app/components/DashboardShell";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
+import { createClient } from "@/lib/supabase/browser";
 
 const IRISH_COUNTIES = [
   "Carlow", "Cavan", "Clare", "Cork", "Donegal", "Dublin", "Galway", "Kerry",
@@ -24,16 +25,27 @@ export default function ProfilePage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("/api/update-profile");
-        if (!res.ok) throw new Error("Failed to load");
-        const data = await res.json();
-        if (data.profile) {
-          setFullName(data.profile.full_name ?? "");
-          setPracticeName(data.profile.practice_name ?? "");
-          setCounty(data.profile.county ?? "");
+        const supabase = createClient();
+        // Use getUser() — more reliable than getSession() which can return null on refresh
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLoading(false);
+          return;
         }
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        if (profile) {
+          setFullName((profile as Record<string, unknown>).full_name as string ?? "");
+          setPracticeName((profile as Record<string, unknown>).practice_name as string ?? "");
+          setCounty((profile as Record<string, unknown>).county as string ?? "");
+        }
+        // If profile is null, the form stays empty — user can fill in and save
       } catch {
-        setErrorMsg("Could not load your profile. Please refresh.");
+        // Profile fetch failed — show empty form with email from useAuthStatus.
+        // No error banner: the user can still see their email and fill in fields.
       } finally {
         setLoading(false);
       }

@@ -491,9 +491,14 @@ export function DashboardShell({
   }, []);
 
   const handleSignOut = useCallback(async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    // Use window.location for a hard redirect so all client state is cleared
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch {
+      // ignore signOut errors — still redirect to clear client state
+    }
+    // Hard redirect: forces a full page reload so all Supabase client state,
+    // cookies, and cached auth are cleared. Do NOT use router.push here.
     window.location.href = "/";
   }, []);
 
