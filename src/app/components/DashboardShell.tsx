@@ -19,6 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useAuthStatus } from "@/app/hooks/useAuthStatus";
+import { createClient } from "@/lib/supabase/browser";
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
@@ -602,7 +603,14 @@ export function DashboardShell({
 
                 <div className="border-t border-gray-100 py-1">
                   <button
-                    onClick={() => { window.location.href = "/api/auth/logout"; }}
+                    onClick={() => {
+                      console.log("[logout] button clicked — calling supabase.auth.signOut()");
+                      const supabase = createClient();
+                      supabase.auth.signOut().then(() => {
+                        console.log("[logout] signOut() resolved — redirecting to /");
+                        window.location.href = "/";
+                      });
+                    }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                   >
                     <LogOut className="w-[15px] h-[15px] shrink-0" strokeWidth={1.75} />
